@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Click Event Example</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        /* 可以在这里添加一些CSS样式，但这不是必需的 */
+        .btnBlack {
+            background-color: black;
+            color: white;
+            padding: 10px;
+            margin: 5px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .btn-active {
+            background-color: darkgray;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="row" id="rowSeconds">
+        <div class="btnBlack col-sm-3 btn-active" data-value="60">60s</div>
+        <div class="btnBlack col-sm-3" data-value="180">180s</div>
+        <div class="btnBlack col-sm-3" data-value="300">300s</div>
+        <div class="btnBlack col-sm-3" data-value="600">600s</div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#rowSeconds > div').click(function () {
+                alert($(this).data('value') + 's 被点击了！');
+            });
+        });  
+    </script>
+
+</body>
+
+</html>

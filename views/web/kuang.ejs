@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="stylesheet" href="/public/web/css/style.css?23" />
+    <script src="/public/lib/jquery-3.4.1/jquery-3.4.1.min.js"></script>
+</head>
+
+<body>
+    <div class="main-bg">
+        <%- include('head') %>
+
+
+            <div class="kuang-bg" id="clickableArea">
+                <div class="kuang-top-bg">活期APR即時 0.03%-3%
+                    (每六小時計算)
+                </div>
+                <div class="kuang-main">
+                    <p>即時APR每分鐘都可能變動，APR並不代表實際或預測收益。但可隨時轉點。
+                    </p>
+                    <p>舉例:小王錢包餘額100萬，當日申購後00:00開始計算6小時後，自動返100萬*(0.03%-3%)點數到錢包裡。
+
+                    </p>
+                    <p>APR收益=TWD，但不會即時更新。
+
+                    </p>
+                    <p>如何提升APR:提升每小時利潤
+                    </p>
+                </div>
+
+                <div id="btnApr" class="kuang-bottom-bg">立即賺取APR
+                </div>
+            </div>
+
+            <%- include('footer') %>
+    </div>
+</body>
+
+</html>
+<script src="/public/lib/jquery-3.4.1/jquery-3.4.1.min.js"></script>
+<!--script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script-->
+<script>
+    $('#btnApr').click(function () {
+        confirm('確認把餘額轉入活期APR賺取收益？')
+    })
+</script>

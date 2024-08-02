@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collect Coins</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            position: relative;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #coin-container {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .coin {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-image: url('/public/web/images/coin.png');
+            background-size: cover;
+            animation: moveToCenter 1s forwards;
+        }
+
+        @keyframes moveToCenter {
+            to {
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="coin-container"></div>
+    <script>
+        const coinContainer = document.getElementById('coin-container');
+        const numberOfCoins = 50; // 设置N个金币
+
+        for (let i = 0; i < numberOfCoins; i++) {
+            const coin = document.createElement('div');
+            coin.classList.add('coin');
+
+            // 设置随机的起始位置
+            const startX = Math.random() * window.innerWidth;
+            const startY = window.innerHeight;//- (Math.random() * 100);
+
+            coin.style.left = `${startX}px`;
+            coin.style.top = `${startY}px`;
+
+            // 设置随机的动画延迟时间
+            const delay = Math.random() * 1; // 随机延迟0到2秒
+            coin.style.animationDelay = `${delay}s`;
+
+            coinContainer.appendChild(coin);
+        }
+
+        // 移除动画结束后的金币
+        coinContainer.addEventListener('animationend', (event) => {
+            if (event.target.classList.contains('coin')) {
+                event.target.remove();
+            }
+        });
+
+
+    </script>
+</body>
+
+</html>

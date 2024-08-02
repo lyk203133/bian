@@ -1,0 +1,271 @@
+body,
+h1,
+ul {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Basic styles */
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #000;
+    color: #fff;
+    font-size: 12px;
+}
+
+.p-0 {
+    color: black;
+}
+
+.btnSmallSize {
+    width: 3rem;
+    height: 2rem;
+}
+
+.btnMiddleSize {
+    color: black;
+    width: 5rem;
+    height: 3rem;
+    align-items: center;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+}
+
+.btn {
+    background-color: orange;
+    border-radius: 4px;
+    height: 30px;
+    background-size: 100% 100%;
+
+    border: none;
+}
+
+.btnBlack {
+    cursor: pointer;
+    background-color: black;
+    border-radius: 4px;
+    height: 30px;
+    background-size: 100% 100%;
+    margin: .2rem;
+    border: none;
+    color: white;
+    align-items: center;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-active {
+    background-color: gray;
+}
+
+/* Header styles */
+header {
+
+    color: #fff;
+    padding: 1rem;
+    text-align: center;
+    font-size: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.logo {
+    color: orange;
+    height: 24px;
+    width: 6rem;
+}
+
+header .loginWallet {
+    display: none;
+    align-content: center;
+    font-size: 12px;
+
+}
+
+header img {
+    display: block;
+    margin: 0 auto;
+    width: 24px;
+    /* Adjust icon size */
+    height: 24px;
+    /* Adjust icon size */
+}
+
+header .login-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 40%;
+    font-size: 1rem;
+    overflow: hidden;
+}
+
+.logout {
+    background-image: url('/public/web/images/logout.png');
+    background-size: 100% 100%;
+    width: 25px;
+    height: 25px;
+}
+
+.sub-content {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+}
+
+.small-icon {
+    box-sizing: border-box;
+    margin: 0px;
+    min-width: 0px;
+    color: currentcolor;
+    font-size: 24px;
+    fill: currentcolor;
+    width: 1em;
+    height: 1em;
+}
+
+.line {
+    width: 100%;
+    margin: .6rem 0 .6rem;
+    height: 1px;
+    background-color: gray;
+
+}
+
+/* Main content styles */
+.content {
+    flex: 1;
+    padding: 1rem;
+    padding-bottom: 3rem;
+    /* Add padding to avoid content overlap with footer */
+    overflow-y: auto;
+    /* Make the content area scrollable */
+}
+
+.main-content table {
+    margin-top: .5rem;
+    width: 100%;
+
+}
+
+.main-content table th {
+    text-align: center;
+    font-size: 14px;
+}
+
+.main-content table td {
+    text-align: center;
+    align-items: center;
+
+    height: 50px;
+}
+
+.main-content table td .item {
+    display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.main-content .icon {
+    width: 25px;
+    height: 25px;
+}
+
+
+
+/* Footer styles */
+footer {
+    background-color: #333;
+    color: #fff;
+    display: flex;
+    justify-content: space-around;
+
+    font-size: .8rem;
+    position: fixed;
+    /* Fixes the footer to the bottom */
+    bottom: 0;
+    width: 100%;
+    /* Ensures footer spans the full width */
+    left: 0;
+    z-index: 1000;
+    /* Ensures footer is on top of other content */
+}
+
+footer div {
+    text-align: center;
+}
+
+footer img {
+    display: block;
+    margin: 0 auto;
+    width: 24px;
+    /* Adjust icon size */
+    height: 24px;
+    /* Adjust icon size */
+}
+
+footer a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+    padding: 0.5rem;
+}
+
+footer a:hover {
+    text-decoration: none;
+}
+
+.coin-container {
+    display: flex;
+    align-items: center;
+    align-content: space-around;
+}
+
+.market {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.market .buy {
+    cursor: pointer;
+    width: 40%;
+    height: 1rem;
+    background-color: #0ECB81;
+    border-radius: .3rem;
+    text-align: center;
+    padding: 1rem;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+
+}
+
+.market .sell {
+    cursor: pointer;
+    width: 40%;
+    height: 1rem;
+    background-color: #F6465D;
+    border-radius: .3rem;
+    padding: 1rem;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+
+a {
+    color: white;
+    text-decoration: none;
+}
+
+.close {
+    line-height: 0;
+}

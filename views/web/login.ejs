@@ -1,0 +1,42 @@
+<div class="loginpanel">
+    <div class="mask">
+
+    </div>
+    <div class="login">
+        <div class="login-title"><a href="#" onclick="javascript:alert('請聯繫客服');">立即索取帳號</a>
+        </div>
+        <div class="login-name">
+            <input type="text" id="txtUsername" placeholder="帳號:">
+        </div>
+        <div class="login-pwd"><input type="password" id="txtPassword" placeholder="密碼:">
+        </div>
+        <div class="login-btn" id="btnLogin">登入
+        </div>
+    </div>
+</div>
+<script>
+    $('.mask').click(function () {
+        $('.loginpanel').hide();
+    })
+
+    $('#btnLogin').click(function () {
+        let username = $('#txtUsername').val();
+        let password = $('#txtPassword').val();
+        $.ajax({
+            url: '/userlogin',
+            type: 'post',
+            data: {
+                username,
+                password
+            },
+            success: function (res) {
+
+                if (res.code == 200) {
+                    window.location = '/'
+                } else {
+                    alert(res.message)
+                }
+            }
+        })
+    })
+</script>

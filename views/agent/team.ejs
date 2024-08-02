@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/public/lib/layui-v2.6.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="/public/css/public.css" media="all">
+</head>
+
+<body>
+    <div class="layuimini-container">
+        <div class="layuimini-main">
+
+            <fieldset class="table-search-fieldset">
+                <legend>搜索队伍信息</legend>
+                <div style="margin: 10px 10px 10px 10px">
+                    <form class="layui-form layui-form-pane" action="">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label class="layui-form-label">名称</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="keyword" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+
+
+                            <div class="layui-inline">
+                                <button id="btnSearch" type="submit" class="layui-btn layui-btn-primary" lay-submit
+                                    lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索</button>
+                            </div>
+                        </div>
+
+                    </form>
+
+                </div>
+            </fieldset>
+
+            <script type="text/html" id="toolbarDemo">
+            <div class="layui-btn-container">
+                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 添加 </button> <button type="button" class="layui-btn layui-btn-disabled">备注:手动编辑后的名称将覆盖采集名称,清空手动名称即可恢复采集名称</button>
+                <!--button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除 </button-->
+            </div>
+        </script>
+
+            <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+            <script type="text/html" id="currentTableBar">
+
+            <a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">删除</a>
+        </script>
+
+        </div>
+    </div>
+    <script src="/public/lib/layui-v2.6.3/layui.js" charset="utf-8"></script>
+    <script src="/public/lib/laydate/laydate.js" charset="utf-8"></script>
+    <script>
+        layui.use(['form', 'table', 'jquery', 'laydate'], function () {
+            var $ = layui.jquery,
+                form = layui.form,
+                laydate = layui.laydate,
+                select=layui.select,
+                table = layui.table;
+
+           
+
+
+            table.render({
+                elem: '#currentTableId',
+                type: 'post',
+                url: '/admin/team/list_data?ids=<%=ids%>',
+                toolbar: '#toolbarDemo',
+                defaultToolbar: ['filter', 'exports', 'print', {
+                    title: '提示',
+                    layEvent: 'LAYTABLE_TIPS',
+                    icon: 'layui-icon-tips'
+                }],
+                cols: [[
+                    /*{type: "checkbox", width: 50},*/
+                    { field: 'id', width: 80, title: 'ID', sort: true },
+                    {
+                        field: 'source', width: 80, title: '来源', sort: true, templet: function (d) {
+                            return d.source == 0 ? '自建' : '(1xbet)'
+                        }
+                    },
+                    { field: 'teamId', width: 100, title: '编号', sort: true },
+                    { field: 'name', minWidth: 160, edit: 'text', title: '来源名称' },
+                    { field: 'name_tw', minWidth: 160, edit: 'text', title: '繁体名称(可编辑)' ,templet:function(d){
+                        if(d.sname_tw && d.sname_tw.trim().length > 0) 
+                            return d.sname_tw 
+                        else
+                            return d. name_tw
+                    }},
+                    { field: 'name_cn', minWidth: 160, edit: 'text', title: '简体名称(可编辑)',templet:function(d){
+                        if(d.sname_cn && d.sname_cn.trim().length > 0) 
+                            return d.sname_cn 
+                        else
+                            return d.name_cn
+                    } },
+                    { field: 'name_en', minWidth: 160, edit: 'text', title: '英文名称(可编辑)',templet:function(d){
+                        if(d.sname_en && d.sname_en.trim().length > 0) 
+                            return d.sname_en 
+                        else
+                            return d.name_en
+                    } },
+                    { field: 'name_vn', minWidth: 160, edit: 'text', title: '越南名称(可编辑)' ,templet:function(d){
+                        if(d.sname_vn && d.sname_vn.trim().length > 0) 
+                            return d.sname_vn 
+                        else
+                            return d.name_vn
+                    }},
+
+                    //{ title: '操作', toolbar: '#currentTableBar', align: "center", fixed: 'right' }
+
+                ]],
+                limits: [10, 15, 20, 25, 50, 100],
+                limit: 15,
+                page: true,
+                skin: 'line'
+            });
+
+            // 监听搜索操作
+            form.on('submit(data-search-btn)', function (data) {
+                var result = JSON.stringify(data.field);
+
+                /* layer.alert(result, {
+                     title: '最终的搜索信息'
+                 });*/
+
+                //执行搜索重载
+                table.reload('currentTableId', {
+                    page: {
+                        curr: 1
+                    }
+                    , where: {
+                        searchParams: result
+                    }
+                }, 'data');
+
+                return false;
+            });
+
+            form.on('submit(data-save-btn)', function (data) {
+                var result = JSON.stringify(data.field);
+                console.log(result)
+                $.ajax({
+                    url: '/admin/team',
+                    type: 'post',
+                    data: {
+                        keyword: $('#keyword').val(),
+
+                    },
+                    success: function (res) {
+                        if (res.code == 0) {
+                            //执行搜索重载
+
+                            table.reload('currentTableId', {
+                                page: {
+                                    curr: 1
+                                }
+                            }, 'data');
+                        }
+                        //alert(res.message)
+
+
+                    }
+                })
+
+
+                return false;
+            });
+
+            table.on('edit(currentTableFilter)', function (obj) {
+                var value = obj.value //得到修改后的值
+                    , data = obj.data //得到所在行所有键值
+                    , field = obj.field; //得到字段
+
+                $.ajax({
+                    url: '/admin/team/save',
+                    type: 'post',
+                    data: {
+                        id: data.id,
+                        field: {
+                            name: field,
+                            value: value
+                        }
+                    },
+                    success: function (res) {
+                        if (res.code == 0) {
+                            //执行搜索重载
+                            //layer.msg('[ID: ' + data.id + '] ' + field + ' 字段更改值为：' + (value));
+                             // 右下角消息提示
+                             layer.msg(res.message+('(' + (value) + ')'), {
+                                offset: 'auto', // 消息框位置：右下角
+                                anim: 9, // 动画类型
+                                time: 1000, // 持续时间
+                                shade: [0.1,'#fff'] // 遮罩层样式
+                            });
+ 
+                            table.reload('currentTableId', {
+                                page: {
+                                    curr: 1
+                                }
+                            }, 'data');
+                        }
+                        //alert(res.message)
+
+
+                    }
+                })
+
+
+            });
+
+            table.on('toolbar(currentTableFilter)', function (obj) {
+                var data = obj.data;
+                if (obj.event === 'add') {  // 监听添加操作
+                    var index = layer.open({
+                        title: '添加联盟',
+                        type: 2,
+                        shade: 0.2,
+                        maxmin: true,
+                        shadeClose: true,
+                        area: ['80%', '100%'],
+                        content: '/admin/team/add',
+                    });
+                    $(window).on("resize", function () {
+                        layer.full(index);
+                    });
+                } else if (obj.event === 'edit') {
+                    console.log(obj)
+                    var html = '<form><table style="width:100%;margin-top:30px;text-align:center">';
+                    html += '<tr class="layui-form-item">\
+                        <td>主队全场进球</td>\
+                        <td>客队全场进球</td>\
+                    </tr>'
+
+                    let all_data = data.fbdDataLives.find(t => t.halftype == 0)
+                    let half_data = data.fbdDataLives.find(t => t.halftype == 1)
+
+                    let homescore = all_data ? all_data.homescore : ''
+                    let awayscore = all_data ? all_data.awayscore : ''
+                    html += '<tr class="layui-form-item">\
+                        <td align="center"><input  type="text" id="all_data_home" style="width:80px"  autocomplete="off" class="layui-input" value="'+ homescore + '" lay-event="itemUpdate"></td>\
+                        <td align="center"><input  type="text" id="all_data_away" style="width:80px"  autocomplete="off" class="layui-input" value="'+ awayscore + '" lay-event="itemUpdate"></td>\
+                    </tr>'
+                    html += '<tr><td colspan="2"><hr style="width:100;size:1px" /></td></tr>'
+                    html += '<tr class="layui-form-item">\
+                        <td>主队上半场进球</td>\
+                        <td>客队上半场进球</td>\
+                    </tr>'
+
+                    let homescore_half = (half_data && half_data != undefined) ? half_data.homescore : ''
+                    let awayscore_half = (half_data && half_data != undefined) ? half_data.awayscore : ''
+                    html += '<tr class="layui-form-item">\
+                        <td align="center"><input  type="text" id="half_data_home" style="width:80px"  autocomplete="off" class="layui-input" value="'+ homescore_half + '" lay-event="itemUpdate"></td>\
+                        <td align="center"><input  type="text" id="half_data_away" style="width:80px"  autocomplete="off" class="layui-input" value="'+ awayscore_half + '" lay-event="itemUpdate"></td>\
+                    </tr>'
+                    html += '<tr><td colspan="2"><hr style="width:100;size:1px" /><input type="hidden" value="' + data.id + '" id="hdid" /><button id="btnSave" type="submit" class="layui-btn layui-btn-primary" lay-submit="" lay-filter="data-save-btn"><i class="layui-icon"></i> 保存</button></td></tr>'
+                    html += '</table></form>'
+                    //layer.alert(html)
+                    var index = layer.open({
+                        title: '查看反波赔率',
+                        type: 1,
+                        shade: 0.2,
+                        maxmin: true,
+                        shadeClose: true,
+                        area: ['40%', '40%'],
+                        //content: '../page/table/edit.html',
+                        content: html,
+                    });
+                    $(window).on("resize", function () {
+                        layer.full(index);
+                    });
+                    return false;
+                } else if (obj.event === 'delete') {
+                    layer.confirm('真的删除行么', function (index) {
+                        obj.del();
+                        layer.close(index);
+                    });
+                }
+            });
+
+        });
+
+
+    </script>
+
+</body>
+
+</html>

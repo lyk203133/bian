@@ -1,0 +1,46 @@
+<div class="changepwdpanel">
+    <div class="mask">
+
+    </div>
+    <div class="login">
+        <div class="login-title">修改密碼
+        </div>
+        <div class="login-name">
+            <input type="password" id="txtOldPassword" placeholder="舊密碼:">
+        </div>
+        <div class="login-pwd"><input type="password" id="txtPassword1" placeholder="密碼:">
+        </div>
+        <div class="login-pwd"><input type="password" id="txtPassword2" placeholder="確認密碼">
+        </div>
+        <div class="login-btn" id="btnChange">登入
+        </div>
+    </div>
+</div>
+<script>
+    $('.mask').click(function () {
+        $('.changepwdpanel').hide();
+    })
+
+    $('#btnChange').click(function () {
+        let password = $('#txtOldPassword').val();
+        let password1 = $('#txtPassword1').val();
+        let password2 = $('#txtPassword2').val();
+        $.ajax({
+            url: '/changepwd',
+            type: 'post',
+            data: {
+                password,
+                password1,
+                password2,
+            },
+            success: function (res) {
+
+                if (res.code == 200) {
+                    window.location = '/'
+                } else {
+                    alert(res.message)
+                }
+            }
+        })
+    })
+</script>

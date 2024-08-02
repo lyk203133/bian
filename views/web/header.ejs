@@ -1,0 +1,23 @@
+<header>
+    <a href="/"><img class="logo" src="/public/web/images/logo.svg" /> </a>
+    <div class="login-panel" id="dvlogout">
+
+        <!--button class="logoutWallet btn btnSize" id="btnLogin" onclick="login()">帳號登入</button-->
+        <button class="logoutWallet btn btnSize" onclick="walletConnect()">wallet connect</button>
+        <div class="loginWallet">
+            <img src="/public/web/images/user.png">
+            <div id="dvUserAddr"></div>
+        </div>
+    </div>
+    <div class="login-panel" id="dvlogin" style="display:none">
+        <div><a href="/user"><img src="/public/web/images/user.png"></a></div>
+        <div><div id="lblusername" style="width:1rem"></div></div>
+        <div>
+            <a href="/logout">
+                <div class="logout" id="btnLogin" onclick="logout()"></div>
+            </a>
+        </div>
+    </div>
+
+</header>
+<div class="line"></div>

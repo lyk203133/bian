@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LINE Login with LIFF</title>
+</head>
+
+<body>
+    <button id="loginButton">Login with LINE</button>
+    <div id="userInfo" style="display: none;">
+        <h2>User Info</h2>
+        <p id="userId"></p>
+        <p id="displayName"></p>
+        <img id="pictureUrl" src="" alt="Profile Picture">
+    </div>
+
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+        document.getElementById('loginButton').addEventListener('click', function () {
+            liff.init({ liffId: "2000642664-V74rLrbE" })
+                .then(() => {
+                    if (!liff.isLoggedIn()) {
+                        liff.login();
+                    } else {
+                        getUserProfile();
+                    }
+                })
+                .catch(err => {
+                    console.error('LIFF initialization failed', err);
+                });
+        });
+
+        function getUserProfile() {
+            liff.getProfile()
+                .then(profile => {
+                    document.getElementById('userId').textContent = `User ID: ${profile.userId}`;
+                    document.getElementById('displayName').textContent = `Display Name: ${profile.displayName}`;
+                    document.getElementById('pictureUrl').src = profile.pictureUrl;
+                    document.getElementById('userInfo').style.display = 'block';
+
+                    window.location = '/'
+                })
+                .catch(err => {
+                    console.error('Error getting profile', err);
+                });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,101 @@
+{
+  "homeInfo": {
+    "title": "首頁",
+    "href": "admin/user"
+  },
+  "logoInfo": {
+    "title": "KUCOIN管理",
+    "image": "public/images/logo.png",
+    "href": ""
+  },
+  "menuInfo": [
+    {
+      "title": "常规管理",
+      "icon": "fa fa-address-book",
+      "href": "",
+      "target": "_self",
+      "child": [
+        {
+          "title": "系統管理",
+          "href": "",
+          "icon": "fa fa-file-text",
+          "target": "_self",
+          "child": [
+            {
+              "title": "系統設置",
+              "href": "/admin/setting",
+              "icon": "fa fa-list-alt",
+              "target": "_self"
+            },
+            {
+              "title": "免責聲明",
+              "href": "/admin/article/1",
+              "icon": "fa fa-list-alt",
+              "target": "_self"
+            },
+            {
+              "title": "隱私政策",
+              "href": "/admin/article/2",
+              "icon": "fa fa-list-alt",
+              "target": "_self"
+            }
+          ]
+        },
+        {
+          "title": "幣種管理",
+          "href": "",
+          "icon": "fa fa-calendar",
+          "target": "_self",
+          "child": [
+            {
+              "title": "幣種列表",
+              "href": "/admin/bi/",
+              "icon": "fa fa-navicon",
+              "target": "_self"
+            }
+          ]
+        },
+        {
+          "title": "交易管理",
+          "href": "",
+          "icon": "fa fa-calendar",
+          "target": "_self",
+          "child": [
+            {
+              "title": "訂單列表",
+              "href": "/admin/ticket/",
+              "icon": "fa fa-navicon",
+              "target": "_self"
+            }
+          ]
+        },
+        {
+          "title": "會員管理",
+          "href": "",
+          "icon": "fa fa-calendar",
+          "target": "_self",
+          "child": [
+            {
+              "title": "會員列表",
+              "href": "/admin/user/",
+              "icon": "fa fa-navicon",
+              "target": "_self"
+            },
+            {
+              "title": "轉入列表",
+              "href": "/admin/transfer/1",
+              "icon": "fa fa-list-alt",
+              "target": "_self"
+            },
+            {
+              "title": "轉出列表",
+              "href": "/admin/transfer/2",
+              "icon": "fa fa-list-alt",
+              "target": "_self"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

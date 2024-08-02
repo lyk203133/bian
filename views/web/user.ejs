@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>market</title>
+    <link rel="stylesheet" href="https://demo.lanrenzhijia.com/demo/37/3743/demo/css/zeroModal.css">
+    <link rel="stylesheet" href="/public/web/css/bootstrap.css">
+    <link href="//unpkg.com/layui@2.9.14/dist/css/layui.css" rel="stylesheet">
+    <link rel="stylesheet" href="/public/web/css/style.css?2x">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/klinecharts/dist/klinecharts.min.js"></script>
+    <!--script src="https://cdn.example.com/klinechart/klinechart-i18n.min.js"></script-->
+    <style>
+        /*.layui-colla-title {
+            color: white;
+            background-color: #484545;
+        }*/
+    </style>
+    <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
+    <script src="https://unpkg.com/@walletconnect/web3-provider@1.6.6/dist/umd/index.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="public/web/js/bootstrap.js"></script>
+    <script src="//unpkg.com/layui@2.9.14/dist/layui.js"></script>
+</head>
+
+<body>
+    <!-- Header -->
+    <%- include('header') %>
+
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="sub-content">
+                <img src="/public/web/images/user.png" class="small-icon">
+
+                <div>個人中心</div>
+            </div>
+            <div class="line"></div>
+            <div class="main-content">
+
+
+                <div>
+
+                    <div>
+                        <div>錢包地址</div>
+                        <div>
+                            <%=addr%>
+                        </div>
+                        <div class="line"></div>
+                    </div>
+                    <div>
+                        <div>餘額</div>
+                        <div class="balance">
+
+                        </div>
+                        <div class="line"></div>
+                    </div>
+
+                    <div><a href="#rechargeModal" data-toggle="modal">
+                            <div>轉入</div>
+                        </a></div>
+                    <div></div>
+                    <div class="line"></div>
+                </div>
+                <div>
+                    <div><a href="#withdrawModal" data-toggle="modal">
+                            <div>轉出</div>
+                        </a></div>
+                    <div></div>
+                    <div class="line"></div>
+                </div>
+                <div>
+                    <div>實名驗證</div>
+                    <div></div>
+                    <div class="line"></div>
+                </div>
+                <div>
+                    <div><a href="#responsibilityModal" data-toggle="modal">免責聲明</a></div>
+                    <div></div>
+                    <div class="line"></div>
+                </div>
+                <div>
+                    <div><a href="#privateInfoModal" data-toggle="modal">隱私政策</a></div>
+                    <div></div>
+                    <div class="line"></div>
+                </div>
+
+
+            </div>
+        </div>
+        <div id="rechargeModal" class="modal-style-2 dark modal " style="top:20%">
+            <div class="modal-dialog modal-login">
+                <div class="modal-content">
+                    <div class="modal-header p-0">
+                        <h4 class="modal-title">轉入</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- dont forget to add action and action method  -->
+                        <form action="" method="" class="mt-3">
+
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-user"
+                                            aria-hidden="true"></i>金額</span>
+                                    <input type="text" class="form-control" id="recharge-amount" value="">
+                                </div>
+                            </div>
+
+                            <div class="form-group text-center mt-2 mb-0">
+
+                                <button type="button" class="btnBlack btn-primary btn-sm"
+                                    onclick="javascript:recharge()">確定</button>
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div id="withdrawModal" class="modal-style-2 dark modal " style="top:20%">
+            <div class="modal-dialog modal-login">
+                <div class="modal-content">
+                    <div class="modal-header p-0">
+                        <h4 class="modal-title">轉出</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- dont forget to add action and action method  -->
+                        <form action="" method="" class="mt-3">
+
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-user"
+                                            aria-hidden="true"></i>金額</span>
+                                    <input type="text" class="form-control" id="withdraw-amount" value="">
+                                </div>
+                            </div>
+
+                            <div class="form-group text-center mt-2 mb-0">
+
+                                <button type="button" class="btnBlack btn-primary btn-sm"
+                                    onclick="javascript:withdraw()">確定</button>
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div id="responsibilityModal" class="modal-style-2 dark modal " style="top:20%">
+            <div class="modal-dialog modal-login">
+                <div class="modal-content">
+                    <div class="modal-header p-0">
+                        <h4 class="modal-title">免責聲明</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="layui-collapse">
+                            <% for(let i in responsibility){ %>
+                                <div class="layui-colla-item">
+                                    <div class="layui-colla-title">
+                                        <%=responsibility[i].title%>
+                                    </div>
+                                    <div class="layui-colla-content">
+                                        <ul>
+                                            <li>
+                                                <%=responsibility[i].content%>
+                                            </li>
+
+                                        </ul>
+                                    </div>
+                                </div>
+                                <% } %>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div id="privateInfoModal" class="modal-style-2 dark modal " style="top:20%">
+            <div class="modal-dialog modal-login">
+                <div class="modal-content">
+                    <div class="modal-header p-0">
+                        <h4 class="modal-title">隱私政策</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="layui-collapse">
+                            <% for(let i in privateInfo){ %>
+                                <div class="layui-colla-item">
+                                    <div class="layui-colla-title">
+                                        <%=privateInfo[i].title%>
+                                    </div>
+                                    <div class="layui-colla-content">
+                                        <ul>
+                                            <li>
+                                                <%=privateInfo[i].content%>
+                                            </li>
+
+                                        </ul>
+                                    </div>
+                                </div>
+                                <% } %>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <%- include('footer') %>
+
+</body>
+
+</html>
+<script>
+
+
+    async function recharge() {
+        let usdtAmount = $('#recharge-amount').val();
+        let amountPattern = /^\d+(\.\d{1,4})?$/;
+        if (amountPattern.test(usdtAmount)) {
+            console.log("Valid amount");
+        } else {
+            console.log("Invalid amount");
+            alert('金額有誤!')
+            return;
+        }
+
+        const providerOptions = {
+            walletconnect: {
+                package: window.WalletConnectProvider.default,
+                options: {
+                    infuraId // 如果需要
+                }
+            }
+        };
+
+        const web3Modal = new window.Web3Modal.default({
+            cacheProvider: false,
+            providerOptions
+        });
+
+        const provider = await web3Modal.connect();
+        const web3 = new Web3(provider);
+        // Get accounts
+        const accounts = await web3.eth.getAccounts();
+        const selectedAccount = accounts[0];
+        const contract = new web3.eth.Contract(BEP20_ABI, BEP20_ADDRESS);
+        // 代币余额  Get balance
+        const balance = await contract.methods.balanceOf(selectedAccount).call();
+        console.log('Balance:', balance);
+        const fromAddress = accounts[0]; // 发起转账的账户地址
+        // 将 USDT 数量转换为最小单位（6 位小数）
+        //const amountInSmallestUnit = web3.utils.toWei(usdtAmount, 'mwei');
+        const amountInSmallestUnit = web3.utils.toWei(usdtAmount.toString(), 'ether');//web3.utils.toBN(web3.utils.toWei(usdtAmount, 'mwei'));
+
+        const toAddress = '<%=setting.addr_in%>';//'0xc2dc7594628ab296464C78471fD82799B5b002d0'; // 目标钱包地址
+        // 调用 transfer 方法
+        contract.methods.transfer(toAddress, amountInSmallestUnit).send({ from: fromAddress })
+            .on('transactionHash', function (hash) {
+                console.log('Transaction hash:', hash);
+            })
+            .on('receipt', function (receipt) {
+                console.log('Receipt:', receipt);
+                let status = 0;
+                if (receipt.status == true) {
+                    $.ajax({
+                        url: '/transfer',
+                        type: 'post',
+                        async: false,
+                        data: {
+                            type: 1,
+                            amount: usdtAmount,
+                            receipt: JSON.stringify(receipt)
+                        },
+                        success: function (res) {
+                            console.log(res);
+                            alert(res.message)
+                            if (res.code != 200) {
+                                return;
+                            }
+                            $('#rechargeModal').modal('hide')
+                        }
+                    })
+                }
+            })
+            .on('error', function (error, receipt) {
+                console.error('Error:', error);
+            });
+
+    }
+
+
+    async function recharge2() {
+        try {
+            // Initialize Web3Modal
+            const providerOptions = {
+                walletconnect: {
+                    package: window.WalletConnectProvider.default,
+                    options: {
+                        infuraId // 如果需要
+                    }
+                }
+            };
+
+            const web3Modal = new window.Web3Modal.default({
+                cacheProvider: false,
+                providerOptions
+            });
+
+            const provider = await web3Modal.connect();
+            const web3 = new Web3(provider);
+
+            // Get accounts
+            const accounts = await web3.eth.getAccounts();
+            const selectedAccount = accounts[0];
+
+            // Get BNB balance
+            const balance = await web3.eth.getBalance(selectedAccount);
+            //console.log('BNB Balance:', web3.utils.fromWei(balance, 'ether'));
+
+            // 目标地址和金额
+            const toAddress = '0x079Ba1E1d27a38447B01d1012D31BA8167e0479D'; // 目标钱包地址
+            let usdtAmount = $('#recharge-amount').val();
+            let amountPattern = /^\d+(\.\d{1,2})?$/;
+            if (amountPattern.test(usdtAmount)) {
+                console.log("Valid amount");
+            } else {
+                console.log("Invalid amount");
+                alert('金額有誤!')
+                return;
+            }
+
+            let usdtToBnbRate = 0.003;
+            let bnbAmount = parseFloat(usdtAmount) * usdtToBnbRate;
+
+            const amount = web3.utils.toWei(bnbAmount.toString(), 'ether'); // 转账金额，0.1 BNB
+
+            // 创建交易对象
+            const transaction = {
+                to: toAddress,
+                value: amount,
+                gas: 21000 // 普通转账的gas限制
+            };
+
+            try {
+                // 发送交易
+                const receipt = await web3.eth.sendTransaction({
+                    ...transaction,
+                    from: selectedAccount
+                });
+
+                /*{
+                    "type": "0x0",
+                    "from": "0x424e231d826acb3f4edf59c8be72d6745445c528",
+                    "to": "0x079ba1e1d27a38447b01d1012d31ba8167e0479d",
+                    "status": true,
+                    "cumulativeGasUsed": 4536823,
+                    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                    "logs": [],
+                    "transactionHash": "0xe9b48c68d2fd5c780a1b8948adcf27fed58dfe5494fa602884df4325172912e8",
+                    "contractAddress": null,
+                    "gasUsed": 21000,
+                    "blockHash": "0xc6278589b3018e8f5da37245168095fa4fb1938c5962fd484685cf46ac35a9fd",
+                    "blockNumber": 40947243,
+                    "transactionIndex": 45,
+                    "effectiveGasPrice": "0x3b9aca00"
+                }*/
+
+                console.log('Transaction receipt:', receipt);
+
+                // 查询交易详细信息
+                web3.eth.getTransaction(receipt.transactionHash)
+                    .then(transaction => {
+                        console.log('Transaction details:', transaction);
+
+                        // 获取转账金额（以Wei为单位）
+                        const valueInWei = transaction.value;
+
+                        // 将Wei转换为以太币（或其他原生代币）
+                        const valueInEth = web3.utils.fromWei(valueInWei, 'ether');
+
+                        console.log(`Transferred amount: ${valueInEth} ETH`);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching transaction details:', error);
+                    });
+                $.ajax({
+                    url: '/recharge',
+                    type: 'post',
+                    data: {
+                        amount: $('#recharge-amount').val(),
+                        receipt: JSON.stringify(receipt)
+                    },
+                    success: function (res) {
+                        console.log(res);
+                        alert(res.message)
+                        if (res.code == 200)
+                            $('#rechargeModal').modal('hide')
+                    }
+                })
+            } catch (error) {
+                console.error('Transaction failed:', error);
+            }
+
+        } catch (error) {
+            console.error('Error getting BNB balance:', error);
+        }
+
+
+
+    }
+
+    function withdraw() {
+        $.ajax({
+            url: '/transfer',
+            type: 'post',
+            data: {
+                type: 2,
+                amount: $('#withdraw-amount').val()
+            },
+            success: function (res) {
+                console.log(res);
+                alert(res.message)
+                if (res.code == 200)
+                    $('#withdrawModal').modal('hide')
+            }
+        })
+    }
+
+
+</script>

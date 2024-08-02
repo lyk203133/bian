@@ -1,0 +1,49 @@
+{
+  "homeInfo": {
+    "title": "首頁",
+    "href": "agent/club"
+  },
+  "logoInfo": {
+    "title": "13尊代理後台",
+    "image": "public/images/logo.png",
+    "href": ""
+  },
+  "menuInfo": [
+    {
+      "title": "常規管理",
+      "icon": "fa fa-address-book",
+      "href": "",
+      "target": "_self",
+      "child": [
+        {
+          "title": "俱樂部管理",
+          "href": "",
+          "icon": "fa fa-file-text",
+          "target": "_self",
+          "child": [
+            {
+              "title": "俱樂部列表",
+              "href": "/agent/club",
+              "icon": "fa fa-list-alt",
+              "target": "_self"
+            }
+          ]
+        },
+        {
+          "title": "會員管理",
+          "href": "",
+          "icon": "fa fa-calendar",
+          "target": "_self",
+          "child": [
+            {
+              "title": "會員列表",
+              "href": "/agent/user/",
+              "icon": "fa fa-navicon",
+              "target": "_self"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

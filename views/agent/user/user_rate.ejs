@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/public/lib/layui-v2.6.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="/public/css/public.css" media="all">
+</head>
+
+<body>
+    <div class="layuimini-container">
+        <div class="layuimini-main">
+            <fieldset class="table-search-fieldset" style="display: <%=type=='discount'?'':'none'%>">
+                <legend>算式三(总)</legend>
+                <table class="layui-table" id="wholeSetting">
+
+                    <tbody>
+                        <tr>
+                            <td>场次</td>
+                            <td colspan="16" style="text-align:center">全场</td>
+                            <td colspan="16" style="text-align:center;background-color:#f0f5f5">上半场</td>
+                        </tr>
+                        <tr>
+                            <td>盘口
+                            </td>
+                            <% for(let i=0; i < cutlines.length; i++) { %>
+                                <td>
+                                    <%= cutlines[i] %>
+                                </td>
+                                <% } %>
+
+                                    <% for(let i=0; i < halfCutlines.length; i++) { %>
+                                        <td>
+                                            <%= halfCutlines[i] %>
+                                        </td>
+                                        <% } %>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;line-heigth:30px">运算三(控台)<br><input key="all"
+                                    onkeyup="setAllValue(this)" style="width:50px;height:30px"><br><button
+                                    onclick="save_agent_discount('all')">保存</button></td>
+
+                            <% for(let i=0; i < cutlines.length; i++) { %>
+                                <td>
+                                    <input type="text" key="score-all" cutline="<%= cutlines[i] %>" value="100.00"
+                                        style="width:50px;height:30px">
+
+                                </td>
+                                <% } %>
+
+                                    <% for(let i=0; i < halfCutlines.length; i++) { %>
+                                        <td>
+                                            <input type="text" key="score-all" cutline="<%= halfCutlines[i] %>"
+                                                value="100.00" style="width:50px;height:30px">
+
+                                        </td>
+                                        <% } %>
+
+                        </tr>
+
+
+                        <tr>
+                            <td style="text-align:center;line-heigth:30px">代理算式过滤<br><button
+                                    onclick="save_agent_discount('op')">保存</button></td>
+
+                            <% for(let i=0; i < cutlines.length; i++) { %>
+                                <td>
+                                    <input type="text" key="close-op" cutline="<%= cutlines[i] %>" value=""
+                                        placeholder=">、=、<" style="width:50px;height:30px">
+
+                                </td>
+                                <% } %>
+
+                                    <% for(let i=0; i < halfCutlines.length; i++) { %>
+                                        <td>
+                                            <input type="text" key="close-op" cutline="<%= halfCutlines[i] %>" value=""
+                                                placeholder=">、=、<" style="width:50px;height:30px">
+
+                                        </td>
+                                        <% } %>
+
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;line-heigth:30px">代理欧赔过滤<br><button
+                                    onclick="save_agent_discount('ou')">保存</button></td>
+
+                            <% for(let i=0; i < cutlines.length; i++) { %>
+                                <td>
+                                    <input type="text" key="close-ou" cutline="<%= cutlines[i] %>" value=""
+                                        placeholder="数字格式" style="width:50px;height:30px">
+
+                                </td>
+                                <% } %>
+
+                                    <% for(let i=0; i < halfCutlines.length; i++) { %>
+                                        <td>
+                                            <input type="text" key="close-ou" cutline="<%= halfCutlines[i] %>" value=""
+                                                placeholder="数字格式" style="width:50px;height:30px">
+
+                                        </td>
+                                        <% } %>
+
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;line-heigth:30px">运算三(代理)<br><input key="0"
+                                    onkeyup="setAllValue(this)" style="width:50px;height:30px"><br><button
+                                    onclick="save_agent_discount()">保存</button></td>
+
+                            <% for(let i=0; i < cutlines.length; i++) { %>
+                                <td>
+                                    <input type="text" key="score-0" cutline="<%= cutlines[i] %>" value="100.00"
+                                        style="width:50px;height:30px">
+
+                                </td>
+                                <% } %>
+
+
+                                    <% for(let i=0; i < halfCutlines.length; i++) { %>
+                                        <td>
+                                            <input type="text" key="score-0" cutline="<%= halfCutlines[i] %>"
+                                                value="100.00" style="width:50px;height:30px">
+
+                                        </td>
+                                        <% } %>
+
+                        </tr>
+                    </tbody>
+                </table>
+            </fieldset>
+            <fieldset class="table-search-fieldset" style="display: <%=type=='volume'?'':'none'%>">
+                <legend>限额总设置</legend>
+                <table class="layui-table" id="wholeSetting">
+
+                    <tbody>
+                        <tr>
+                            <td>盘口</td>
+                            <% for(let i=0; i < cutlines.length; i++) { %>
+                                <td>
+                                    <%= cutlines[i] %>
+                                </td>
+                                <% } %>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;line-heigth:30px">单场限额<br><input key="gamemax"
+                                    onkeyup="setLimitAllValue(this)" style="width:50px;height:30px"><br><button
+                                    onclick="save_agent_limit('gamemax')">保存</button></td>
+                            <% for(let i=0; i < cutlines.length; i++) { %>
+                                <td>
+                                    <input type="text" key="score-gamemax" cutline="<%= cutlines[i] %>" value=""
+                                        style="width:40px;height:30px" placeholder="单位:万"> <br>万
+
+                                </td>
+                                <% } %>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;line-heigth:30px">单笔限额<br><input key="betmax"
+                                    onkeyup="setLimitAllValue(this)" style="width:50px;height:30px"><br><button
+                                    onclick="save_agent_limit('betmax')">保存</button></td>
+                            <% for(let i=0; i < cutlines.length; i++) { %>
+                                <td>
+                                    <input type="text" key="score-betmax" cutline="<%= cutlines[i] %>" value=""
+                                        style="width:40px;height:30px"><br>万
+
+                                </td>
+                                <% } %>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;line-heigth:30px">可交易量
+                                <br><input key="canbuy" onkeyup="setLimitAllValue(this)"
+                                    style="width:40px;height:30px"><br><button
+                                    onclick="save_agent_limit('canbuy')">保存</button>
+                            </td>
+                            <% for(let i=0; i < cutlines.length; i++) { %>
+                                <td>
+                                    <input type="text" key="score-canbuy" cutline="<%= cutlines[i] %>" value=""
+                                        style="width:50px;height:30px" placeholder="单位:万"><br>万
+
+                                </td>
+                                <% } %>
+                        </tr>
+                    </tbody>
+                </table>
+            </fieldset>
+            <fieldset class="table-search-fieldset">
+                <legend>搜索信息</legend>
+                <div style="margin: 10px 10px 10px 10px">
+                    <form class="layui-form layui-form-pane" action="" onsubmit="return false">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label class="layui-form-label">联赛名称</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" id="league" name="league" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+
+                            <div class="layui-inline">
+                                <label class="layui-form-label">主队</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" id="homeTeam" name="homeTeam" autocomplete="off"
+                                        class="layui-input">
+                                </div>
+
+                                <div class="layui-form-mid">vs</div>
+
+                                <label class="layui-form-label">客队</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" id="awayTeam" name="awayTeam" autocomplete="off"
+                                        class="layui-input">
+                                </div>
+                            </div>
+
+                            <div class="layui-inline">
+                                <label class="layui-form-label">开赛日期</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" class="layui-input" id="matchDate" placeholder="yyyy-MM-dd">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <input type="hidden" id="currentPage" value="1" />
+                                <button id="btnSearch" type="submit" class="layui-btn layui-btn-primary" lay-submit
+                                    lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索</button>
+                            </div>
+                        </div>
+
+                        <!--div class="layui-form-item"> 
+                        <div class="layui-inline" id="dvregtime" >
+                            <label class="layui-form-label">开赛时间</label>
+                            <div class="layui-input-inline">
+                                <input type="text" id="beginTime" name="beginTime" autocomplete="off" id="txtbegintime" class="layui-input" placeholder="开始日期"  >
+                            </div>
+                            <div class="layui-form-mid">-</div>
+                            <div class="layui-input-inline">
+                                <input type="text" id="endTime" name="endTime" autocomplete="off" id="txtendtime" class="layui-input" placeholder="结束日期"  >
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <button id="btnSearch" type="submit" class="layui-btn layui-btn-primary"  lay-submit lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索</button>
+                        </div>
+                    </div-->
+
+                    </form>
+
+                </div>
+            </fieldset>
+
+
+            <table class="layui-table" id="currentTableId" lay-filter="currentTableFilter">
+
+                <tbody id="tbfbd">
+
+                </tbody>
+            </table>
+
+            <div id="paging"></div>
+
+        </div>
+    </div>
+    <script src="/public/lib/layui-v2.6.3/layui.js" charset="utf-8"></script>
+    <script src="/public/lib/laydate/laydate.js" charset="utf-8"></script>
+    <script>
+        layui.use(['laypage', 'layer', 'jquery', 'laydate', 'form'], function () {
+            var laypage = layui.laypage
+                , $ = layui.jquery
+                , layer = layui.layer
+                , form = layui.form
+                , laydate = layui.laydate;
+
+
+            //常规用法
+            laydate.render({
+                elem: '#matchDate',
+                value: '<%=today%>'
+            });
+
+            laydate.render({
+                elem: '#dvregtime'
+                //设置开始日期、日期日期的 input 选择器
+                //数组格式为 5.3.0 开始新增，之前版本直接配置 true 或任意分割字符即可
+                , range: ['#txtbegintime', '#txtendtime']
+                , type: 'datetime'
+            });
+
+            $('input[key="close-op"]').on('keypress', function (event) {
+                var allowedChars = ['>', '>=', '=', '<', '<='];
+                var keyPressed = String.fromCharCode(event.which);
+
+                if (allowedChars.indexOf(keyPressed) === -1) {
+                    event.preventDefault();
+                }
+            });
+
+            $('input[key="close-ou"]').on('keypress', function (event) {
+                var keyPressed = String.fromCharCode(event.which);
+
+                // 判断是否为数字或小数点
+                if (!/[\d\s.]/.test(keyPressed)) {
+                    event.preventDefault();
+                }
+
+                // 防止多个小数点输入
+                if (keyPressed === '.' && this.value.indexOf('.') !== -1) {
+                    event.preventDefault();
+                }
+            });
+
+            let type = '<%=type%>';
+            // 监听搜索操作
+            form.on('submit(data-search-btn)', function (data) {
+
+
+                //var result = JSON.stringify(data.field);
+                let today = $('#matchDate').val()
+                currentPage = $('#currentPage').val()
+                getData(currentPage, 10, today, true);
+            });
+
+            let cnt = 1;
+            var currentPage = 1; // 当前页数
+            getData(1, 10, '<%=today%>', false);
+
+            function getData(page, pageSize, today, isPage = false) {
+                let searchParams = JSON.stringify({
+                    league: $('#league').val(),
+                    homeTeam: $('#homeTeam').val(),
+                    awayTeam: $('#awayTeam').val(),
+                    beginTime: today + ' 00:00',
+                    endTime: today + ' 23:59:59',
+                    islive: 0
+                })
+
+                $.ajax({
+                    url: '/admin/fbd_data?self=<%=self%>&type=<%=type%>&page=' + page + '&limit=' + pageSize + '&searchParams=' + searchParams,
+                    type: 'get',
+                    success: function (res) {
+                        $('#currentPage').val(page)
+                        $('#tbfbd').html('')
+                        let html = '';
+                        for (let i in res.data) {
+                            let row = res.data[i];
+                            html += '<tr><td colspan="33" style="font-weight:blod;font-size:16px"><span style="color:orange">' + row.matchTime + '</span> [' + row.fbdid + '] <span style="color:green">' + row.leagues.name_cn + '</span> - <span style="color:blue" >' + row.homeTeams.name_cn + '</span>[主] VS <span style="color:red">' + row.awayTeams.name_cn + '</span>[客] 状态:<button class="layui-btn layui-btn-primary" onclick="changeStatus(' + row.id + ',' + row.status + ')">' + (row.status == 1 ? '<span style="color:green">开启中</span>' : '<span style="color:red">关闭中</span>') + '</button> \
+                                <button class="layui-btn layui-btn-primary" onclick="editfbd(' + row.id + ')"><span style="color:green">编辑赛事</span></button>\
+                                <button class="layui-btn layui-btn-primary" onclick="editleague(' + row.leagueid + ')"><span style="color:green">编辑联盟语言</span></button>\
+                                <button class="layui-btn layui-btn-primary" onclick="editteam(' + row.homeid + ',' + row.awayid + ')"><span style="color:green">编辑队伍语言</span></button>\
+                                </td></tr>';
+
+                            if (res.data[i].fbd_agent_data && res.data[i].fbd_agent_data.length > 0) {
+                                html += '<tr>';
+
+                                html += '<td >场次</td>';
+                                html += '<td colspan=16 style="text-align:center">全场</td>';
+
+                                html += '<td colspan=16 style="text-align:center;background-color:#f0f5f5">上半场</td>';
+                                html += '<tr><td>盘口</td>';
+                                for (let j in row.fbd_agent_data) {
+                                    let fbd = row.fbd_agent_data[j];
+                                    html += '<td ><a href="#" alt="' + row.fbd_agent_data[j].id + '">' + row.fbd_agent_data[j].cutline + '</a></td>';
+                                }
+                                if (row.agentId == 0) {
+                                    html += '<tr><td>正波</td>';
+                                    for (let j in row.fbd_agent_data) {
+                                        let fbd = row.fbd_agent_data[j];
+                                        html += '<td key="row-fbd-' + row.fbdid + '">' + parseFloat(row.fbd_agent_data[j].score).toFixed(2) + '</td>';
+                                    }
+                                }
+                                html += '<tr><td>反波</td>';
+                                for (let j in row.fbd_agent_data) {
+                                    let fbd = row.fbd_agent_data[j];
+                                    html += '<td><span key="' + row.fbdid + '">' + row.fbd_agent_data[j].fbdrate + '</span><br><input key="' + row.fbdid + '" type="hidden"  style="width:50px;height:30px" value="' + row.fbd_agent_data[j].fbdrate + '"/></td>';
+                                }
+                                if ('discount' == '<%=type%>') {
+                                    html += '<tr><td style="text-align:center;line-heigth:30px">运算三设置<br><input key="' + row.id + '" onkeyup="setAllValue(this)" style="width:50px;height:30px" /><br><button onclick="save_rate(' + row.id + ',\'discount\')">保存</button></td>';
+                                    for (let j in row.fbd_agent_data) {
+                                        let fbd = row.fbd_agent_data[j];
+                                        html += '<td><input type="text" key="score-' + row.id + '" scoreid="' + row.fbd_agent_data[j].id + '" value="' + parseFloat(row.fbd_agent_data[j].discount).toFixed(2) + '" style="width:50px;height:30px"  /></td>';
+                                    }
+                                } else if ('okrate' == '<%=type%>') {
+                                    html += '<tr><td style="text-align:center;line-heigth:30px">输出赔率</td>';
+                                    for (let j in row.fbd_agent_data) {
+                                        let fbd = row.fbd_agent_data[j];
+                                        html += '<td >' + fbd.okRate + '<br>' + fbd.okMsg + '</td>';
+                                    }
+                                } else if ('fixed' == '<%=type%>') {
+                                    html += '<tr><td style="text-align:center;line-heigth:30px">固定赔率<br><input key="' + row.id + '" onkeyup="setAllValue(this)" style="width:50px;height:30px" /><br><button onclick="save_rate(' + row.id + ',\'fixed\')">保存</button></td>';
+                                    for (let j in row.fbd_agent_data) {
+                                        let fbd = row.fbd_agent_data[j];
+                                        html += '<td><input type="text" key="score-' + row.id + '" scoreid="' + row.fbd_agent_data[j].id + '" key="row-set-fixed-' + row.fbd_agent_data[j].id + '" value="' + (row.fbd_agent_data[j].UserScore && row.fbd_agent_data[j].UserScore.fixed ? parseFloat(row.fbd_agent_data[j].UserScore.fixed).toFixed(2) : '') + '" style="width:50px;height:30px"  /></td>';
+                                    }
+                                } else if ('volume' == '<%=type%>') {
+                                    html += '<tr><td style="text-align:center;line-heigth:30px">单场最高下注<br><input key="' + row.id + '" onkeyup="setAllValue(this,\'gamemax\')" style="width:40px;height:30px" /><br><button onclick="save_rate(' + row.id + ',\'gamemax\')">保存</button></td>';
+                                    for (let j in row.fbd_agent_data) {
+                                        let fbd = row.fbd_agent_data[j];
+                                        html += '<td><input type="text" key="score-gamemax-' + row.id + '" scoreid="' + row.fbd_agent_data[j].id + '" key="row-set-fixed-' + row.fbd_agent_data[j].id + '" value="' + (row.fbd_agent_data[j].gameMax ? parseFloat(row.fbd_agent_data[j].gameMax).toFixed(2) : '') + '" style="width:40px;height:30px" placeholder="单位:万"  /><br>万</td>';
+                                    }
+                                    html += '<tr><td style="text-align:center;line-heigth:30px">单笔最高下注<br><input key="' + row.id + '" onkeyup="setAllValue(this,\'betmax\')" style="width:40px;height:30px" /><br><button onclick="save_rate(' + row.id + ',\'betmax\')">保存</button></td>';
+                                    for (let j in row.fbd_agent_data) {
+                                        let fbd = row.fbd_agent_data[j];
+                                        html += '<td><input type="text" key="score-betmax-' + row.id + '" scoreid="' + row.fbd_agent_data[j].id + '" key="row-set-fixed-' + row.fbd_agent_data[j].id + '" value="' + (row.fbd_agent_data[j].betMax ? parseFloat(row.fbd_agent_data[j].betMax).toFixed(2) : '') + '" style="width:40px;height:30px" placeholder="单位:万"  /><br>万</td>';
+                                    }
+                                    html += '<tr><td style="text-align:center;line-heigth:30px">可交易量<br><input key="' + row.id + '" onkeyup="setAllValue(this,\'canbuy\')" style="width: 40px; height: 30px" /><br><button onclick="save_rate(' + row.id + ', \'canbuy\')">保存</button></td>';
+                                    for (let j in row.fbd_agent_data) {
+                                        let fbd = row.fbd_agent_data[j];
+                                        html += '<td><input type="text" key="score-canbuy-' + row.id + '" scoreid="' + row.fbd_agent_data[j].id + '" key="row-set-fixed-' + row.fbd_agent_data[j].id + '" value="' + (row.fbd_agent_data[j].canBuyOri ? parseFloat(row.fbd_agent_data[j].canBuyOri).toFixed(2) : '') + '" style="width:40px;height:30px" placeholder="单位:万"  />万<br>余:' + (row.fbd_agent_data[j].canBuy ? parseFloat(row.fbd_agent_data[j].canBuy).toFixed(2) : '') + '万</td>';
+                                    }
+                                    /*html += '<tr><td colspan="17" style="text-align:left;line-heigth:30px">\
+                                        单场最高下注:<input key="gameMax-' + row.fbdid + '"  name="gameMax" value="' + (row.game_max ? row.game_max : '') + '" style="width:50px;height:25px" />\
+                                        单笔最高下注:<input key="betMax-' + row.fbdid + '"  name="betMax"  value="' + (row.bet_max ? row.bet_max : '') + '" style="width:50px;height:25px" />\
+                                        可交易量:<input key="canBuy-' + row.fbdid + '"  name="canBuy"  value="' + (row.can_buy ? row.can_buy : '') + '" style="width:50px;height:25px" /> \
+                                        <button onclick="save_rate_volume(' + row.fbdid + ')">保存</button></td>';*/
+
+                                }
+                                html += '</tr>';
+                            } else {
+                                html += '<tr><td colspan=33>暂无场次数据</td></tr>'
+                            }
+                        }
+                        $('#tbfbd').append(html)
+                        //if (isPage == true) {
+                        //完整功能
+                        laypage.render({
+                            elem: 'paging'
+                            , count: res.count
+                            , curr: currentPage // 当前页数
+                            , layout: ['count', 'prev', 'page', 'next', 'limit', 'refresh', 'skip']
+                            , jump: function (obj, first) {
+                                console.log(obj)
+                                if (!first) {
+                                    currentPage = obj.curr; // 更新当前页数
+                                    getData(obj.curr, obj.limit, today);
+                                }
+                            }
+                        });
+                        //}
+                    }
+                })
+            }
+
+            //$('#btnSearch').click();
+            (function getUserDiscount(type = '0') {
+                $.ajax({
+                    url: '/admin/user/user_discount',
+                    type: 'get',
+                    success: function (res) {
+                        $('input[key="score-all"]').each(function () {
+                            //console.log($(this))
+                            let cutline = $(this).attr('cutline')
+                            for (let i in res.all_discount) {
+                                console.log(res.all_discount[i].cutline)
+                                if (cutline == res.all_discount[i].cutline) {
+                                    $(this).val(res.all_discount[i].discount);
+                                }
+                            }
+                        })
+
+                        $('input[key="score-' + type + '"]').each(function () {
+                            //console.log($(this))
+                            let cutline = $(this).attr('cutline')
+                            for (let i in res.data) {
+                                console.log(res.data[i].cutline)
+                                if (cutline == res.data[i].cutline) {
+                                    $(this).val(res.data[i].discount);
+                                }
+                            }
+                        })
+
+                        $('input[key="close-op"]').each(function () {
+                            //console.log($(this))
+                            let cutline = $(this).attr('cutline')
+                            for (let i in res.data) {
+                                console.log(res.data[i].cutline)
+                                if (cutline == res.data[i].cutline) {
+                                    $(this).val(res.data[i].op);
+                                }
+                            }
+                        })
+
+                        $('input[key="close-ou"]').each(function () {
+                            //console.log($(this))
+                            let cutline = $(this).attr('cutline')
+                            for (let i in res.data) {
+                                console.log(res.data[i].cutline)
+                                if (cutline == res.data[i].cutline) {
+                                    $(this).val(res.data[i].ou);
+                                }
+                            }
+                        })
+
+                        $('input[key="score-gamemax"]').each(function () {
+                            //console.log($(this))
+                            let cutline = $(this).attr('cutline')
+                            for (let i in res.data) {
+                                console.log(res.data[i].cutline)
+                                if (cutline == res.data[i].cutline) {
+                                    $(this).val(res.data[i].gameMax);
+                                }
+                            }
+                        })
+
+                        $('input[key="score-betmax"]').each(function () {
+                            //console.log($(this))
+                            let cutline = $(this).attr('cutline')
+                            for (let i in res.data) {
+                                console.log(res.data[i].cutline)
+                                if (cutline == res.data[i].cutline) {
+                                    $(this).val(res.data[i].betMax);
+                                }
+                            }
+                        })
+
+                        $('input[key="score-canbuy"]').each(function () {
+                            //console.log($(this))
+                            let cutline = $(this).attr('cutline')
+                            for (let i in res.data) {
+                                console.log(res.data[i].cutline)
+                                if (cutline == res.data[i].cutline) {
+                                    $(this).val(res.data[i].canBuy);
+                                }
+                            }
+                        })
+                    }
+                })
+            })()
+
+
+        });
+
+        function setAllValue(obj, tp = false) {
+            var $ = layui.jquery;
+            let id = $(obj).attr('key');
+            let val = $(obj).val();
+            console.log(id);
+            $('input[key="score-' + (tp ? tp + '-' : '') + id + '"]').val(val)
+
+        }
+        function setLimitAllValue(obj, tp = false) {
+            var $ = layui.jquery;
+            let id = $(obj).attr('key');
+            let val = $(obj).val();
+            console.log(id);
+            $('input[key="score-' + id + '"]').val(val)
+
+        }
+
+
+
+        //保存每个盘口折扣或固定赔率
+        function save_rate(id, type) {
+            var $ = layui.jquery;
+
+            let data = []
+            if (type == 'discount') {
+                $('input[key="score-' + id + '"]').each(function () {
+                    let scoreid = $(this).attr('scoreid')
+                    let val = $(this).val();
+                    data.push({ scoreid: scoreid, discount: val })
+                })
+            } else if (type == 'fixed') {
+                $('input[key="score-' + id + '"]').each(function () {
+                    let scoreid = $(this).attr('scoreid')
+                    let val = $(this).val();
+                    data.push({ scoreid: scoreid, fixed: val })
+                })
+            } else if (type == 'gamemax') {
+                $('input[key="score-gamemax-' + id + '"]').each(function () {
+                    let scoreid = $(this).attr('scoreid')
+                    let val = $(this).val();
+                    data.push({ scoreid: scoreid, gamemax: val })
+                })
+            } else if (type == 'betmax') {
+                $('input[key="score-betmax-' + id + '"]').each(function () {
+                    let scoreid = $(this).attr('scoreid')
+                    let val = $(this).val();
+                    data.push({ scoreid: scoreid, betmax: val })
+                })
+            } else if (type == 'canbuy') {
+                $('input[key="score-canbuy-' + id + '"]').each(function () {
+                    let scoreid = $(this).attr('scoreid')
+                    let val = $(this).val();
+                    data.push({ scoreid: scoreid, canbuy: val })
+                })
+            }
+
+            $.ajax({
+                url: '/admin/user/user_rate/save/' + type,
+                type: 'post',
+                dataType: "json",
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (res) {
+                    alert(res.message);
+                    console.log(res.message);
+                    $('#btnSearch').click()
+                }
+
+            })
+        }
+
+        //保存代理算式三总打折
+        function save_agent_discount(type = 'discount') {
+            var $ = layui.jquery;
+            let data = []
+            let id = type == 'all' ? 'all' : 0;
+            if (type == 'op') {
+                $('input[key="close-op"]').each(function () {
+                    let cutline = $(this).attr('cutline')
+                    let val = $(this).val();
+                    data.push({ cutline: cutline, op: val })
+                })
+            } else if (type == 'ou') {
+                $('input[key="close-ou"]').each(function () {
+                    let cutline = $(this).attr('cutline')
+                    let val = $(this).val();
+                    data.push({ cutline: cutline, ou: val })
+                })
+            } else {
+                $('input[key="score-' + id + '"]').each(function () {
+                    let cutline = $(this).attr('cutline')
+                    let val = $(this).val();
+                    data.push({ cutline: cutline, discount: val })
+                })
+            }
+
+            $.ajax({
+                url: '/admin/user/user_discount/save/?type=' + type,
+                type: 'post',
+                dataType: "json",
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (res) {
+                    alert(res.message);
+                    console.log(res.message);
+                    $('#btnSearch').click()
+                    //getData(currentPage, 10, '<%=today%>', false);
+                }
+
+            })
+        }
+
+        function save_agent_limit(key) {
+            var $ = layui.jquery;
+            let data = []
+
+            $('input[key="score-' + key + '"]').each(function () {
+                let cutline = $(this).attr('cutline')
+                let val = $(this).val();
+                let obj = {}
+                obj.cutline = cutline;
+                obj[key] = val
+                data.push(obj)
+            })
+
+            $.ajax({
+                url: '/admin/user/user_discount/save/?type=' + key,
+                type: 'post',
+                dataType: "json",
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (res) {
+                    alert(res.message);
+                    console.log(res.message);
+                    $('#btnSearch').click()
+                }
+
+            })
+        }
+
+        //保存交易限额
+        function save_rate_volume(fbdid) {
+            var $ = layui.jquery;
+            let data = {}
+            let game_max = $('input[key="gameMax-' + fbdid + '"]').val();
+            let bet_max = $('input[key="betMax-' + fbdid + '"]').val();
+            let can_buy = $('input[key="canBuy-' + fbdid + '"]').val();
+            data.game_max = game_max;
+            data.bet_max = bet_max;
+            data.bet_min = 0;
+            data.can_buy = can_buy;
+            data.fbdid = fbdid;
+
+            $.ajax({
+                url: '/admin/user/user_limit/save',
+                type: 'post',
+                dataType: "json",
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (res) {
+                    alert(res.message);
+                    console.log(res.message);
+                    $('#btnSearch').click()
+                }
+
+            })
+        }
+
+        function changeStatus(id, status) {
+            let msg = status == 1 ? '确认关闭?' : '确认打开?'
+            if (!confirm(msg)) return false;
+            var $ = layui.jquery;
+            console.log(id, status)
+            let data = {
+                id: id,
+                status: (status == 1 ? 0 : 1)
+            }
+            $.ajax({
+                url: '/admin/fbd/status/' + data.status,
+                type: 'post',
+                dataType: "json",
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (res) {
+                    alert(res.message);
+                    console.log(res.message);
+                    $('#btnSearch').click()
+                    //getData(currentPage, 10, '<%=today%>', false);
+                }
+
+            })
+        }
+
+
+        function editfbd(id) {
+            var $ = layui.jquery;
+            var index = layer.open({
+                title: '编辑赛事',
+                type: 2,
+                shade: 0.2,
+                maxmin: true,
+                shadeClose: true,
+                area: ['100%', '100%'],
+                content: '/admin/user/game_add?subwin=1&id=' + id,
+            });
+            $(window).on("resize", function () {
+                layer.full(index);
+            });
+            //window.location = '/admin/user/game_add?id='+id
+        }
+        function editleague(id) {
+            var $ = layui.jquery;
+            var index = layer.open({
+                title: '编辑联盟语言',
+                type: 2,
+                shade: 0.2,
+                maxmin: true,
+                shadeClose: true,
+                area: ['95%', '100%'],
+                content: '/admin/league/?id=' + id,
+            });
+            $(window).on("resize", function () {
+                layer.full(index);
+            });
+            //window.location = '/admin/user/game_add?id='+id
+        }
+        function editteam(homeid, awayid) {
+            var $ = layui.jquery;
+            var index = layer.open({
+                title: '编辑队伍语言',
+                type: 2,
+                shade: 0.2,
+                maxmin: true,
+                shadeClose: true,
+                area: ['95%', '100%'],
+                content: '/admin/team/?ids=' + homeid + ',' + awayid,
+            });
+            $(window).on("resize", function () {
+                layer.full(index);
+            });
+            //window.location = '/admin/user/game_add?id='+id
+        }
+    </script>
+
+</body>
+
+</html>

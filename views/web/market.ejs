@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>market</title>
+    <link rel="stylesheet" href="https://demo.lanrenzhijia.com/demo/37/3743/demo/css/zeroModal.css">
+    <link rel="stylesheet" href="/public/web/css/bootstrap.css">
+    <link rel="stylesheet" href="/public/web/css/style.css?1">
+    <script src="/public/web/js/klinechart.js"></script>
+    <style>
+
+    </style>
+    <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
+    <script src="https://unpkg.com/@walletconnect/web3-provider@1.6.6/dist/umd/index.min.js"></script>
+    <!--script src="/public/web/js/abi/bnb.js"></script-->
+    <script src="/public/web/js/abi.js"></script>
+    <script src="./biance.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="public/web/js/bootstrap.js"></script>
+</head>
+
+<body>
+    <!-- Header -->
+    <%- include('header') %>
+
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="coin-container">
+                <div data-value="BTC/USDT" class="btn btnMiddleSize">
+                    <a href="#switchPairModal" data-toggle="modal">
+                        <%=symbol.toUpperCase()%>
+                    </a>
+                </div>
+
+            </div>
+            <div id="chart" style="margin-top:1rem;height: 400px;  background-color: black; /* 黑色背景 */"></div>
+            <!-- Add more content here -->
+            <div class="market">
+                <div class="buy">買多</div>
+                <div class="sell">買空</div>
+            </div>
+            <div class="line"></div>
+            <table id="history-container" style="width:100%;">
+                <thead style="line-height: 25px;">
+                    <th>交易對</th>
+                    <th>買入價格</th>
+                    <th>數量</th>
+                    <th>時間</th>
+                    <th>操作</th>
+                </thead>
+                <tbody class="histoy-body">
+
+                </tbody>
+            </table>
+        </div>
+        </div>
+
+        <div id="buyModal1" class="modal-style-2 dark modal " style="top:20%">
+            <div class="modal-dialog modal-login">
+                <div class="modal-content">
+                    <div class="modal-header p-0">
+                        <h4 class="modal-title">買多</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- dont forget to add action and action method  -->
+                        <form action="" method="" class="mt-3">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-user"
+                                            aria-hidden="true"></i>交易兌</span>
+                                    <input type="text" class="form-control" value="BTCUSDT" readonly="true">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-user"
+                                            aria-hidden="true"></i>當前價格</span>
+                                    <input type="text" class="form-control current-price" value="0" readonly="true">
+
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-user"
+                                            aria-hidden="true"></i>交易時間</span>
+                                    <div class="container">
+                                        <div class="row rowSeconds" id="rowSeconds1">
+                                            <div class="btnBlack col-sm-3 btn-active" data-value="60">60s</div>
+                                            <div class="btnBlack col-sm-3" data-value="180">180s</div>
+                                            <div class="btnBlack col-sm-3" data-value="300">300s</div>
+                                            <div class="btnBlack col-sm-3" data-value="600">600s</div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-user"
+                                            aria-hidden="true"></i>交易金額</span>
+                                    <div class="container">
+                                        <div class="row rowSeconds" id="buy-quantity-1">
+                                            <% for(let i in setting.amounts){ %>
+                                                <div class="btnBlack col-sm-3" data-value="<%=setting.amounts[i]%>">
+                                                    <%=setting.amounts[i]%>
+                                                </div>
+                                                <% } %>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="form-group text-center mt-2 mb-0">
+
+                                <button type="button" class="btnBlack btn-primary btn-sm" onclick="doBuy(1)">確定</button>
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="buyModal2" class="modal-style-2 dark modal " style="top:20%">
+            <div class="modal-dialog modal-login">
+                <div class="modal-content">
+                    <div class="modal-header p-0">
+                        <h4 class="modal-title">買空</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- dont forget to add action and action method  -->
+                        <form action="" method="" class="mt-3">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-user"
+                                            aria-hidden="true"></i>交易兌</span>
+                                    <input type="text" class="form-control" value="BTCUSDT" readonly="true">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-user"
+                                            aria-hidden="true"></i>交易時間</span>
+                                    <input type="text" class="form-control current-price" value="0" readonly="true">
+
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-user"
+                                            aria-hidden="true"></i>到期時間</span>
+                                    <div class="container">
+                                        <div class="row rowSeconds" id="rowSeconds2">
+                                            <div class="btnBlack col-sm-3 btn-active" data-value="60">60s</div>
+                                            <div class="btnBlack col-sm-3" data-value="180">180s</div>
+                                            <div class="btnBlack col-sm-3" data-value="300">300s</div>
+                                            <div class="btnBlack col-sm-3" data-value="600">600s</div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-user"
+                                            aria-hidden="true"></i>交易金額</span>
+                                    <div class="container">
+                                        <div class="row rowSeconds" id="buy-quantity-2">
+                                            <% for(let i in setting.amounts){ %>
+                                                <div class="btnBlack col-sm-3" data-value="<%=setting.amounts[i]%>">
+                                                    <%=setting.amounts[i]%>
+                                                </div>
+                                                <% } %>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="form-group text-center mt-2 mb-0">
+
+                                <button type="button" class="btnBlack btn-primary btn-sm" onclick="doBuy(2)">確定</button>
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="switchPairModal" class="modal-style-2 dark modal " style="top:20%">
+            <div class="modal-dialog modal-login">
+                <div class="modal-content">
+                    <div class="modal-header p-0">
+                        <h4 class="modal-title">切換交易對</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- dont forget to add action and action method  -->
+
+                        <div class="container">
+                            <div class="row" id="switch-pair-panel">
+                                <div class="btnBlack col-sm-12 btn-active" data-value="BTCUSDT">BTC/USDT</div>
+                                <div class="btnBlack col-sm-12" data-value="ETHUSDT">ETH/USDT</div>
+                                <div class="btnBlack col-sm-12" data-value="BNBUSDT">BNB/USDT</div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- Footer -->
+        <%- include('footer') %>
+
+</body>
+
+</html>
+<script>
+    const interval = '1s';
+    const binanceSocketUrl = 'wss://stream.binance.com:9443/ws/<%=symbol%>@kline_' + interval;
+    const reconnectInterval = 5000; // 5 seconds
+    let klineData = [];
+    let socket;
+    let currentPrice = 0;
+
+    klinecharts.registerLocale('zh-HK', {
+        time: '時間：',
+        open: '開：',
+        high: '高：',
+        low: '低：',
+        close: '收：',
+        volume: '成交量：'
+    });
+
+    // 初始化图表
+    var chart = klinecharts.init('chart');
+
+
+
+    // 设置图表的本地化语言
+    chart.setLocale('zh-HK');
+
+    // 创建主图技术指标
+    chart.createIndicator('MA', false, { id: 'candle_pane' });
+
+    // 创建副图技术指标 VOL
+    chart.createIndicator('VOL');
+
+    // 创建副图技术指标 MACD
+    //chart.createIndicator('MACD');
+
+    //var bianceData = [];
+    $.ajax({
+        url: '/market_data?symbol=<%=symbol%>&interval=' + interval,
+        type: 'get',
+        success: function (res) {
+            klineData = res.data;
+            var chartDataList = klineData.map(function (data) {
+                return {
+                    timestamp: data[0],
+                    open: +data[1],
+                    high: +data[2],
+                    low: +data[3],
+                    close: +data[4],
+                    volume: Math.ceil(+data[5]),
+                }
+            })
+            chart.applyNewData(chartDataList)
+
+            chart.setStyles({
+                grid: {
+                    show: false
+                },
+                xAxis: {
+
+                    axisLine: {
+                        show: false // Hide x-axis line
+                    },
+                    tickLine: {
+                        show: false // Hide x-axis tick lines
+                    }
+                },
+                yAxis: {
+
+                    axisLine: {
+                        show: false // Hide y-axis line
+                    },
+                    tickLine: {
+                        show: false // Hide y-axis tick lines
+                    }
+                }, separator: {
+                    size: 0,
+                }, candle: {
+                    tooltip: {
+                        text: {
+                            size: 12,
+                            family: 'Helvetica Neue',
+                            weight: 'normal',
+                            color: 'red',
+                            marginLeft: 8,
+                            marginTop: 4,
+                            marginRight: 8,
+                            marginBottom: 4
+                        },
+                    },
+                    priceMark: {
+                        last: {
+                            text: {
+                                color: '#ffffff',
+                            }
+                        }
+                    }
+
+                }
+            });
+
+        }
+    })
+
+    function createWebSocket() {
+        socket = new WebSocket(binanceSocketUrl);
+
+        socket.onopen = function () {
+            console.log('WebSocket connection opened.');
+            const subscribeMessage = JSON.stringify({
+                method: "SUBSCRIBE",
+                params: ["<%=symbol%>@kline_" + interval],
+                id: 1
+            });
+            socket.send(subscribeMessage);
+        };
+
+        socket.onmessage = function (event) {
+            const message = JSON.parse(event.data);
+
+            if (message.e === 'ping') {
+                socket.send(JSON.stringify({ pong: message.ping }));
+            } else if (message.k) {
+                // Handle Kline data
+                const kline = message.k;
+                const dataPoint = [
+                    kline.t, // timestamp
+                    (kline.o), // open price
+                    (kline.h), // high price
+                    (kline.l), // low price
+                    (kline.c),  // close price
+                    (kline.v),
+                ];
+
+
+                // Otherwise, add a new data point
+                currentPrice = kline.c;
+                $('.current-price').val(kline.c)
+                currentPrice = kline.c;
+                klineData.push(dataPoint);
+
+                if (klineData.length > 1000) {
+                    // Keep only the latest 100 data points
+                    klineData.shift();
+                }
+
+
+
+
+                var chartDataList = klineData.map(function (data) {
+                    return {
+                        timestamp: data[0],
+                        open: +data[1],
+                        high: +data[2],
+                        low: +data[3],
+                        close: +data[4],
+                        volume: Math.ceil(+data[5]),
+                    }
+                })
+
+                let data = dataPoint;
+
+
+
+                chart.updateData({
+                    timestamp: data[0],
+                    open: +data[1],
+                    high: +data[2],
+                    low: +data[3],
+                    close: +data[4],
+                    volume: Math.ceil(+data[5]),
+                })
+
+            }
+        };
+
+        socket.onerror = function (error) {
+            console.error('WebSocket error:', error);
+        };
+
+        socket.onclose = function (event) {
+            console.log('WebSocket connection closed. Reconnecting in', reconnectInterval / 1000, 'seconds.');
+            setTimeout(createWebSocket, reconnectInterval);
+        };
+    }
+
+    createWebSocket();
+
+    $('.buy').click(function () {
+        $('#buyModal1').modal('show')
+
+    })
+
+    $('.sell').click(function () {
+        $('#buyModal2').modal('show')
+    })
+
+    function doBuy(n) {
+        //let quantity = $('#buy-quantity-' + n).val();
+        let quantity = $('#buy-quantity-' + n + ' > div.btn-active').data('value')
+        let second = $('#rowSeconds' + n + ' > div.btn-active').data('value')
+        let pair = '<%=symbol%>';
+        console.log('您已經成功購買' + pair + ',' + quantity + '手,預測秒數：' + second);
+        $.ajax({
+            url: '/buy',
+            type: 'POST',
+            data: {
+                quantity,
+                second,
+                pair,
+                price: currentPrice,
+                betType: n
+            },
+            success: function (res) {
+                console.log(res)
+                alert(res.message);
+
+            }
+
+        })
+    }
+
+    $('.rowSeconds > div').click(function () {
+        //alert($(this).data('value') + 's 被点击了！');
+        //$('.rowSeconds > div').removeClass('btn-active');
+        $(this).parent().find('div').removeClass('btn-active');
+        $(this).addClass('btn-active');
+
+    });
+
+    $('#switch-pair-panel > div').click(function () {
+        let pair = $(this).data('value');
+        window.location = '/market?symbol=' + pair
+
+    });
+
+    function getTickets() {
+        $.ajax({
+            url: '/ticket/history',
+            type: 'GET',
+            success: function (res) {
+                console.log(res)
+                $('.histoy-body').html('')
+                let html = '';
+                for (let i in res.data) {
+                    let item = res.data[i]
+                    html += `<tr data-value="data" style="line-height: 25px;">`
+                    html += `<td >${item.pair.toUpperCase()}</td>`;
+                    html += `<td >${item.price}</td>`;
+                    html += `<td >${item.quantity}</td>`;
+                    html += `<td >${item.created}</td>`;
+                    html += `<td>`
+                    if (item.status === 0)
+                        html += `<button onclick="cancelTicket(${item.id})">取消</button></td>`;
+                    else if (item.status === 1)
+                        html += `完成`;
+                    else if (item.status === -1)
+                        html += `取消`;
+                    else
+                        html += `--`;
+                    html += `</td>`
+                    html += `</tr>`
+                }
+
+                $('.histoy-body').html(html)
+            }
+
+        })
+    }
+
+    setInterval(() => {
+        getTickets();
+    }, 3000)
+    getTickets();
+
+    function cancelTicket(id) {
+        $.ajax({
+            url: '/ticket/cancel?id=' + id,
+            type: 'GET',
+            success: function (res) {
+                if (res.code != 200) alert(res.message)
+            }
+        })
+    }
+
+</script>

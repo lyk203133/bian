@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LINE Login with LIFF</title>
+    <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
+    <script src="https://unpkg.com/@walletconnect/web3-provider@1.6.6/dist/umd/index.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+</head>
+<body>
+    <button id="loginButton">Login with LINE</button>
+ 
+     
+    <script>
+         
+const Web3 = require('web3');
+const web3 = new Web3('https://sepolia.infura.io/v3/7d73a0c13ce946769577714aef84b79a'); // Sepolia 节点
+
+// 智能合约地址和 ABI
+const contractAddress = 'YOUR_CONTRACT_ADDRESS'; // 替换为你部署的合约地址
+const contractABI = [ /* 合约 ABI */ ]; // 替换为合约 ABI
+
+const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+// 发送方地址和私钥
+const fromAddress = 'YOUR_ADDRESS'; // 替换为你的地址
+const privateKey = 'YOUR_PRIVATE_KEY'; // 替换为你的私钥（用于签名）
+
+// 接收方地址和转账金额
+const toAddress = 'RECIPIENT_ADDRESS'; // 替换为接收方地址
+const amountInEther = '0.1'; // 转账金额（单位：ETH）
+const amountInWei = web3.utils.toWei(amountInEther, 'ether'); // 将 ETH 转换为 Wei
+
+// 转账函数
+async function sendViaContract() {
+  const txData = contract.methods.transferETH(toAddress).encodeABI();
+
+  const tx = {
+    from: fromAddress,
+    to: contractAddress,
+    value: amountInWei, // 发送给合约的 ETH
+    gas: 200000,
+    data: txData
+  };
+
+  // 签名交易
+  const signedTx = await web3.eth.accounts.signTransaction(tx, privateKey);
+
+  // 发送交易
+  web3.eth.sendSignedTransaction(signedTx.rawTransaction)
+    .on('transactionHash', (hash) => {
+      console.log('Transaction hash:', hash);
+    })
+    .on('receipt', (receipt) => {
+      console.log('Transaction receipt:', receipt);
+    })
+    .on('error', (error) => {
+      console.error('Transaction error:', error);
+    });
+}
+
+// 执行转账
+sendViaContract();
+
+    </script>
+</body>
+</html>
+

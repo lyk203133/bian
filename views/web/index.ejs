@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>market</title>
+
+    <link rel="stylesheet" href="https://demo.lanrenzhijia.com/demo/37/3743/demo/css/zeroModal.css">
+    <link rel="stylesheet" href="/public/web/css/bootstrap.css">
+    <link rel="stylesheet" href="/public/web/css/style.css?2">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/klinecharts/dist/klinecharts.min.js"></script>
+    <!--script src="https://cdn.example.com/klinechart/klinechart-i18n.min.js"></script-->
+    <style>
+
+    </style>
+    <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
+    <script src="https://unpkg.com/@walletconnect/web3-provider@1.6.6/dist/umd/index.min.js"></script>
+    <script src="./js/abi.js"></script>
+    <script src="./biance.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="public/web/js/bootstrap.js"></script>
+
+    <style>
+        .bigTitle{
+            line-height:50px;
+            font-size: 20px;
+            font-family: Roboto, "PingFang SC", -apple-system, BlinkMacSystemFont, "Microsoft YaHei";
+        }
+        .grayTitle{
+            color:gray;
+            font-size: 14px;
+            font-family: Roboto, "PingFang SC", -apple-system, BlinkMacSystemFont, "Microsoft YaHei";
+        }
+
+        .middleFlex{
+            display:flex;
+            align-items: center; /* 垂直居中 */  
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <%- include('header') %>
+
+
+        <!-- Main Content -->
+        <div class="content" id="app">
+            <div class="container" style="width:100%">
+                <div class="row">
+                    <div class="col-sm-4">
+                        <span class="bigTitle">200+</span><br>
+                        <span class="grayTitle">覆蓋國家</span>
+                    </div>
+                    <div class="col-sm-4"> 
+
+                    </div>
+                    <div class="col-sm-4">
+                        <span class="bigTitle">3000萬</span><br>
+                        <span class="grayTitle">全球投資者</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <span class="bigTitle">700+</span><br>
+                        <span class="grayTitle">數字貨幣</span>
+                    </div> 
+                    <div class="col-sm-4">
+
+                    </div>
+                    <div class="col-sm-4">
+                        <span class="bigTitle">15.04億</span><br>
+                        <span class="grayTitle">24h 成交額</span>
+                    </div>
+                </div>
+            </div>
+            <div class="line"></div>
+            <div class="sub-content">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="small-icon">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M6.29 5.043A9 9 0 0112 3v9l6.364-6.364a9 9 0 011.255 11.155l-6.205-6.205L12 12l6.364 6.364a9.002 9.002 0 01-14.301-2.121 9 9 0 012.227-11.2z"
+                        fill="currentColor"></path>
+                </svg>
+                <div>市場概況</div>
+            </div>
+            <div class="line"></div>
+            <div class="main-content">
+                
+                <table>
+                    <thead>
+                        <th>
+                            幣種
+                        </th>
+                        <th>
+                            最新價格
+                        </th>
+                        <th>
+                            今日漲跌
+                        </th>
+                    </thead>
+                    <tbody id="tbody">
+                        <tr>
+                            <td colspan="3">loading...</td>
+                        </tr>
+                         
+                    </tbody>
+                </table>
+                <div class="line"></div>
+                <div class="container">
+                    <div class="row">
+                        <div class="col-sm-4 middleFlex">
+                            <img src="/public/web/images/good1.png" style="width:4rem" />
+                        </div>
+                        <div class="col-sm-8">
+                            <h3 class="bigTitle">安全資產儲存</h3>
+                            <div class="grayTitle">我們領先的加密和儲存系統確保您的資產始終安全保密。</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4 middleFlex">
+                            <img src="/public/web/images/good2.png" style="width:4rem" />
+                        </div>
+                        <div class="col-sm-8">
+                            <h3 class="bigTitle">強大的賬戶安全性</h3>
+                            <div class="grayTitle">我們堅持最高的安全標準並實施最嚴格的安全措施，以確保您的帳戶安全。</div>
+                        </div>
+                    </div>
+                   
+                    <div class="row">
+                        <div class="col-sm-4 middleFlex">
+                            <img src="/public/web/images/good3.png" style="width:4rem" />
+                        </div>
+                        <div class="col-sm-8">
+                            <h3 class="bigTitle">可信平台</h3>
+                            <div class="grayTitle">我們有一個安全的設計基礎，以確保快速檢測和響應任何網絡攻擊。</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4 middleFlex">
+                            <img src="/public/web/images/good4.png" style="width:4rem" />
+                        </div>
+                        <div class="col-sm-8">
+                            <h3 class="bigTitle">資產儲備證明—資產透明度</h3>
+                            <div class="grayTitle">資產儲備證明（PoR）是一種廣泛使用的證明區塊鏈資產託管的方法。 這意味着 KuCoin 擁有涵蓋我們賬面上所有用戶資產的資金。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <%- include('footer') %>
+
+</body>
+
+</html>
+<script>
+
+
+    function getData() {
+        let rows = [];
+        $.ajax({
+            url: '/pricing',
+            type: 'get',
+            async: false,
+            success: function (res) {
+                console.log(res.data)
+                for (let i in res.data) {
+                    let item = res.data[i]
+                    let currencyName = item.symbol.replace('USDT', '')
+                    rows.push({
+                        currencyName,
+                        iconName: currencyName.toLowerCase(),
+                        lastPrice: parseFloat(item.lastPrice).toFixed(2),
+                        priceChange: parseFloat(item.priceChange).toFixed(2),
+                    })
+                }
+            }
+        })
+        return rows;
+    }
+
+    function init() {
+        let data = getData();
+        var html = ''
+        for (let i in data) {
+
+            let item = data[i];
+            html += `<tr data='${item.currencyName}' onclick="window.location='/market?symbol=${item.currencyName}USDT'">
+                            <td>
+                                <div class="item">
+                                    <img class="icon" src="/public/web/images/${item.iconName}.png" />
+                                    <span style="margin-left:.3rem">${item.currencyName}</span>
+                                </div>
+                            </td>
+                            <td data='${item.lastPrice}'>
+                                $${parseFloat(item.lastPrice).toFixed(2)}
+                            </td>
+                            <td>
+                                $${parseFloat(item.priceChange).toFixed(2)}
+                            </td>
+                        </tr>`
+        }
+
+        $('#tbody').html(html)
+    }
+
+    init();
+
+    setInterval(() => {
+        let data = getData();
+        $("tr[data]").each(function () {
+            let currencyName = $(this).attr('data');
+            console.log(currencyName)
+            let row = data.find(d => d.currencyName == currencyName);
+            if (row) {
+
+                setPrice($(this), row.lastPrice, 1);
+                setPrice($(this), row.priceChange, 2);
+                /*
+                let oriPrice = $(this).find('td').eq(1).attr('data');
+                if (oriPrice < row.lastPrice) {
+                    $(this).find('td').eq(1).css('color', 'red');
+
+                } else if (oriPrice > row.lastPrice) {
+                    $(this).find('td').eq(1).css('color', 'green');
+                }
+                $(this).find('td').eq(1).attr('data', row.lastPrice)
+                $(this).find('td').eq(1).html('$' + row.lastPrice)
+
+                let oriChangePrice = $(this).find('td').eq(2).attr('data');
+                if (oriChangePrice < row.priceChange) {
+                    $(this).find('td').eq(2).css('color', 'red');
+
+                } else if (oriChangePrice > row.priceChange) {
+                    $(this).find('td').eq(2).css('color', 'green');
+                }
+                $(this).find('td').eq(2).attr('data', row.priceChange);
+                $(this).find('td').eq(2).html('$' + row.priceChange)
+                */
+            }
+        })
+
+
+    }, 2000)
+
+
+    function setPrice(obj, price, index) {
+        let oriPrice = obj.find('td').eq(1).attr('data');
+        if (oriPrice < price) {
+            obj.find('td').eq(index).css('color', 'red');
+
+        } else if (oriPrice > price) {
+            obj.find('td').eq(index).css('color', 'green');
+        }
+
+        if (oriPrice != price) {
+            obj.find('td').eq(index).attr('data', price)
+            obj.find('td').eq(index).html('$' + price)
+        }
+    }
+
+
+    /*
+        const { createApp, ref, computed, onMounted, watch } = Vue
+        const app = createApp({
+    
+            created() {
+    
+                this.getPricing();
+            },
+            onMounted() {
+    
+            },
+            setup() {
+    
+    
+                let rows = ref([]);
+                let tmpRows = [];
+    
+                function getPricing() {
+                    setInterval(() => {
+    
+    
+                        $.ajax({
+                            url: '/pricing',
+                            type: 'get',
+                            success: function (res) {
+                                console.log(res.data)
+                                var html = ''
+                                for (let i in res.data) {
+                                    let item = res.data[i]
+                                    let currencyName = item.symbol.replace('USDT', '')
+                                    let iconName = currencyName.toLowerCase();
+                                    let row = tmpRows.find(f => f.iconName == iconName);
+                                    let newRow = {
+                                        currencyName,
+                                        iconName,
+                                        price: parseFloat(item.lastPrice).toFixed(2),
+                                        change: parseFloat(item.priceChange).toFixed(2),
+                                        priceColor: 'white',
+                                        changeColor: 'white',
+                                    }
+                                    if (!row) {
+                                        tmpRows.push(newRow)
+                                    } else {
+                                        if (row.price != newRow.price) {
+                                            row.priceColor = 'red'
+                                            row.price = newRow.price
+                                        }
+                                        else
+                                            row.priceColor = 'white'
+    
+                                        if (row.change != newRow.change) {
+                                            row.changeColor = 'red'
+                                            row.change = newRow.change;
+                                        }
+                                        else
+                                            row.changeColor = 'white'
+                                    }
+    
+                                    //console.log()
+    
+                                }
+    
+                                console.log(tmpRows.toString())
+    
+                                rows.value = tmpRows;
+    
+                                //$('#tbody').html(html)
+                            }
+                        })
+                    }, 1000);
+                }
+    
+                //暴露属性和方法
+                return {
+                    rows,
+                    getPricing
+                }
+    
+            }
+        }).mount('#app');
+        */
+</script>
