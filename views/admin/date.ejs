@@ -1,0 +1,155 @@
+<div class="layui-input-but-time">
+    <input type="button" name="today" value="今天" class="layui-btn layui-btn-primary" onclick="setDate(this)"
+        autocomplete="off">
+</div>
+<div class="layui-input-but-time">
+    <input type="button" name="yesterday" value="昨天" class="layui-btn layui-btn-primary" onclick="setDate(this)"
+        autocomplete="off">
+</div>
+<div class="layui-input-but-time">
+    <input type="button" name="thisweek" value="本週" class="layui-btn layui-btn-primary" onclick="setDate(this)"
+        autocomplete="off">
+</div>
+<div class="layui-input-but-time">
+    <input type="button" name="lastweek" value="上週" class="layui-btn layui-btn-primary" onclick="setDate(this)"
+        autocomplete="off">
+</div>
+<div class="layui-input-but-time">
+    <input type="button" name="thismonth" value="本月" class="layui-btn layui-btn-primary" onclick="setDate(this)"
+        autocomplete="off">
+</div>
+<div class="layui-input-but-time">
+    <input type="button" name="lastmonth" value="上月" class="layui-btn layui-btn-primary" onclick="setDate(this)"
+        autocomplete="off">
+</div>
+<script>
+    // 转换为北京时间
+    function toBeijingTime(date) {
+        // 获取本地时间与UTC时间的时区差异（分钟为单位）
+        const timezoneOffset = date.getTimezoneOffset();
+
+        // 计算北京时间的时区差异（东八区）
+        const beijingTimezoneOffset = -480;
+
+        // 计算时区差异的分钟数
+        const offsetDiff = beijingTimezoneOffset - timezoneOffset;
+
+        // 应用时区差异，得到北京时间
+        const beijingTime = new Date(date.getTime() + offsetDiff * 60000);
+
+        return beijingTime;
+    }
+
+    // 转换为指定格式的字符串
+    function formatDateTime(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    // 获取今天的开始和结束时间
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
+    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+    // 获取昨天的开始和结束时间
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const yesterdayStart = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 0, 0, 0, 0);
+    const yesterdayEnd = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23, 59, 59, 999);
+
+    // 获取本周的开始和结束时间
+    const currentWeekStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 1, 0, 0, 0, 0);
+    const currentWeekEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + (7 - today.getDay()), 23, 59, 59, 999);
+
+    // 获取上周的开始和结束时间
+    const lastWeekStart = new Date(currentWeekStart);
+    lastWeekStart.setDate(currentWeekStart.getDate() - 7);
+    const lastWeekEnd = new Date(currentWeekEnd);
+    lastWeekEnd.setDate(currentWeekEnd.getDate() - 7);
+
+    // 获取本月的开始和结束时间
+    const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1, 0, 0, 0, 0);
+    const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    // 获取上月的开始时间
+    const lastMonthStart = new Date(currentMonthStart);
+    lastMonthStart.setMonth(currentMonthStart.getMonth() - 1);
+
+    // 获取上月的结束时间
+    const lastMonthEnd = new Date(lastMonthStart);
+    lastMonthEnd.setMonth(lastMonthStart.getMonth() + 1, 0);
+    lastMonthEnd.setHours(23, 59, 59, 999);
+
+
+    // 转换各个时间范围为北京时间，并格式化为字符串
+    const todayStartBeijingTime = formatDateTime(toBeijingTime(todayStart));
+    const todayEndBeijingTime = formatDateTime(toBeijingTime(todayEnd));
+
+    const yesterdayStartBeijingTime = formatDateTime(toBeijingTime(yesterdayStart));
+    const yesterdayEndBeijingTime = formatDateTime(toBeijingTime(yesterdayEnd));
+
+    const currentWeekStartBeijingTime = formatDateTime(toBeijingTime(currentWeekStart));
+    const currentWeekEndBeijingTime = formatDateTime(toBeijingTime(currentWeekEnd));
+
+    const lastWeekStartBeijingTime = formatDateTime(toBeijingTime(lastWeekStart));
+    const lastWeekEndBeijingTime = formatDateTime(toBeijingTime(lastWeekEnd));
+
+    const currentMonthStartBeijingTime = formatDateTime(toBeijingTime(currentMonthStart));
+    const currentMonthEndBeijingTime = formatDateTime(toBeijingTime(currentMonthEnd));
+
+    const lastMonthStartBeijingTime = formatDateTime(toBeijingTime(lastMonthStart));
+    const lastMonthEndBeijingTime = formatDateTime(toBeijingTime(lastMonthEnd));
+
+    // 打印结果
+    console.log('今天:', todayStartBeijingTime, todayEndBeijingTime);
+    console.log('昨天:', yesterdayStartBeijingTime, yesterdayEndBeijingTime);
+    console.log('本周:', currentWeekStartBeijingTime, currentWeekEndBeijingTime);
+    console.log('上周:', lastWeekStartBeijingTime, lastWeekEndBeijingTime);
+    console.log('本月:', currentMonthStartBeijingTime, currentMonthEndBeijingTime);
+    console.log('上月:', lastMonthStartBeijingTime, lastMonthEndBeijingTime);
+
+    const dateBeginAndEnd = {
+
+
+        today: {
+            begin: todayStartBeijingTime,
+            end: todayEndBeijingTime
+        },
+        yesterday: {
+            begin: yesterdayStartBeijingTime,
+            end: yesterdayEndBeijingTime
+        },
+        thisweek: {
+            begin: currentWeekStartBeijingTime,
+            end: currentWeekEndBeijingTime
+        },
+        lastweek: {
+            begin: lastWeekStartBeijingTime,
+            end: lastWeekEndBeijingTime
+        },
+        thismonth: {
+            begin: currentMonthStartBeijingTime,
+            end: currentMonthEndBeijingTime
+        },
+        lastmonth: {
+            begin: lastMonthStartBeijingTime,
+            end: lastMonthEndBeijingTime
+        }
+
+    }
+    function setDate(obj) {
+
+        document.querySelector('#txtbegintime').value = dateBeginAndEnd[obj.name].begin;
+        document.querySelector('#txtendtime').value = dateBeginAndEnd[obj.name].end;
+    }
+
+
+
+
+</script>

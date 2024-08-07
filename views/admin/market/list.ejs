@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="/public/lib/layui-v2.6.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="/public/css/public.css" media="all">
+    <style>
+        .task-title {
+            padding: 9px 15px;
+            font-weight: 400;
+            line-height: 20px;
+            color: var(--color-w100);
+            letter-spacing: 0.03rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layuimini-container">
+        <div class="layuimini-main">
+
+            <fieldset class="table-search-fieldset">
+                <legend>搜索信息</legend>
+                <div style="margin: 10px 10px 10px 10px">
+                    <form class="layui-form layui-form-pane" action="">
+                        <div class="layui-form-item">
+                            <div class="layui-inline">
+                                <label class="layui-form-label">交易兌</label>
+                                <div class="layui-input-inline">
+                                    <select name="symbol">
+
+                                        <option value="BTCUSDT">BTCUSDT</option>
+                                        <option value="ETHUSDT">ETHUSDT</option>
+                                        <option value="BNBUSDT">BNBUSDT</option>
+
+                                    </select>
+                                </div>
+                            </div>
+
+
+
+                            <!--div class="layui-inline">
+                                <label class="layui-form-label">申請类型</label>
+
+                                <div class="layui-input-inline">
+                                    <select name="type">
+                                        <option value="">全部</option>
+                                        <option value="1">出款</option>
+                                        <option value="2">优惠申请</option>
+                                        <option value="3">实名验证</option>
+                                        <option value="4">银行验证</option>
+                                        <option value="5">视讯验证</option>
+                                    </select>
+                                </div>
+
+                            </div-->
+                        </div>
+                        <div class="layui-form-item">
+                            <div class="layui-inline" id="dvregtime">
+                                <label class="layui-form-label">時間</label>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="begintime" autocomplete="off" id="txtbegintime"
+                                        class="layui-input" placeholder="開始時間">
+                                </div>
+                                <div class="layui-form-mid">-</div>
+                                <div class="layui-input-inline">
+                                    <input type="text" name="endtime" autocomplete="off" id="txtendtime"
+                                        class="layui-input" placeholder="結束時間">
+                                </div>
+                            </div>
+                            <div class="layui-inline">
+                                <input type="hidden" name="status" value="0" />
+                                <input type="hidden" name="type" value="2" />
+                                <button type="submit" class="layui-btn layui-btn-primary" lay-submit
+                                    lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索</button>
+                            </div>
+                            <div class="layui-inline">
+                                刷新倒計時：<span id="lblCount"></span> 秒
+                            </div>
+                        </div>
+
+                    </form>
+
+                </div>
+            </fieldset>
+
+            <script type="text/html" id="toolbarDemo">
+            <!--div class="layui-btn-container">
+                <button class="layui-btn layui-btn-normal layui-btn-sm data-add-btn" lay-event="add"> 添加 </button>
+                <button class="layui-btn layui-btn-sm layui-btn-danger data-delete-btn" lay-event="delete"> 删除 </button>
+            </div-->
+        </script>
+
+            <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
+
+            <script type="text/html" id="currentTableBar">
+                <a class="layui-btn layui-btn-normal layui-btn-xs data-count-info" lay-event="info">查看</a>
+                <a class="layui-btn layui-btn-normal layui-btn-xs data-count-delete" lay-event="fail">駁回</a>
+                <a class="layui-btn layui-btn-xs layui-btn-danger data-count-edit" lay-event="success">成功</a>
+            </script>
+
+            <script type="text/html" id="switchTableBar">
+            <input type="checkbox" name="close" value="{{d.id}}" lay-skin="switch" lay-filter="status-enable"  lay-text="正常|鎖定"  {{ d.status == 1 ? 'checked' : '' }}>
+        </script>
+
+        </div>
+    </div>
+    <script src="/public/lib/layui-v2.6.3/layui.js" charset="utf-8"></script>
+    <script src="/public/lib/laydate/laydate.js" charset="utf-8"></script>
+    <script>
+        layui.use(['form', 'table', 'laydate'], function () {
+            var $ = layui.jquery,
+                form = layui.form,
+                laydate = layui.laydate,
+                table = layui.table;
+
+            laydate.render({
+                elem: '#dvregtime'
+                //设置开始日期、日期日期的 input 选择器
+                //数组格式为 5.3.0 开始新增，之前版本直接配置 true 或任意分割字符即可
+                , range: ['#txtbegintime', '#txtendtime']
+                , type: 'datetime'
+            });
+
+
+            table.render({
+                elem: '#currentTableId',
+                url: '/admin/market/list_data',
+                toolbar: '#toolbarDemo',
+                defaultToolbar: ['filter', 'exports', 'print', {
+                    title: '提示',
+                    layEvent: 'LAYTABLE_TIPS',
+                    icon: 'layui-icon-tips'
+                }],
+                cols: [[
+                    //{ type: "checkbox" },
+                    //{ field: 'id', title: 'ID', sort: true },
+                    { field: 'symbol', title: '交易兌', align: "center" },
+
+                    { field: 'openPrice', title: '開盤價', align: "center" },
+                    { field: 'lastPrice', title: '收盤價', align: "center" },
+                    { field: 'openTime', title: '開盤時間', align: "center" },
+                    { field: 'closeTime', title: '收盤時間', align: "center" },
+                ]],
+                limits: [10, 15, 20, 25, 50, 100],
+                limit: 15,
+                page: true,
+                skin: 'line'
+            });
+
+            //监听指定开关
+            form.on('switch(status-enable)', function (data) {
+                /*layer.msg('开关checked：' + (this.checked ? 'true' : 'false'), {
+                    offset: '6px'
+                });
+                layer.tips('温馨提示：请注意开关状态的文字可以随意定义，而不仅仅是ON|OFF', data.othis)
+    */
+
+                var id = this.value;
+                var status = this.checked ? 1 : 0;
+                layer.confirm('确定操作？', { icon: 3, title: '提示' }, function (index) {
+                    layer.close(index);
+                    let loading = layer.load();
+                    $.ajax({
+                        url: '/admin/discount/status/' + id + '/' + status,
+                        dataType: 'json',
+                        type: 'get',
+                        success: function (result) {
+                            layer.close(loading);
+                            if (result.code == 0) {
+                                layer.msg(result.message, { icon: 1, time: 1000 }, function () {
+                                    //table.reload('role-table');
+                                });
+                            } else {
+                                layer.msg(result.message, { icon: 2, time: 1000 });
+                            }
+                        }
+                    })
+                });
+            });
+
+            // 监听搜索操作
+            form.on('submit(data-search-btn)', function (data) {
+                var result = JSON.stringify(data.field);
+
+                /* layer.alert(result, {
+                     title: '最终的搜索信息'
+                 });*/
+
+                //执行搜索重载
+                table.reload('currentTableId', {
+                    page: {
+                        curr: 1
+                    }
+                    , where: {
+                        searchParams: result
+                    }
+                }, 'data');
+
+                return false;
+            });
+
+            let counter = 20;
+            setInterval(() => {
+                counter--;
+                if (counter <= 0) counter = 20;
+                $('#lblCount').text(counter);
+            }, 1000)
+            setInterval(() => {
+                table.reload('currentTableId', {
+                    page: {
+                        curr: 1
+                    }
+                }, 'data');
+
+            }, counter * 1000)
+
+            /**
+             * toolbar监听事件
+             */
+            table.on('toolbar(currentTableFilter)', function (obj) {
+                if (obj.event === 'add') {  // 监听添加操作
+                    var index = layer.open({
+                        title: '添加用户',
+                        type: 2,
+                        shade: 0.2,
+                        maxmin: true,
+                        shadeClose: true,
+                        area: ['80%', '100%'],
+                        content: '/admin/discount/add',
+                    });
+                    $(window).on("resize", function () {
+                        layer.full(index);
+                    });
+                } else if (obj.event === 'delete') {  // 监听删除操作
+                    var checkStatus = table.checkStatus('currentTableId')
+                        , data = checkStatus.data;
+                    layer.alert(JSON.stringify(data));
+
+                    layer.confirm('确定操作？', { icon: 3, title: '提示' }, function (index) {
+                        layer.close(index);
+                        let loading = layer.load();
+                        var params = [];
+                        for (let i in data) {
+                            params.push(data[i].id)
+                        }
+                        $.ajax({
+                            url: '/admin/discount/delete',
+
+                            type: 'post',
+                            dataType: 'json',
+                            data: { ids: params },
+                            success: function (result) {
+                                layer.close(loading);
+                                if (result.code == 0) {
+                                    layer.msg(result.message, { icon: 1, time: 1000 }, function () {
+                                        table.reload('currentTableId');
+                                    });
+                                } else {
+                                    layer.msg(result.message, { icon: 2, time: 1000 });
+                                }
+                            }
+                        })
+                    });
+                }
+            });
+
+            //监听表格复选框选择
+            table.on('checkbox(currentTableFilter)', function (obj) {
+                console.log(obj)
+            });
+
+            table.on('tool(currentTableFilter)', function (obj) {
+                var data = obj.data;
+                if (obj.event === 'fail') {
+                    var index = layer.open({
+                        title: '编辑用户',
+                        type: 2,
+                        shade: 0.2,
+                        maxmin: true,
+                        shadeClose: true,
+                        area: ['80%', '100%'],
+                        content: '/admin/market/' + data.id,
+                    });
+                    $(window).on("resize", function () {
+                        layer.full(index);
+                    });
+                    return false;
+                } else if (obj.event === 'info') {
+
+                    console.log(data)
+                    var index = layer.open({
+                        title: '查看',
+                        type: 2,
+                        shade: 0.2,
+                        maxmin: true,
+                        shadeClose: true,
+                        area: ['60%', '60%'],
+                        content: '/admin/market/info/' + data.id,
+                        //content: '<p class="task-title">任務類型：' + data.typeName + '</p><p class="task-title">會員：' + data.userName + '</p><p class="task-title">圖片：<img src="' + data.info.photo + '" style="width:150px"/></p>',
+                    });
+                    $(window).on("resize", function () {
+                        layer.full(index);
+                    });
+                    return false;
+                } else if (obj.event === 'success') {
+                    console.log(data);
+                    layer.confirm('确认成功么', function (index) {
+                        obj.del();
+                        layer.close(index);
+
+                        data.status = 2;
+                        data.comment = '成功';
+                        $.ajax({
+                            url: '/admin/market/save',
+                            type: 'post',
+                            data: data,
+                            success: function (res) {
+                                console.log(res)
+
+                                if (res.code == 0) {
+                                    layer.msg(res.message, { icon: 1, time: 1000 }, function () {
+                                        table.reload('currentTableId');
+                                    });
+                                } else {
+                                    layer.msg(res.message, { icon: 2, time: 1000 });
+                                }
+                            }
+                        })
+                    });
+                }
+            });
+
+
+
+        });
+
+
+
+    </script>
+
+</body>
+
+</html>
