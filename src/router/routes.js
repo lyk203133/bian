@@ -1,35 +1,43 @@
 import Layout from "@/layout/index.vue";
-import Demo from "@/views/demo/index.vue";
+import Home from "@/views/home/index.vue";
 
 const routes = [
   {
     path: "/",
     name: "root",
     component: Layout,
-    redirect: { name: "Demo" },
+    redirect: { name: "Home" },
     children: [
       {
-        path: "demo",
-        name: "Demo",
-        component: Demo,
+        path: "home",
+        name: "Home",
+        component: Home,
         meta: {
-          title: "主页"
+          title: "首頁"
         }
       },
       {
-        path: "tools",
-        name: "Tools",
-        component: () => import("@/views/tools/index.vue"),
+        path: "market/:symbol?",
+        name: "Market",
+        component: () => import("@/views/market/index.vue"),
         meta: {
-          title: "工具"
+          title: "合約交易"
         }
       },
       {
-        path: "about",
-        name: "About",
-        component: () => import("@/views/about/index.vue"),
+        path: "task",
+        name: "Task",
+        component: () => import("@/views/task/index.vue"),
         meta: {
-          title: "关于",
+          title: "任務"
+        }
+      },
+      {
+        path: "user",
+        name: "User",
+        component: () => import("@/views/user/index.vue"),
+        meta: {
+          title: "個人中心",
           noCache: true
         }
       }

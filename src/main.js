@@ -11,8 +11,12 @@ import "virtual:svg-icons-register";
 
 import App from "./App.vue";
 import router from "./router";
+import { Popup } from 'vant';
+import { Tag } from 'vant';
 
 const app = createApp(App);
 app.use(store);
 app.use(router);
+app.use(Popup);
+app.use(Tag);
 app.mount("#app");

@@ -22,13 +22,21 @@
     "lint:prettier": "prettier --write  \"src/**/*.{js,json,jsx,css,less,scss,vue,html,md}\""
   },
   "dependencies": {
+    "@wagmi/connectors": "^5.1.4",
+    "@wagmi/core": "^2.13.3",
+    "@web3modal/wagmi": "^5.0.11",
     "axios": "^1.7.2",
+    "d3": "^7.9.0",
+    "ethers": "^6.13.2",
+    "klinecharts": "^9.8.10",
     "normalize.css": "^8.0.1",
     "nprogress": "^0.2.0",
     "pinia": "^2.1.7",
     "vant": "^4.9.0",
+    "viem": "^2.19.2",
     "vue": "^3.4.27",
-    "vue-router": "^4.3.2"
+    "vue-router": "^4.3.2",
+    "web3": "^4.11.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.3.0",

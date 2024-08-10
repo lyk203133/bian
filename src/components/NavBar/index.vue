@@ -1,17 +1,196 @@
 <script setup>
 import { useDarkMode, useToggleDarkMode } from "@/hooks/useToggleDarkMode";
+import { useRouter } from 'vue-router';
+import { ref } from 'vue';
+import { List } from 'vant';
+import axios from 'axios'
+import {walletConnectId } from "@/settings";
+
+const show = ref(false);
+
+const showPopup = () => {
+      show.value = true;
+    };
+const router = useRouter();
+
+const onClickLeft = () => {
+  //跳到VUE首页
+  useToggleDarkMode();
+  //sendTransaction();
+  //router.push('/') 
+};
 
 const onClickRight = () => {
   useToggleDarkMode();
 };
+ 
+//import { arbitrum, mainnet,bsc } from '@wagmi/core/chains'
+import { bsc } from '@wagmi/core/chains'
+
+/*import * as c from '@wagmi/core/chains';
+// 遍历并打印所有链的信息
+Object.keys(c).forEach(chainKey => {
+  console.log(c[chainKey]);
+});
+ */
+import {
+  createWeb3Modal,
+  defaultWagmiConfig,
+  useWeb3Modal,
+  useWeb3ModalEvents,
+  useWeb3ModalState,
+  useWeb3ModalTheme
+} from '@web3modal/wagmi/vue'
+
+// @ts-expect-error 1. Get projectId
+//const projectId = '7d73a0c13ce946769577714aef84b79a'
+const projectId = walletConnectId
+
+if (!projectId) {
+  throw new Error('VITE_PROJECT_ID is not set')
+}
+
+// 2. Create wagmiConfig
+const chains = [bsc]
+const wagmiConfig = defaultWagmiConfig({
+  chains,
+  projectId,
+  metadata: {
+    name: 'Web3Modal Vue Example',
+    description: 'Web3Modal Vue Example',
+    url: '',
+    icons: [],
+    verifyUrl: ''
+  }
+})
+
+// 3. Create modal
+createWeb3Modal({
+  wagmiConfig,
+  projectId,
+  chains,
+  themeMode: 'light',
+  themeVariables: {
+    '--w3m-color-mix': '#00BB7F',
+    '--w3m-color-mix-strength': 20
+  }
+})
+
+// 4. Use modal composable
+const modal = useWeb3Modal()
+
+const { setThemeMode, themeMode, themeVariables } = useWeb3ModalTheme()
+const events = useWeb3ModalEvents()
+
+console.log(events)
+
+ 
+
+import Web3 from'web3'
+ 
+const mainUrl = 'https://h5.jz1378.com'
+const connectWallet = async () =>{
+    //modal.open()
+    const web3 = new Web3(window.ethereum);
+    ethereum.enable()
+    const accounts = await web3.eth.getAccounts();
+    const selectedAccount = accounts[0];
+    console.log(selectedAccount)
+    let  data =  {
+            addr: selectedAccount
+        }
+    const response = await axios.post(mainUrl + '/walletlogin', data);
+    let res = response.data;
+    if (res.code == 200) {
+        isLogin.value = true;
+        localStorage.setItem('walletAddr', selectedAccount);
+        localStorage.setItem('jwt-token',res.data)
+        window.location.reload()
+    } else {
+        alert(res.message)
+    }
+        
+
+    //const contract = new web3.eth.Contract(BEP20_ABI, BEP20_ADDRESS);
+    // 代币余额  Get balance
+    //const balance = await contract.methods.balanceOf(selectedAccount).call();
+    //console.log('Balance:', balance);
+
+    }
+
+const instance = axios.create({
+  baseURL: mainUrl, // 替换为你的 API URL
+  //withCredentials: true // 确保带上 credentials
+})
+let isLogin = ref(false);
+const checkLogin = async()=>{
+  let token = localStorage.getItem('jwt-token');
+  //console.log(token)
+  let login = await axios.get( mainUrl + '/profile?token='+token);
+  if(login.data.code == 200){
+    isLogin.value = true;//
+    localStorage.setItem('walletBalance',login.data.balance)
+    //console.log('balance',login.data.balance)
+    //localStorage.setItem('token',login.data.token)
+  }
+  else{
+    isLogin.value = false;
+    localStorage.removeItem('walletAddr')
+    localStorage.removeItem('walletBalance')
+    localStorage.removeItem('jwt-token')
+  }
+}
+
+checkLogin();
+setInterval(()=>{
+  checkLogin();
+},5000)
+
+const logout = async()=>{
+  let login = await instance.get('/logout');
+  if(login.data.code == 200)
+    isLogin.value = false;//localStorage.getItem('walletAddr')
+    localStorage.removeItem('walletAddr')
+    localStorage.removeItem('walletBalance')
+    localStorage.removeItem('jwt-token')
+ 
+}
+
+
 </script>
 
 <template>
-  <van-nav-bar fixed placeholder @click-right="onClickRight">
+  <van-nav-bar fixed placeholder @click-left="onClickLeft"  style="z-index:9999">
+    <template #left>
+      <img
+      class="block w-[120px] mx-auto mb-[20px] pt-[30px]"
+      alt="Vue logo"
+      src="~@/assets/images/logo.svg"
+    />
+    </template>
     <template #right>
-      <svg-icon class="text-[18px]" :name="useDarkMode() ? 'light' : 'dark'" />
+      <van-button round type="default" v-show="!isLogin"style="background-color: black;color:white" @click="connectWallet" size="small">wallet</van-button>
+      <van-button round type="default" v-show="isLogin"style="background-color: black;color:white" onclick="window.location='#/user'" size="small">個人中心</van-button>
+      <van-button round type="default" v-show="isLogin"style="background-color: black;color:white" @click="logout" size="small">登出</van-button>
+      <!--van-icon name="bars" size="large" @click="showPopup"/-->
     </template>
   </van-nav-bar>
+  <van-popup v-model:show="show"   position="right"   :style="{ width: '80%', height: '100%' }">
+    <van-tag type="primary">标签</van-tag>
+<van-tag type="success">标签</van-tag>
+<van-tag type="danger">标签</van-tag>
+<van-tag type="warning">标签</van-tag>
+<van-list>
+  <van-cell key="錢包地址" title="錢包地址：" />
+  <van-cell key="item" title="item" />
+  <van-cell key="item" title="item" />
+  <van-cell key="item" title="item" />
+  <van-cell key="item" title="item" />
+  <van-cell key="item" title="item" />
+  <van-cell key="item" title="item" />
+</van-list>
+  </van-popup>
+
 </template>
 
 <style scoped></style>
