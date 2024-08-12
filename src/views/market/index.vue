@@ -66,12 +66,12 @@
   round
   closeable
   position="bottom"
-  :style="{ height: '60%' }"
+  :style="{ height: '80%' }"
 >
-<van-cell-group style="margin-top:3rem">
+<van-cell-group style="margin-top:3rem;padding: 1rem">
   <van-cell :title="buyTypeName" value=""  />
   <van-cell title="交易兌" value="BTCUSDT"  />
-  <van-cell title="當前價格" value="59146.25"  />
+  <van-cell title="當前價格" :value="lastPrice" />
  
   <van-row justify="left" style=" margin-left:15px;width:100%;font-size:14px;margin-top:1rem" >
     <van-col span="6" class="title" >交易時間</van-col>
@@ -117,22 +117,31 @@
   <van-row justify="left" style="margin-left:15px;width:100%;font-size:14px; " >
     <van-col span="6" class="title">交易金額</van-col>
     <van-col span="18" class="flex-container" >
-       
-      <van-button  
-        type="default"  
-        @click="handleAmountClick($event)"  
-        :class="{'btn-active': buyAmount === amount}"  
-        size="small"  
-        :data-value="amount"  v-for="amount in buyAmountList"
-      >{{ amount }}</van-button>  
-      <!--van-button  type="default" @click="" size="small" class="btn-active">1</van-button>
-      <van-button  type="default" @click="" size="small">10</van-button>
-      <van-button  type="default" @click="" size="small">100</van-button>
-      <van-button  type="default" @click="" size="small">1000</van-button>
-      <van-button  type="default" @click="" size="small">10000</van-button-->
-      
+      {{ buyAmount }}U  
     </van-col>
   </van-row>
+  <van-row justify="center" style="margin-left:15px;margin-top:15px;width:100%;font-size:14px; " >
+
+    <van-col span="6" class="title"> </van-col>
+    <van-col span="18" class="flex-container" >
+<van-button  
+     type="default"  
+     @click="handleAmountClick($event)"  
+     :class="{'btn-active': buyAmount === amount}"  
+     size="small"  
+     :data-value="amount"  v-for="amount in buyAmountList"
+   >{{ amount }}</van-button>  
+
+
+ </van-col>
+</van-row>
+<van-row justify="center" style="margin-left:15px;margin-top:30px;margin-bottom:20px;width:100%;font-size:14px; " >
+ 
+<van-col span="6" class="title"> </van-col>
+<van-col span="18" class="flex-container" >
+   <van-slider v-model="buyAmount" :min="1" :max="10000" @change="handleAmountSlider" style="width: 80%;"/>
+ </van-col>
+</van-row>
 
   
 </van-cell-group>
@@ -157,6 +166,9 @@
     <br>
     
       <div class="history" style="height: 100vw;width:100%">
+      
+          
+       
           <van-row justify="center" gutter="16" class="title" >
             <van-col span="4">交易兌</van-col>
             <van-col span="6">買價</van-col>
@@ -173,6 +185,16 @@
             <van-col span="6" v-if="row.status == 1">{{ parseFloat(row.result).toFixed(2) }}</van-col>
             <van-col span="6" v-if="row.status == -1">取消</van-col>
           </van-row>
+          <van-pagination v-model="currentPage" :total-items="totalCount" :show-page-size="5" @change="change">
+            <template #prev-text>
+              <van-icon name="arrow-left" />
+            </template>
+            <template #next-text>
+              <van-icon name="arrow" />
+            </template>
+            <template #page="{ text }">{{ text }}</template>
+          </van-pagination>
+
         </div>
   
   </p>
@@ -197,17 +219,15 @@
   color:white
 }
 </style>
-<script ame="Task">
-import { showDialog } from "vant";
+<script setup>
+import { showDialog,Slider } from "vant";
 import "vant/es/toast/style";
 import { onMounted,ref,watch } from 'vue';  
 import { useRoute,useRouter } from 'vue-router';
 import { init } from 'klinecharts'
 import { getMarketData,getTickets,doBuy,cancelBuy } from "@/api/";
 import axios from "axios"
-export default {  
-  name: 'KLineChart',  
-  setup() {  
+ 
     const route = useRoute();
     const router = useRouter();
     let symbol =  route.params.symbol || 'btc';
@@ -219,9 +239,9 @@ export default {
     const binanceSocketUrl = 'wss://stream.binance.com:9443/ws/'+symbol+'@kline_' + interval;
     const reconnectInterval = 5000; // 5 seconds
     let klineData = [];
+    let lastPrice = ref(0);
     const chartInstance = ref();
     let socket;
-    let currentPrice = 0;
     let showBuy = ref(false);
     let showBuyPop=()=>{
       showBuy.value = true;
@@ -231,6 +251,12 @@ export default {
     let setHistoryShow = () =>{
       showHistory.value = true;
     }
+
+    let currentPage = ref(1);
+    let totalCount = ref(0);
+    const loading = ref(false);
+    const finished = ref(false);
+    const page = ref(0);
     let switchSymbol = (symbol)=>{
       window.location = '#/market/'+symbol;
        
@@ -241,7 +267,7 @@ export default {
       createWebSocket(symbol+'usdt')*/
     }
 
-    const mainUrl = 'https://api.jz1378.com'
+    
     let getHistoryKline = async (symbol,interval)=>{
       let token = localStorage.getItem('token')
        let data = await getMarketData({
@@ -268,6 +294,30 @@ export default {
       initChart(symbol,interval)
       createWebSocket(symbol,interval);
     });
+
+    const onLoad = async () => {
+      loading.value = false;
+ 
+      const newHistory = await getBuyHistory(currentPage.value,10);
+      //historyList.value = [...historyList.value, ...newHistory.rows];
+      historyList.value = newHistory.rows;
+      // 加载状态结束
+      loading.value = true;
+
+      // 数据全部加载完成
+      if (historyList.value.length >= newHistory.count) {
+        finished.value = true;
+      }
+      page.value = page;
+
+      totalCount.value = newHistory.count;
+      
+    };
+
+    const change = async  (e)=>{
+      console.log('change',e)
+      await onLoad();
+    }
 
     const initChart = ()=>{
       console.log(klineData)
@@ -398,10 +448,9 @@ export default {
                     (kline.v),
                 ];
                 // Otherwise, add a new data point
-                currentPrice = kline.c;
+                lastPrice.value = kline.c;
                 //$('.current-price').val(kline.c)
                 //console.log('當前價', kline.c)
-                currentPrice = kline.c;
                 //console.log('klineData',klineData)
                 let data = dataPoint;
                 chartInstance.value.updateData({
@@ -427,20 +476,30 @@ export default {
     }
     
     let historyList = ref([]);
-    const getBuyHistory = async ()=>{
+    const getBuyHistory = async (page,limit=10)=>{
+      console.log('page',page.value)
       let token = localStorage.getItem('jwt-token')
         let list = await getTickets({
-          token
+          token,
+          page,
+          limit
         }) //await axios.get( mainUrl + '/ticket/history?token='+token);
         let rows = list.data.data;
-        return rows;
+        return {
+          count:list.data.count,
+          rows
+        };
     }
 
     
 
     let showBuyHistoryDialog = async ()=>{
       showHistory.value = true;
-      historyList.value = await getBuyHistory();
+      await onLoad();
+      return;
+      page.value = 0;
+      historyList.value = [];
+      historyList.value = await getBuyHistory(1,20);
     }
 
     let showBuyDialog = (type)=>{
@@ -455,6 +514,11 @@ export default {
     let handleSecondClick = (event)=>{
       const button = event.target;    
       const value = button.getAttribute('data-value');   
+      buySecond.value = parseInt(value, 10); // 将字符串转换为整数  
+    }
+    let handleAmountSlider = (value)=>{
+      //const button = event.target;    
+      //const value = button.getAttribute('data-value');   
       buySecond.value = parseInt(value, 10); // 将字符串转换为整数  
     }
 
@@ -497,6 +561,7 @@ export default {
         showBuy.value = false
     }
 
+    /*
     return {
       showBuy,
       showBuyPop,
@@ -514,9 +579,9 @@ export default {
       showBuyHistoryDialog,
       cancelTicket,
       buyTypeName,
-      symbolActive
-    }
-  }
-};  
+      symbolActive,
+      lastPrice
+    }*/
+  
 
 </script>

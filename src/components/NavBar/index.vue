@@ -107,7 +107,7 @@ const connectWallet = async () =>{
         localStorage.setItem('jwt-token',res.data)
         window.location.reload()
     } else {
-        alert(res.message)
+        console.log(res.message)
     }
         
 
@@ -126,18 +126,20 @@ let isLogin = ref(false);
 const checkLogin = async()=>{
   let token = localStorage.getItem('jwt-token');
   //console.log(token)
-  let login = await axios.get( mainUrl + '/profile?token='+token);
-  if(login.data.code == 200){
-    isLogin.value = true;//
-    localStorage.setItem('walletBalance',login.data.balance)
-    //console.log('balance',login.data.balance)
-    //localStorage.setItem('token',login.data.token)
-  }
-  else{
-    isLogin.value = false;
-    localStorage.removeItem('walletAddr')
-    localStorage.removeItem('walletBalance')
-    localStorage.removeItem('jwt-token')
+  if(token){
+    let login = await axios.get( mainUrl + '/profile?token='+token);
+    if(login.data.code == 200){
+      isLogin.value = true;//
+      localStorage.setItem('walletBalance',login.data.balance)
+      //console.log('balance',login.data.balance)
+      //localStorage.setItem('token',login.data.token)
+    }
+    else{
+      isLogin.value = false;
+      localStorage.removeItem('walletAddr')
+      localStorage.removeItem('walletBalance')
+      localStorage.removeItem('jwt-token')
+    }
   }
 }
 
@@ -153,6 +155,7 @@ const logout = async()=>{
     localStorage.removeItem('walletAddr')
     localStorage.removeItem('walletBalance')
     localStorage.removeItem('jwt-token')
+    window.location.reload();
  
 }
 

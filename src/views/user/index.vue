@@ -5,6 +5,8 @@ import {showDialog,showNotify} from 'vant'
 import {getArticle,getTransfer,doVerify,doUpload} from '@/api/'
 import Web3 from'web3'
 import {infuraId, BEP20_ABI,BEP20_ADDRESS } from "@/settings";
+import ticketList from "@/components/TicketList/index.vue";
+import Page from "@/components/TicketList/page.vue";
 
 onMounted(async ()=>{
   let res = await axios.get(mainUrl+'/setting');
@@ -35,7 +37,7 @@ let announceInfo = ref('loading')
 let getAnnounce = async ()=>{
   
   showAnnounce.value = true
-  let {data} = await getArticle(2)//await axios.get(mainUrl+'/article/2')
+  let data = await getArticle(2)//await axios.get(mainUrl+'/article/2')
   announceInfo.value = data.data.data.content
 }
 
@@ -75,6 +77,8 @@ let getWithdrawHistoryDialog = async ()=>{
   console.log(res)
   withdrawData.value = res.data.data
 }
+
+let showHistory = ref(false);
 
 let getStatusName = (status)=>{
   if(status == 1)return '成功'
@@ -287,13 +291,19 @@ const doRecharge =  async ()=> {
       </template>
     </van-grid-item>
 
+    <!--van-grid-item text="購買歷史" @click="showHistory=true">
+      <template #icon>
+        <img src="~@/assets/images/buy-history.png" class="custom-icon" />
+      </template>
+    </van-grid-item-->
+
     <van-grid-item text="登出" @click="logout">
       <template #icon>
         <img src="~@/assets/images/logout.png" class="custom-icon" />
       </template>
     </van-grid-item>
   </van-grid>
-
+ 
         <!--
         <van-button type="default" @click="getRechargeDialog" >轉入</van-button> <van-button type="default" @click="getRechargeHistoryDialog" >轉入記錄</van-button>
         </p>
@@ -560,12 +570,32 @@ const doRecharge =  async ()=> {
     </p>
   </p>
 </van-popup>
+
+
+<van-popup
+  v-model:show="showHistory"
+  round
+  closeable
+  position="bottom"
+  :style="{ height: '90%' }"
+>
+  <p style="padding : 3rem 1rem 1rem 1rem;line-height: 20px;">
+     
+    <b>購買歷史</b>
+    <br>
+    <br>
+    
+      <ticketList ref="ticketList" />
+  
+  </p>
+</van-popup>
+ 
 </template>
  
 
 <style scoped>
 .custom-icon {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
 }
 </style>

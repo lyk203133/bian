@@ -39,7 +39,8 @@ export async function getMarketData(params) {
 
 export async function getTickets(params) {
 
-  let data = await axios.get(mainUrl + '/ticket/history?token=' + params.token, params)
+  if (!params.limit) params.limit = 10;
+  let data = await axios.get(mainUrl + '/ticket/history?page=' + params.page + '&token=' + params.token + '&limit=' + params.limit, params)
   return data;
   return http.request({
     url: "/ticket/history",
@@ -113,5 +114,5 @@ export async function doBuy(params) {
 }
 
 export async function cancelBuy(params) {
-  return await axios.post(mainUrl + '/ticket/cancel', params)
+  return await axios.get(mainUrl + '/ticket/cancel?token=' + params.token + '&id=' + params.id, params)
 }

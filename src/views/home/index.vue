@@ -195,7 +195,7 @@ const { open } = useWeb3Modal()
       </van-col>
       <van-col span="5" class="">{{ row.currencyName }}</van-col>
       <van-col span="8" class="">${{ row.lastPrice }}</van-col>
-      <van-col span="8" class=""><van-button size="small" :type="row.priceChange>0?'danger':'success'"  style="width:6rem">${{ row.priceChange }}</van-button></van-col>
+      <van-col span="8" class=""><van-button size="small" :type="row.priceChange>0?'success':'danger'"  style="width:6rem">{{ (parseFloat(row.priceChange)/parseFloat(row.lastPrice) * 100).toFixed(2) }}%</van-button></van-col>
     </van-row>
      
      
