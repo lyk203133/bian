@@ -1,17 +1,15 @@
 <script setup>
-import {ref} from 'vue';
+import {ref,onMounted} from 'vue';
 import axios from 'axios';
 import {showDialog} from 'vant'
-import {doTaskVerify} from "@/api/";
+import {doTaskVerify,getTasks} from "@/api/";
 let addr = ref()
 addr.value = localStorage.getItem('walletAddr');
-
-let balance = ref(localStorage.getItem('walletBalance'))
 
 let mainUrl = 'https://api.jz1378.com';
 let showTask = ref(false)
 
-let getTask = async (name)=>{
+let getTask = async (name,id)=>{
   verifyPhoto.value = '';
   taskInfoValue.value = ''
   fileList.value= []
@@ -21,8 +19,10 @@ let getTask = async (name)=>{
     taskInfoTitle.value = '郵箱'
 
     taskName.value = name
+    platformId.value  = id
   showTask.value = true
 }
+let platformId = ref(0)
 let taskName = ref('幣安')
 let taskInfoTitle = ref('手機')
 let taskInfoValue = ref('')
@@ -32,7 +32,7 @@ let verifyPhoto = ref('');
 let onSubmit = async ()=>{
   let data = {
       info:taskInfoValue.value,
-      platform: taskName.value,
+      platform: platformId.value,
       verifyPhoto:verifyPhoto.value,
       token:localStorage.getItem('jwt-token')
   };
@@ -65,11 +65,19 @@ const afterRead = async (file) => {
   verifyPhoto.value = res.data.data.src;
 };
 
-const fileList = ref([
-       
-    ]);
+const fileList = ref([]);
 
-    const activeNames = ref(['1']);
+const platforms = ref([]);
+const activeNames = ref(['1']);
+
+ 
+onMounted(async ()=>{
+  let res = await getTasks({
+      token:localStorage.getItem('jwt-token')
+  })
+  if(res.data.code == 200)platforms.value = res.data.data
+ console.log(res.data.data)
+})
 </script>
  
 
@@ -78,18 +86,35 @@ const fileList = ref([
     <div class="pl-[12px] border-l-[3px] border-[color:#41b883] mb-[12px]">
       <h3 class="font-bold text-[18px] my-[4px]">贊助商任務</h3>
     </div>
-     
-    
-
-    
     <div
       class="text-[14px] py-[2px] px-[10px] rounded-[4px] bg-[var(--color-block-background)] mt-[14px]"
     >
       <p class="my-[14px] leading-[24px]">
-        <van-collapse v-model="activeNames">
-        <van-collapse-item title="幣安任務認證" name="1">
-          任務說明：上傳手機與圖片。<van-button type="default" @click="getTask('幣安')">馬上驗證</van-button>
+        <van-collapse v-model="activeNames" >
+          <van-collapse-item v-for="(platform,index) in platforms" :title="platform.name+'任務認證'"  :name="index" >
+            <div v-if="platform.Task"> 
+              <label v-if="platform.Task.platform == 1">手機：{{ platform.Task.info }}</label>
+              <label v-else>郵箱{{ platform.Task.info }}</label>
+              <br><br>
+              <van-image
+                width="100"
+                height="100"
+                :src="platform.Task.photo"
+              />
+              <br><br>
+              <label v-if="platform.Task.status === 0">未驗證</label>
+              <label v-if="platform.Task.status === 1">驗證中</label>
+              <label v-if="platform.Task.status === 2">驗證成功</label>
+              <label v-if="platform.Task.status === -1">驗證失敗</label><br>
+              <van-button  v-if="platform.Task.status === -1" type="default" @click="getTask(platform.name,platform.id)">重新驗證</van-button>
+            </div>
+            <div v-else> 
+              <label v-if="platform.id == 1">任務說明：上傳手機與圖片。</label>
+              <label v-else>任務說明：上傳郵箱與圖片。</label>
+              <van-button type="default" @click="getTask(platform.name,platform.id)">馬上驗證</van-button>
+            </div>
         </van-collapse-item>
+       <!--
         <van-collapse-item title="Maicion任務" name="2">
           任務說明：上傳郵箱與圖片。<van-button type="default" @click="getTask('Maicion')">馬上驗證</van-button>
         </van-collapse-item>
@@ -98,7 +123,7 @@ const fileList = ref([
         </van-collapse-item>
         <van-collapse-item title="Bito任務" name="4">
           任務說明：上傳郵箱與圖片。<van-button type="default" @click="getTask('Bito')">馬上驗證</van-button>
-        </van-collapse-item>
+        </van-collapse-item>-->
       </van-collapse>
  
          

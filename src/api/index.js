@@ -116,3 +116,9 @@ export async function doBuy(params) {
 export async function cancelBuy(params) {
   return await axios.get(mainUrl + '/ticket/cancel?token=' + params.token + '&id=' + params.id, params)
 }
+
+export async function getTasks(params) {
+  let data = await axios.get(mainUrl + '/task/list?token=' + params.token, params)
+  return data;
+
+}

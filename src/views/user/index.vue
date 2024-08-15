@@ -87,8 +87,14 @@ let getStatusName = (status)=>{
 }
 
 let showVerify = ref(false)
+let userInfo = ref(null);
 let getVerifyDialog =  ()=>{
-   showVerify.value = true
+  userInfo.value = JSON.parse(localStorage.getItem('userInfo'));
+  truename.value = userInfo.value.truename
+  card.value = userInfo.value.card
+  mobile.value = userInfo.value.mobile
+  verifyPhoto.value = userInfo.value.verifyPhoto
+  showVerify.value = true
 }
 
 let truename = ref('');
@@ -490,47 +496,54 @@ const doRecharge =  async ()=> {
     <b>實名認證</b>
     <br>
     <br>
-    <p style="line-height: 150%" >
+    <p style="line-height: 150%" v-if="userInfo.verifyStatus == 1 || userInfo.verifyStatus == 2">
+      <p v-if="userInfo.verifyStatus == 1">驗證中</p>
+      <p v-if="userInfo.verifyStatus == 2">驗證成功</p>
+      <br>
+      <p> <van-image width="300" height="300" :src="userInfo.verifyPhoto" /></p>
+    </p>
+    <p style="line-height: 150%" v-else> 
+      <p v-if="userInfo.verifyStatus == 4">驗證失敗</p>
+      
       <van-form @submit="onSubmit">
-  <van-cell-group inset>
-    <van-field
-      v-model="mobile"
-      name="手機"
-      label="手機"
-      placeholder="手機"
-      :rules="[{ required: true, message: '請輸入手機號碼' }]"
-    />
-    <van-field
-      v-model="truename"
-      
-      name="姓名"
-      label="姓名"
-      placeholder="姓名"
-      :rules="[{ required: true, message: '請輸入姓名' }]"
-    />
-    <van-field
-      v-model="card"
-      
-      name="身份證"
-      label="身份證"
-      placeholder="身份證"
-      :rules="[{ required: true, message: '請輸入身份證' }]"
-    />
+      <van-cell-group inset>
+        <van-field
+          v-model="mobile"
+          name="手機"
+          label="手機"
+          placeholder="手機"
+          :rules="[{ required: true, message: '請輸入手機號碼' }]"
+        />
+        <van-field
+          v-model="truename"
+          
+          name="姓名"
+          label="姓名"
+          placeholder="姓名"
+          :rules="[{ required: true, message: '請輸入姓名' }]"
+        />
+        <van-field
+          v-model="card"
+          
+          name="身份證"
+          label="身份證"
+          placeholder="身份證"
+          :rules="[{ required: true, message: '請輸入身份證' }]"
+        />
 
-    <van-field name="verifyPhoto" label="手持身份照">
-      <template #input>
-        <van-uploader v-model="value" :after-read="afterRead"/>
-      </template>
-    </van-field>
+        <van-field name="verifyPhoto" label="手持身份照">
+          <template #input>
+            <van-uploader v-model="value" :after-read="afterRead"/>
+          </template>
+        </van-field>
 
-  </van-cell-group>
-  <div style="margin: 16px;">
-    <van-button round block type="primary" native-type="submit">
-      提交
-    </van-button>
-  </div>
-</van-form>
-
+      </van-cell-group>
+      <div style="margin: 16px;">
+        <van-button round block type="primary" native-type="submit">
+          提交
+        </van-button>
+      </div>
+    </van-form>
     </p>
   </p>
 </van-popup>

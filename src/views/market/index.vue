@@ -22,7 +22,11 @@
 
     </div>
     <div class="tools-content pt-[20px] px-[12px]">
-    
+      <van-row justify="center"  >
+        <p>{{ currentTimes }} - {{ countdown }}</p><br>
+        <br>
+      </van-row>
+   
     <van-row justify="center"  >
       <van-col span="2"  ></van-col>
       <van-col span="5" class="item"><van-button   type="success" @click="showBuyDialog(1)">買    多</van-button></van-col>
@@ -73,15 +77,15 @@
   <van-cell title="交易兌" value="BTCUSDT"  />
   <van-cell title="當前價格" :value="lastPrice" />
  
-  <van-row justify="left" style=" margin-left:15px;width:100%;font-size:14px;margin-top:1rem" >
+  <!--van-row justify="left" style=" margin-left:15px;width:100%;font-size:14px;margin-top:1rem" >
     <van-col span="6" class="title" >交易時間</van-col>
-    <!--van-col span="18"  class="flex-container" >
+    <van-col span="18"  class="flex-container" >
       <van-button  type="default" @click="" size="small">60S</van-button>
       <van-button  type="default" @click="" size="small" >180S</van-button>
       <van-button  type="default" @click="" size="small">300S</van-button>
       <van-button  type="default" @click="" size="small">600S</van-button>
       
-    </van-col-->
+    </van-col>
     <van-col span="18" class="flex-container">  
       <van-button  
         type="default"  
@@ -113,7 +117,7 @@
       >600S</van-button>  
     </van-col>  
   </van-row>
-  <van-divider />
+  <van-divider /-->
   <van-row justify="left" style="margin-left:15px;width:100%;font-size:14px; " >
     <van-col span="6" class="title">交易金額</van-col>
     <van-col span="18" class="flex-container" >
@@ -171,19 +175,22 @@
        
           <van-row justify="center" gutter="16" class="title" >
             <van-col span="4">交易兌</van-col>
-            <van-col span="6">買價</van-col>
+            <!--van-col span="4">買價</van-col-->
             <van-col span="4">金額</van-col>
+            <van-col span="6">收益結果</van-col>
             <van-col span="4">時間</van-col>
-            <van-col span="6">結果</van-col>
+            <van-col span="4">結果</van-col>
           </van-row>
           <van-row justify="center" gutter="16" v-for="row in historyList">
             <van-col span="4">{{ row.pair }}</van-col>
-            <van-col span="6">{{ parseFloat(row.price).toFixed(2) }}</van-col>
+            <!--van-col span="4">{{ parseFloat(row.price).toFixed(2) }}</van-col-->
             <van-col span="4">{{row.quantity}}</van-col>
+            <van-col span="6" v-if="row.result > 0" style="color:green">收益</van-col>
+            <van-col span="6" v-if="row.result == 0" style="color: red;">虧損</van-col>
             <van-col span="4">{{row.created}}</van-col>
-            <van-col span="6" v-if="row.status == 0"><van-button type="default" @click="cancelTicket(row.id)">取消</van-button></van-col>
-            <van-col span="6" v-if="row.status == 1">{{ parseFloat(row.result).toFixed(2) }}</van-col>
-            <van-col span="6" v-if="row.status == -1">取消</van-col>
+            <van-col span="4" v-if="row.status == 0">-</van-col>
+            <van-col span="4" v-if="row.status == 1">{{ parseFloat(row.result).toFixed(2) }}</van-col>
+            <van-col span="4" v-if="row.status == -1">取消</van-col>
           </van-row>
           <van-pagination v-model="currentPage" :total-items="totalCount" :show-page-size="5" @change="change">
             <template #prev-text>
@@ -227,361 +234,349 @@ import { useRoute,useRouter } from 'vue-router';
 import { init } from 'klinecharts'
 import { getMarketData,getTickets,doBuy,cancelBuy } from "@/api/";
 import axios from "axios"
- 
-    const route = useRoute();
-    const router = useRouter();
-    let symbol =  route.params.symbol || 'btc';
-    let symbolActive = ref(symbol);
+import moment from "moment"
+  const route = useRoute();
+  const router = useRouter();
+  let symbol =  route.params.symbol || 'btc';
+  let symbolActive = ref(symbol);
 
-    symbol += 'usdt'
-    const pair = ref(symbol)
-    const interval = '1s';
-    const binanceSocketUrl = 'wss://stream.binance.com:9443/ws/'+symbol+'@kline_' + interval;
-    const reconnectInterval = 5000; // 5 seconds
-    let klineData = [];
-    let lastPrice = ref(0);
-    const chartInstance = ref();
-    let socket;
-    let showBuy = ref(false);
-    let showBuyPop=()=>{
-      showBuy.value = true;
-    };
+  symbol += 'usdt'
+  const pair = ref(symbol)
+  const interval = '1s';
+  const binanceSocketUrl = 'wss://stream.binance.com:9443/ws/'+symbol+'@kline_' + interval;
+  const reconnectInterval = 5000; // 5 seconds
+  let klineData = [];
+  let lastPrice = ref(0);
+  const chartInstance = ref();
+  let socket;
+  let showBuy = ref(false);
+  let showBuyPop=()=>{
+    showBuy.value = true;
+  };
+  let countdown = ref(0)
+  let currentTimes = ref('')
+  let showHistory = ref(false)
+  let setHistoryShow = () =>{
+    showHistory.value = true;
+  }
 
-    let showHistory = ref(false)
-    let setHistoryShow = () =>{
-      showHistory.value = true;
-    }
-
-    let currentPage = ref(1);
-    let totalCount = ref(0);
-    const loading = ref(false);
-    const finished = ref(false);
-    const page = ref(0);
-    let switchSymbol = (symbol)=>{
-      window.location = '#/market/'+symbol;
-       
-      //router.push({ name: 'market', params: { symbol: symbol.toLowerCase() } });
-      /*klineData = [];
-      socket = null;
-      initChart(symbol)
-      createWebSocket(symbol+'usdt')*/
-    }
-
-    
-    let getHistoryKline = async (symbol,interval)=>{
-      let token = localStorage.getItem('token')
-       let data = await getMarketData({
-          symbol : symbol,
-          limit:150,
-          interval:interval,
-          token
-        });//await axios.get(`${mainUrl}/market_data?symbol=${symbol}&interval=${interval}&token=${token}`)
-       return data.data;
-    }
-
-    watch(() => route.params.symbol, (newId, oldId) => {
-      window.location.reload()
-      klineData = [];
-      console.log('Route parameter changed from', oldId, 'to', newId);
-      initChart(newId,interval)
-      createWebSocket(newId + 'usdt',interval)
-     
-    });
-
-
-    onMounted(() => {  
-      console.log('onMounted')
-      initChart(symbol,interval)
-      createWebSocket(symbol,interval);
-    });
-
-    const onLoad = async () => {
-      loading.value = false;
- 
-      const newHistory = await getBuyHistory(currentPage.value,10);
-      //historyList.value = [...historyList.value, ...newHistory.rows];
-      historyList.value = newHistory.rows;
-      // 加载状态结束
-      loading.value = true;
-
-      // 数据全部加载完成
-      if (historyList.value.length >= newHistory.count) {
-        finished.value = true;
-      }
-      page.value = page;
-
-      totalCount.value = newHistory.count;
+  let currentPage = ref(1);
+  let totalCount = ref(0);
+  const loading = ref(false);
+  const finished = ref(false);
+  const page = ref(0);
+  let switchSymbol = (symbol)=>{
+    window.location = '#/market/'+symbol;
       
-    };
+    //router.push({ name: 'market', params: { symbol: symbol.toLowerCase() } });
+    /*klineData = [];
+    socket = null;
+    initChart(symbol)
+    createWebSocket(symbol+'usdt')*/
+  }
 
-    const change = async  (e)=>{
-      console.log('change',e)
-      await onLoad();
+  
+  let getHistoryKline = async (symbol,interval)=>{
+    let token = localStorage.getItem('token')
+      let data = await getMarketData({
+        symbol : symbol,
+        limit:150,
+        interval:interval,
+        token
+      });//await axios.get(`${mainUrl}/market_data?symbol=${symbol}&interval=${interval}&token=${token}`)
+      return data.data;
+  }
+
+  watch(() => route.params.symbol, (newId, oldId) => {
+    window.location.reload()
+    klineData = [];
+    console.log('Route parameter changed from', oldId, 'to', newId);
+    initChart(newId,interval)
+    createWebSocket(newId + 'usdt',interval)
+    
+  });
+
+
+  onMounted(() => {  
+    console.log('onMounted')
+    initChart(symbol,interval)
+    createWebSocket(symbol,interval);
+  });
+
+  const onLoad = async () => {
+    loading.value = false;
+
+    const newHistory = await getBuyHistory(currentPage.value,10);
+    //historyList.value = [...historyList.value, ...newHistory.rows];
+    historyList.value = newHistory.rows;
+    // 加载状态结束
+    loading.value = true;
+
+    // 数据全部加载完成
+    if (historyList.value.length >= newHistory.count) {
+      finished.value = true;
     }
+    page.value = page;
 
-    const initChart = ()=>{
-      console.log(klineData)
-      const chartContainer = document.getElementById('chart');  
-      if (chartInstance.value) {
-        chartInstance.value.remove(); // 如果之前已经初始化过，先销毁
+    totalCount.value = newHistory.count;
+    
+  };
+
+  const change = async  (e)=>{
+    console.log('change',e)
+    await onLoad();
+  }
+
+  const initChart = ()=>{
+    console.log(klineData)
+    const chartContainer = document.getElementById('chart');  
+    if (chartInstance.value) {
+      chartInstance.value.remove(); // 如果之前已经初始化过，先销毁
+    }
+    chartInstance.value = init(chartContainer, {
+      locale: 'zh-HK',
+      timezone: 'Asia/Shanghai',
+      customApi: {
+          formatDate: (dateTimeFormat, timestamp, format, type) => {
+              const date = new Date(timestamp);
+              //return date.toLocaleString();
+              return date.toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hour12: false  // 使用 24 小时制
+              });
+          },
+          formatBigNumber: (value) => {
+              return value.toString();
+          }
       }
-      chartInstance.value = init(chartContainer, {
-        locale: 'zh-HK',
-        timezone: 'Asia/Shanghai',
-        customApi: {
-            formatDate: (dateTimeFormat, timestamp, format, type) => {
-                const date = new Date(timestamp);
-                //return date.toLocaleString();
-                return date.toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false  // 使用 24 小时制
-                });
-            },
-            formatBigNumber: (value) => {
-                return value.toString();
-            }
-        }
-         
-    }); // 假设 init 需要 DOM 元素作为参数 
-    chartInstance.value.setLocale('zh-HK');
- 
-    klineData = [];//generatedDataList(); // 调用函数获取数据  
-    console.log(klineData); // 查看数据是否正确  
-
-    if (chartInstance.value && klineData) {  
-      chartInstance.value.applyNewData(klineData); // 应用数据到图表  
-    }  
-    // 创建主图技术指标
-    chartInstance.value.createIndicator('MA', false, { id: 'candle_pane' });
-
-    // 创建副图技术指标 VOL
-    chartInstance.value.createIndicator('VOL');
-    chartInstance.value.setStyles({
-        grid: {
-            show: false
-        },
-        xAxis: {
-            axisLine: {
-                show: true // Hide x-axis line
-            },
-            tickLine: {
-                show: true // Hide x-axis tick lines
-            },
-            tickText: {
-                // 格式化显示秒级别的时间
-                formatter: timestamp => {
-                    const date = new Date(timestamp);
-                    return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-                      
-                }
-            },
-            tickInterval: 1000 // 每秒一个间隔
-        },
-        yAxis: {
-
-            axisLine: {
-                show: false // Hide y-axis line
-            },
-            tickLine: {
-                show: false // Hide y-axis tick lines
-            }
-        }, 
-        separator: {
-            size: 0,
-        }, 
-        candle: {
-            tooltip: {
-                text: {
-                    size: 12,
-                    family: 'Helvetica Neue',
-                    weight: 'normal',
-                    color: 'red',
-                    marginLeft: 8,
-                    marginTop: 4,
-                    marginRight: 8,
-                    marginBottom: 4
-                },
-
-            },
-            priceMark: {
-                last: {
-                    text: {
-                        color: '#ffffff',
-                    }
-                }
-            }
-
-        }
-    });
-    }
-
-    const createWebSocket = (symbol='btcusdt',interval='1s') =>{
-        console.log('ws',symbol,interval)
         
-        socket = new WebSocket(binanceSocketUrl);
-        socket.onopen = function () {
-            console.log('WebSocket connection opened.');
-            const subscribeMessage = JSON.stringify({
-                method: "SUBSCRIBE",
-                params: [symbol+"@kline_" + interval],
-                id: 1
-            });
-            socket.send(subscribeMessage);
-        };
+  }); // 假设 init 需要 DOM 元素作为参数 
+  chartInstance.value.setLocale('zh-HK');
 
-        socket.onmessage = function (event) {
-            const message = JSON.parse(event.data);
+  klineData = [];//generatedDataList(); // 调用函数获取数据  
+  console.log(klineData); // 查看数据是否正确  
 
-            if (message.e === 'ping') {
-                socket.send(JSON.stringify({ pong: message.ping }));
-            } else if (message.k) {
-                // Handle Kline data
-                const kline = message.k;
-                const dataPoint = [
-                    kline.t, // timestamp
-                    (kline.o), // open price
-                    (kline.h), // high price
-                    (kline.l), // low price
-                    (kline.c),  // close price
-                    (kline.v),
-                ];
-                // Otherwise, add a new data point
-                lastPrice.value = kline.c;
-                //$('.current-price').val(kline.c)
-                //console.log('當前價', kline.c)
-                //console.log('klineData',klineData)
-                let data = dataPoint;
-                chartInstance.value.updateData({
-                    timestamp: data[0],
-                    open: +data[1],
-                    high: +data[2],
-                    low: +data[3],
-                    close: +data[4],
-                    volume: Math.ceil(+data[5]),
-                })
+  if (chartInstance.value && klineData) {  
+    chartInstance.value.applyNewData(klineData); // 应用数据到图表  
+  }  
+  // 创建主图技术指标
+  chartInstance.value.createIndicator('MA', false, { id: 'candle_pane' });
 
-            }
-        };
+  // 创建副图技术指标 VOL
+  chartInstance.value.createIndicator('VOL');
+  chartInstance.value.setStyles({
+      grid: {
+          show: false
+      },
+      xAxis: {
+          axisLine: {
+              show: true // Hide x-axis line
+          },
+          tickLine: {
+              show: true // Hide x-axis tick lines
+          },
+          tickText: {
+              // 格式化显示秒级别的时间
+              formatter: timestamp => {
+                  const date = new Date(timestamp);
+                  return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+                    
+              }
+          },
+          tickInterval: 1000 // 每秒一个间隔
+      },
+      yAxis: {
 
-        socket.onerror = function (error) {
-            console.error('WebSocket error:', error);
-        };
+          axisLine: {
+              show: false // Hide y-axis line
+          },
+          tickLine: {
+              show: false // Hide y-axis tick lines
+          }
+      }, 
+      separator: {
+          size: 0,
+      }, 
+      candle: {
+          tooltip: {
+              text: {
+                  size: 12,
+                  family: 'Helvetica Neue',
+                  weight: 'normal',
+                  color: 'red',
+                  marginLeft: 8,
+                  marginTop: 4,
+                  marginRight: 8,
+                  marginBottom: 4
+              },
 
-        socket.onclose = function (event) {
-            console.log('WebSocket connection closed. Reconnecting in', reconnectInterval / 1000, 'seconds.');
-            setTimeout(createWebSocket, reconnectInterval);
-        };
-    }
-    
-    let historyList = ref([]);
-    const getBuyHistory = async (page,limit=10)=>{
-      console.log('page',page.value)
-      let token = localStorage.getItem('jwt-token')
-        let list = await getTickets({
-          token,
-          page,
-          limit
-        }) //await axios.get( mainUrl + '/ticket/history?token='+token);
-        let rows = list.data.data;
-        return {
-          count:list.data.count,
-          rows
-        };
-    }
+          },
+          priceMark: {
+              last: {
+                  text: {
+                      color: '#ffffff',
+                  }
+              }
+          }
 
-    
+      }
+  });
+  }
 
-    let showBuyHistoryDialog = async ()=>{
-      showHistory.value = true;
-      await onLoad();
-      return;
-      page.value = 0;
-      historyList.value = [];
-      historyList.value = await getBuyHistory(1,20);
-    }
+  const createWebSocket = (symbol='btcusdt',interval='1s') =>{
+      console.log('ws',symbol,interval)
+      
+      socket = new WebSocket(binanceSocketUrl);
+      socket.onopen = function () {
+          console.log('WebSocket connection opened.');
+          const subscribeMessage = JSON.stringify({
+              method: "SUBSCRIBE",
+              params: [symbol+"@kline_" + interval],
+              id: 1
+          });
+          socket.send(subscribeMessage);
+      };
 
-    let showBuyDialog = (type)=>{
-      showBuy.value=true;
-      buyType.value = type;
-      buyTypeName.value = type == 1? '買多' : '買空'
-    }
-    let buyType = ref(1);
-    let buyTypeName = ref(1);
-    let buyAmount = ref(1);
-    let buySecond = ref(60);
-    let handleSecondClick = (event)=>{
-      const button = event.target;    
-      const value = button.getAttribute('data-value');   
-      buySecond.value = parseInt(value, 10); // 将字符串转换为整数  
-    }
-    let handleAmountSlider = (value)=>{
-      //const button = event.target;    
-      //const value = button.getAttribute('data-value');   
-      buySecond.value = parseInt(value, 10); // 将字符串转换为整数  
-    }
+      socket.onmessage = function (event) {
+          const message = JSON.parse(event.data);
 
+          if (message.e === 'ping') {
+              socket.send(JSON.stringify({ pong: message.ping }));
+          } else if (message.k) {
+              // Handle Kline data
+              const kline = message.k;
+              const dataPoint = [
+                  kline.t, // timestamp
+                  (kline.o), // open price
+                  (kline.h), // high price
+                  (kline.l), // low price
+                  (kline.c),  // close price
+                  (kline.v),
+              ];
+              // Otherwise, add a new data point
+              lastPrice.value = kline.c;
+              //$('.current-price').val(kline.c)
+              //console.log('當前價', kline.c)
+              //console.log('klineData',klineData)
+              let data = dataPoint;
+              chartInstance.value.updateData({
+                  timestamp: data[0],
+                  open: +data[1],
+                  high: +data[2],
+                  low: +data[3],
+                  close: +data[4],
+                  volume: Math.ceil(+data[5]),
+              })
+
+              currentTimes.value = moment(data[0]).format("YYYYMMDDHHmm")
+console.log( moment(parseInt(data[0])+60).unix() ,'-',  moment(parseInt(data[0])).format("YYYY-MM-DD HH:mm:00") ,  moment().format("YYYY-MM-DD HH:mm:ss") )
  
-    let handleAmountClick = (event)=>{
-      const button = event.target;    
-      const value = button.getAttribute('data-value');   
-      buyAmount.value = parseInt(value, 10); // 将字符串转换为整数  
-    }
+              const nowTime = moment().format("YYYY-MM-DD HH:mm:ss");
+              const lastTime = moment(parseInt(data[0])).format("YYYY-MM-DD HH:mm:00");
+              countdown.value = 60 - (moment(nowTime).unix() - moment(lastTime).unix() ) 
+          }
+      };
 
-    let buyAmountList = [1,10,100,1000,10000]
+      socket.onerror = function (error) {
+          console.error('WebSocket error:', error);
+      };
 
-    let handleBuy =async ()=>{
-      let token = localStorage.getItem('jwt-token')
-        console.log(buyAmount.value,buySecond.value,buyType.value)
-        let res = await doBuy({
-          pair:pair.value,
-          quantity:buyAmount.value,
-          second:buySecond.value,
-          buyType:buyType.value,
-          token,
-        })
+      socket.onclose = function (event) {
+          console.log('WebSocket connection closed. Reconnecting in', reconnectInterval / 1000, 'seconds.');
+          setTimeout(createWebSocket, reconnectInterval);
+      };
+  }
+  
+  let historyList = ref([]);
+  const getBuyHistory = async (page,limit=10)=>{
+    console.log('page',page.value)
+    let token = localStorage.getItem('jwt-token')
+      let list = await getTickets({
+        token,
+        page,
+        limit
+      }) //await axios.get( mainUrl + '/ticket/history?token='+token);
+      let rows = list.data.data;
+      return {
+        count:list.data.count,
+        rows
+      };
+  }
 
-        showDialog({ message: res.data.message });
-      if(res.data.code == 200)
-        showBuy.value = false
-    }
-
-    let cancelTicket =async (id)=>{
-
-      let token = localStorage.getItem('jwt-token')
-        console.log(buyAmount.value,buySecond.value,buyType.value)
-        let res = await cancelBuy({
-          id,
-          token,
-        })
-
-        showDialog({ message: res.data.message });
-      if(res.data.code == 200)
-        showBuy.value = false
-    }
-
-    /*
-    return {
-      showBuy,
-      showBuyPop,
-      switchSymbol,
-      getBuyHistory,
-      historyList,
-      showHistory,
-      setHistoryShow,buyAmount,
-      buySecond,
-      handleSecondClick,
-      buyAmountList,
-      handleAmountClick,
-      handleBuy,
-      showBuyDialog,
-      showBuyHistoryDialog,
-      cancelTicket,
-      buyTypeName,
-      symbolActive,
-      lastPrice
-    }*/
   
 
+  let showBuyHistoryDialog = async ()=>{
+    showHistory.value = true;
+    await onLoad();
+    return;
+    page.value = 0;
+    historyList.value = [];
+    historyList.value = await getBuyHistory(1,20);
+  }
+
+  let showBuyDialog = (type)=>{
+    showBuy.value=true;
+    buyType.value = type;
+    buyTypeName.value = type == 1? '買多' : '買空'
+  }
+  let buyType = ref(1);
+  let buyTypeName = ref(1);
+  let buyAmount = ref(1);
+  let buySecond = ref(60);
+  let handleSecondClick = (event)=>{
+    const button = event.target;    
+    const value = button.getAttribute('data-value');   
+    buySecond.value = parseInt(value, 10); // 将字符串转换为整数  
+  }
+  let handleAmountSlider = (value)=>{
+    //const button = event.target;    
+    //const value = button.getAttribute('data-value');   
+    buySecond.value = parseInt(value, 10); // 将字符串转换为整数  
+  }
+
+
+  let handleAmountClick = (event)=>{
+    const button = event.target;    
+    const value = button.getAttribute('data-value');   
+    buyAmount.value += parseInt(value, 10); // 将字符串转换为整数  
+    if(buyAmount.value > 10000) buyAmount.value = 10000;
+  }
+
+  let buyAmountList = [1,10,100,1000,10000]
+
+  let handleBuy =async ()=>{
+    let token = localStorage.getItem('jwt-token')
+      console.log(buyAmount.value,buySecond.value,buyType.value)
+      let res = await doBuy({
+        pair:pair.value,
+        quantity:buyAmount.value,
+        second:buySecond.value,
+        buyType:buyType.value,
+        token,
+      })
+
+      showDialog({ message: res.data.message });
+    if(res.data.code == 200)
+      showBuy.value = false
+  }
+
+  let cancelTicket =async (id)=>{
+
+    let token = localStorage.getItem('jwt-token')
+      console.log(buyAmount.value,buySecond.value,buyType.value)
+      let res = await cancelBuy({
+        id,
+        token,
+      })
+
+    
+    if(res.data.code == 200){
+      showBuy.value = false
+      onLoad()
+    }else{
+      showDialog({ message: res.data.message });
+    }
+  }
 </script>

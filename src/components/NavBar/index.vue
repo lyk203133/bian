@@ -105,6 +105,7 @@ const connectWallet = async () =>{
         isLogin.value = true;
         localStorage.setItem('walletAddr', selectedAccount);
         localStorage.setItem('jwt-token',res.data)
+        localStorage.setItem('userInfo',JSON.stringify(res.data))
         window.location.reload()
     } else {
         console.log(res.message)
@@ -131,6 +132,7 @@ const checkLogin = async()=>{
     if(login.data.code == 200){
       isLogin.value = true;//
       localStorage.setItem('walletBalance',login.data.balance)
+      localStorage.setItem('userInfo',JSON.stringify(login.data.data))
       //console.log('balance',login.data.balance)
       //localStorage.setItem('token',login.data.token)
     }
@@ -139,6 +141,7 @@ const checkLogin = async()=>{
       localStorage.removeItem('walletAddr')
       localStorage.removeItem('walletBalance')
       localStorage.removeItem('jwt-token')
+      localStorage.removeItem('userInfo')
     }
   }
 }
@@ -155,6 +158,7 @@ const logout = async()=>{
     localStorage.removeItem('walletAddr')
     localStorage.removeItem('walletBalance')
     localStorage.removeItem('jwt-token')
+    localStorage.removeItem('userInfo')
     window.location.reload();
  
 }

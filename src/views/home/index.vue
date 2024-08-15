@@ -5,6 +5,9 @@ import 'vant/lib/index.css';
 import * as d3 from "d3";
 import { getPricing,getMarketData } from "@/api/";
  
+let loginShow = ref(true);
+
+
 let rows = ref([]);
 let initPricing = async ()=>{
   let resp = await getPricing();
@@ -81,7 +84,10 @@ let drawFun = async () => {
 }
 
 onMounted(() => {
-  
+  if(!localStorage.getItem('jwt-token'))
+  loginShow.value = true;
+else
+  loginShow.value = false;
 });
 
 let getImageSrc = (currencyName) =>{
@@ -134,7 +140,8 @@ const { open } = useWeb3Modal()
        <Space></Space>
        <Space></Space>
        <div>
-        <van-button round type="default" style="background-color: black;color:white" @click="connectWallet">立即登入智能錢包</van-button>
+        <van-button round type="default" style="background-color: black;color:white" @click="connectWallet" v-show="loginShow">立即登入智能錢包</van-button>
+        <van-button round type="default" style="background-color: black;color:white" onclick="window.location='./#/market'" v-show="!loginShow">立即購買</van-button>
         <Space></Space>
         <Space></Space>
         <br>
