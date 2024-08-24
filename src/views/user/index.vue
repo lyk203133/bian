@@ -1,13 +1,18 @@
 <script setup>
 import {ref,onMounted} from 'vue';
 import axios from 'axios';
-import {showDialog,showNotify} from 'vant'
+import {showDialog,showNotify ,Tab, Tabs } from 'vant'
 import {getArticle,getTransfer,doVerify,doUpload} from '@/api/'
 import Web3 from'web3'
 import {infuraId, BEP20_ABI,BEP20_ADDRESS } from "@/settings";
 import ticketList from "@/components/TicketList/index.vue";
 import Page from "@/components/TicketList/page.vue";
 
+let activeName = ref('recharge')
+let currentPage = ref(1);
+let totalCount = ref(0);
+let limit = 20;
+const page = ref(1);
 onMounted(async ()=>{
   let res = await axios.get(mainUrl+'/setting');
   console.log('setting',res.data)
@@ -19,7 +24,7 @@ addr.value = localStorage.getItem('walletAddr');
 
 let balance = ref(localStorage.getItem('walletBalance'))
 
-let mainUrl = 'https://api.jz1378.com';
+let mainUrl = import.meta.env.VITE_BASE_API;
 let showPrivate = ref(false)
 let privateInfo = ref('loading')
 
@@ -35,7 +40,6 @@ let showAnnounce = ref(false)
 let announceInfo = ref('loading')
 
 let getAnnounce = async ()=>{
-  
   showAnnounce.value = true
   let data = await getArticle(2)//await axios.get(mainUrl+'/article/2')
   announceInfo.value = data.data.data.content
@@ -49,34 +53,71 @@ let getRechargeDialog =  ()=>{
 
 let showRechargeHistory = ref(false)
 let rechargeData = ref([])
-let getRechargeHistoryDialog =  async ()=>{
+let getRechargeHistoryDialog = async ()=>{
+  showRechargeHistory.value = true;
+  activeName='recharge'
+  await getRechargeHistoryData(1)
+}
+let getRechargeHistoryData = async (p)=>{
+  currentPage.value = p;
   let token = localStorage.getItem('jwt-token')
-  showRechargeHistory.value = true
   let res = await getTransfer({
     token,
-    type:1
-  });//await axios.get(mainUrl+'/transfer/recharge?token='+token+'&type=1')
-  console.log(res)
+    type:1,
+    page:currentPage.value,
+    limit
+  });
+ 
+  console.log(res.data)
   rechargeData.value = res.data.data
+  page.value = currentPage.value;
+  totalCount.value = res.data.count;
 }
 
 let showWithdraw = ref(false)
 let withdrawData = ref([])
-let getWithdrawDialog =  async()=>{
+let getWithdrawDialog =  async(name)=>{
+  activeName = name;
   showWithdraw.value = true
-  
 }
 let showWithdrawHistory = ref(false)
-let getWithdrawHistoryDialog = async ()=>{
-  showWithdrawHistory.value = true
+ 
+
+let getWithdrawHistoryData = async (p)=>{
+  currentPage.value = p;
   let token = localStorage.getItem('jwt-token')
   let res = await getTransfer({
     token,
-    type:2
-  })//await axios.get(mainUrl+'/transfer/recharge?token='+token+'&type=2')
+    type:2,
+    page:currentPage.value,
+    limit
+  })
   console.log(res)
   withdrawData.value = res.data.data
+  page.value = currentPage.value;
+  totalCount.value = res.data.count;
 }
+
+const changeRecharge = async  (e)=>{
+    console.log('change',e)
+    currentPage.value = parseInt(e);
+    await getRechargeHistoryData(currentPage.value);
+  }
+
+  const changeWithdraw = async  (e)=>{
+    console.log('withdraw',e)
+    currentPage.value = parseInt(e);
+    await getWithdrawHistoryData(currentPage.value);
+  }
+
+  const onClickTab = async (title,name)=>{
+    console.log(title,title.name)
+    if(title.name == 'recharge'){
+      changeRecharge(1)
+    }else{
+      changeWithdraw(1);
+    }
+  }
 
 let showHistory = ref(false);
 
@@ -227,6 +268,10 @@ const doRecharge =  async ()=> {
       localStorage.removeItem('jwt-token')
   
   }
+
+
+
+
 </script>
  
 
@@ -240,11 +285,14 @@ const doRecharge =  async ()=> {
       class="text-[14px] py-[2px] px-[10px] rounded-[4px] bg-[var(--color-block-background)] mt-[14px]"
     >
     <p class="my-[14px] leading-[24px]"  >
-         錢包地址：{{ addr }}
+      <div class="van-multi-ellipsis--l2">
+        錢包地址：{{ addr }}
+      </div>
+         
          
       </p>
       <p class="my-[14px] leading-[24px]">
-         餘額：{{balance}} U
+         餘額：<span id="lblBalance">{{balance}}</span> U
          
       </p>
     </div>
@@ -260,24 +308,26 @@ const doRecharge =  async ()=> {
         <img src="~@/assets/images/recharge.png" class="custom-icon" />
       </template>
     </van-grid-item>
-    
-    <van-grid-item text="轉入記錄" @click="getRechargeHistoryDialog">
-      <template #icon>
-        <img src="~@/assets/images/recharge-list.png" class="custom-icon" />
-      </template>
-    </van-grid-item>
 
     <van-grid-item text="轉出" @click="getWithdrawDialog">
       <template #icon>
         <img src="~@/assets/images/withdraw.png" class="custom-icon" />
       </template>
     </van-grid-item>
+    
+    <van-grid-item text="帳務紀錄" @click="getRechargeHistoryDialog(1);">
+      <template #icon>
+        <img src="~@/assets/images/recharge-list.png" class="custom-icon" />
+      </template>
+    </van-grid-item>
 
-    <van-grid-item text="轉出記錄" @click="getWithdrawHistoryDialog">
+    
+
+    <!--van-grid-item text="轉出記錄" @click="getWithdrawHistoryDialog('withdraw')">
       <template #icon>
         <img src="~@/assets/images/withdraw-list.png" class="custom-icon" />
       </template>
-    </van-grid-item>
+    </van-grid-item-->
 
     <van-grid-item text="實名認證" @click="getVerifyDialog">
       <template #icon>
@@ -303,11 +353,11 @@ const doRecharge =  async ()=> {
       </template>
     </van-grid-item-->
 
-    <van-grid-item text="登出" @click="logout">
+    <!--van-grid-item text="登出" @click="logout">
       <template #icon>
         <img src="~@/assets/images/logout.png" class="custom-icon" />
       </template>
-    </van-grid-item>
+    </van-grid-item-->
   </van-grid>
  
         <!--
@@ -357,7 +407,6 @@ const doRecharge =  async ()=> {
   :style="{ height: '60%' }"
 >
   <p style="padding : 3rem 1rem 1rem 1rem;line-height: 20px;">
-     
     <b>轉入</b>
     <br>
     <br>
@@ -385,7 +434,6 @@ const doRecharge =  async ()=> {
   </p>
 </van-popup>
 
-
 <van-popup
   v-model:show="showRechargeHistory"
   round
@@ -394,25 +442,59 @@ const doRecharge =  async ()=> {
   :style="{ height: '90%' }"
 >
   <p style="padding : 3rem 1rem 1rem 1rem;line-height: 20px;">
-     
-    <b>轉入記錄</b>
+    <b>帳務紀錄</b>
     <br>
     <br>
-    
-      <div class="history" style="height: 100vw;width:100%">
-         
-          <van-row justify="center" gutter="16" class="title" >
-            <van-col span="6">金額</van-col>
-            <van-col span="10">時間</van-col>
-            <van-col span="6">結果</van-col>
-          </van-row>
-          <van-row justify="center" gutter="16" v-for="row in rechargeData">
-            <van-col span="6">{{ parseFloat(row.amount).toFixed(2) }}</van-col>
-            <van-col span="10">{{row.created}}</van-col>
-            <van-col span="6">{{  getStatusName(row.status) }}</van-col>
-          </van-row>
-        </div>
-  
+    <van-tabs v-model:active="activeName"  @click-tab="onClickTab">
+      <van-tab title="轉入記錄" name="recharge"  ><br>
+        <div class="history" style="height: 100vw;width:100%">
+            
+            <van-row justify="center" gutter="16" class="title" >
+              <van-col span="6"><b>金額</b></van-col>
+              <van-col span="10"><b>時間</b></van-col>
+              <van-col span="6"><b>結果</b></van-col>
+            </van-row>
+            <van-row justify="center" gutter="16" v-for="row in rechargeData">
+              <van-col span="6">{{ parseFloat(row.amount).toFixed(2) }}</van-col>
+              <van-col span="10">{{row.created}}</van-col>
+              <van-col span="6">{{  getStatusName(row.status) }}</van-col>
+            </van-row>
+            <van-pagination  class="custom-pagination"  :items-per-page="limit"  v-model="currentPage" :total-items="totalCount" :show-page-size="5" @change="changeRecharge">
+                <template #prev-text>
+                  <van-icon name="arrow-left" />
+                </template>
+                <template #next-text>
+                  <van-icon name="arrow" />
+                </template>
+                <template #page="{ text }">{{ text }}</template>
+              </van-pagination>
+          </div>
+      </van-tab>
+      <van-tab title="轉出記錄" name="withdraw"  ><br>
+        <div class="history" style="height: 100vw;width:100%">
+            <van-row justify="center" gutter="16" class="title" >
+                <van-col span="6"><b>金額</b></van-col>
+                <van-col span="10"><b>時間</b></van-col>
+                <van-col span="6"><b>結果</b></van-col>
+              </van-row>
+              <van-row justify="center" gutter="16" v-for="row in withdrawData">
+                <van-col span="6">{{ parseFloat(row.amount).toFixed(2) }}</van-col>
+                <van-col span="10">{{row.created}}</van-col>
+                <van-col span="6">{{  getStatusName(row.status) }}</van-col>
+              </van-row>
+              <van-pagination  class="custom-pagination"  :items-per-page="limit" v-model="currentPage" :total-items="totalCount" :show-page-size="5" @change="changeWithdraw">
+                <template #prev-text>
+                  <van-icon name="arrow-left" />
+                </template>
+                <template #next-text>
+                  <van-icon name="arrow" />
+                </template>
+                <template #page="{ text }">{{ text }}</template>
+              </van-pagination>
+            </div>
+            
+      </van-tab>
+    </van-tabs>
   </p>
 </van-popup>
 
@@ -610,5 +692,11 @@ const doRecharge =  async ()=> {
 .custom-icon {
   width: 40px;
   height: 40px;
+}
+.van-pagination {
+  --van-pagination-item-default-color: black;
+}
+.van-row{
+  line-height: 25px;
 }
 </style>

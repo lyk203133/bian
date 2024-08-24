@@ -186,13 +186,14 @@
             <!--van-col span="4">{{ parseFloat(row.price).toFixed(2) }}</van-col-->
             <van-col span="4">{{row.quantity}}</van-col>
             <van-col span="6" v-if="row.result > 0" style="color:green">收益</van-col>
-            <van-col span="6" v-if="row.result == 0" style="color: red;">虧損</van-col>
+            <van-col span="6" v-if="row.result == 0 && row.status != 0" style="color: red;">虧損</van-col>
+            <van-col span="6" v-if="row.result == 0 && row.status == 0" style="color: orange;">待定</van-col>
             <van-col span="4">{{row.created}}</van-col>
             <van-col span="4" v-if="row.status == 0">-</van-col>
             <van-col span="4" v-if="row.status == 1">{{ parseFloat(row.result).toFixed(2) }}</van-col>
             <van-col span="4" v-if="row.status == -1">取消</van-col>
           </van-row>
-          <van-pagination v-model="currentPage" :total-items="totalCount" :show-page-size="5" @change="change">
+          <van-pagination  class="custom-pagination"   v-model="currentPage" :total-items="totalCount" :show-page-size="5" @change="change">
             <template #prev-text>
               <van-icon name="arrow-left" />
             </template>
@@ -224,6 +225,9 @@
 .btn-active{
   background-color: black;
   color:white
+}
+.van-pagination {
+  --van-pagination-item-default-color: black;
 }
 </style>
 <script setup>

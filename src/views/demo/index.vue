@@ -1,6 +1,27 @@
 <script setup name="Demo">
 import { reactive } from "vue";
-
+//模擬登錄
+let addr = '0x079Ba1E1d27a38447B01d1012D31BA8167e0479D';
+localStorage.setItem('walletAddr', addr);
+localStorage.setItem('jwt-token','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjcsInVzZXJuYW1lIjoiMHgwNzlCYTFFMWQyN2EzODQ0N0IwMWQxMDEyRDMxQkE4MTY3ZTA0NzlEIiwiaWF0IjoxNzI0NDY2MzQ4LCJleHAiOjE3MjQ0Njk5NDh9.kBx6h56YLaDRf8wFcOs7nLefMYnJtn9BOLO8dFRk9rM')
+localStorage.setItem('userInfo',JSON.stringify({
+        "id": 27,
+        "username": "0x079Ba1E1d27a38447B01d1012D31BA8167e0479D",
+        "password": "",
+        "balance": "1729.70",
+        "lv": 1,
+        "created": "2024-07-31T06:25:13.000Z",
+        "updated": "2024-07-31T06:25:13.000Z",
+        "email": "",
+        "salt": "1722407113",
+        "status": 1,
+        "truename": "1",
+        "birthday": "",
+        "mobile": "1",
+        "card": "1",
+        "verifyPhoto": "/public/uploads/948edaf9-b0e0-4d35-8749-4fff9b2c1de7.png",
+        "verifyStatus": 2
+    }))
 const contentList = reactive([
   "✔ ⚡ Vue3 + Vite4",
   "✔ ✨ Vant4 组件库",

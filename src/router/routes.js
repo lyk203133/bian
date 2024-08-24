@@ -40,7 +40,15 @@ const routes = [
           title: "個人中心",
           noCache: true
         }
-      }
+      },
+      {
+        path: "demo",
+        name: "Demo",
+        component: () => import("@/views/demo/index.vue"),
+        meta: {
+          title: "Demo"
+        }
+      },
     ]
   }
 ];

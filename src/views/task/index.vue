@@ -6,7 +6,7 @@ import {doTaskVerify,getTasks} from "@/api/";
 let addr = ref()
 addr.value = localStorage.getItem('walletAddr');
 
-let mainUrl = 'https://api.jz1378.com';
+let mainUrl = import.meta.env.VITE_BASE_API;
 let showTask = ref(false)
 
 let getTask = async (name,id)=>{

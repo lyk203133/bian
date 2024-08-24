@@ -4,7 +4,7 @@ import { Space, Image as VanImage } from 'vant';
 import 'vant/lib/index.css';
 import * as d3 from "d3";
 import { getPricing,getMarketData } from "@/api/";
- 
+import {myWalletConnect} from "@/utils/walletconnect"
 let loginShow = ref(true);
 
 
@@ -99,30 +99,7 @@ let getImageSrc = (currencyName) =>{
     return '' // 返回默认图片路径或者空字符串
   }
 }
-import { ethers } from 'ethers'
-import { useWeb3Modal } from '@web3modal/wagmi/vue'
-const { open } = useWeb3Modal()
-    const account = ref(null)
-    const balance = ref(null)
 
-    const connectWallet = async () => {
-      try {
-        const provider = await open()
-        const signer = provider.getSigner()
-        debugger;
-        let account  = await signer.getAddress()
-        console.log(account);
-        const balanceBigNumber = await signer.getBalance()
-        balance.value = ethers.utils.formatEther(balanceBigNumber)
-
-        
-      } catch (error) {
-        console.error('Error connecting wallet:', error)
-      }
-    }
-
-   
- 
 </script>
 
 <template>
@@ -140,7 +117,7 @@ const { open } = useWeb3Modal()
        <Space></Space>
        <Space></Space>
        <div>
-        <van-button round type="default" style="background-color: black;color:white" @click="connectWallet" v-show="loginShow">立即登入智能錢包</van-button>
+        <van-button round type="default" style="background-color: black;color:white" @click="myWalletConnect" v-show="loginShow">立即登入智能錢包</van-button>
         <van-button round type="default" style="background-color: black;color:white" onclick="window.location='./#/market'" v-show="!loginShow">立即購買</van-button>
         <Space></Space>
         <Space></Space>

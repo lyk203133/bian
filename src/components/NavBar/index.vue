@@ -2,17 +2,9 @@
 import { useDarkMode, useToggleDarkMode } from "@/hooks/useToggleDarkMode";
 import { useRouter } from 'vue-router';
 import { ref } from 'vue';
-import { List } from 'vant';
 import axios from 'axios'
 import {walletConnectId } from "@/settings";
-
 const show = ref(false);
-
-const showPopup = () => {
-      show.value = true;
-    };
-const router = useRouter();
-
 const onClickLeft = () => {
   //跳到VUE首页
   useToggleDarkMode();
@@ -78,38 +70,38 @@ createWeb3Modal({
 
 // 4. Use modal composable
 const modal = useWeb3Modal()
-
 const { setThemeMode, themeMode, themeVariables } = useWeb3ModalTheme()
 const events = useWeb3ModalEvents()
-
 console.log(events)
-
- 
-
 import Web3 from'web3'
- 
-const mainUrl = 'https://h5.jz1378.com'
+const mainUrl =  import.meta.env.VITE_BASE_API;
+import {myWalletConnect} from "@/utils/walletconnect"
 const connectWallet = async () =>{
-    //modal.open()
-    const web3 = new Web3(window.ethereum);
-    ethereum.enable()
-    const accounts = await web3.eth.getAccounts();
-    const selectedAccount = accounts[0];
-    console.log(selectedAccount)
-    let  data =  {
-            addr: selectedAccount
-        }
-    const response = await axios.post(mainUrl + '/walletlogin', data);
-    let res = response.data;
-    if (res.code == 200) {
-        isLogin.value = true;
-        localStorage.setItem('walletAddr', selectedAccount);
-        localStorage.setItem('jwt-token',res.data)
-        localStorage.setItem('userInfo',JSON.stringify(res.data))
-        window.location.reload()
-    } else {
-        console.log(res.message)
-    }
+  await myWalletConnect(false);
+}
+
+const connectWallet2 = async () =>{
+      const web3 = new Web3(window.ethereum);
+      ethereum.enable()
+      const accounts = await web3.eth.getAccounts();
+      const selectedAccount = accounts[0];
+      console.log(selectedAccount)
+      let  data =  {
+              addr: selectedAccount
+          }
+      const response = await axios.post(mainUrl + '/walletlogin', data);
+      let res = response.data;
+      if (res.code == 200) {
+          isLogin.value = true;
+          localStorage.setItem('walletAddr', selectedAccount);
+          localStorage.setItem('jwt-token',res.data)
+          localStorage.setItem('userInfo',JSON.stringify(res.data))
+          window.location.reload()
+      } else {
+          console.log(res.message)
+      }
+    
+    
         
 
     //const contract = new web3.eth.Contract(BEP20_ABI, BEP20_ADDRESS);
@@ -135,6 +127,7 @@ const checkLogin = async()=>{
       localStorage.setItem('userInfo',JSON.stringify(login.data.data))
       //console.log('balance',login.data.balance)
       //localStorage.setItem('token',login.data.token)
+      document.getElementById('lblBalance').innerHTML = login.data.balance;
     }
     else{
       isLogin.value = false;

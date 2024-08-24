@@ -1,6 +1,6 @@
 import { http } from "@/utils/http";
 import axios from "axios";
-let mainUrl = 'https://api.jz1378.com';
+let mainUrl = import.meta.env.VITE_BASE_API;//'https://api.jz1378.com';
 export function getSetting() {
   return http.request({
     url: "/setting",
@@ -63,7 +63,7 @@ export async function getArticle(id) {
 
 export async function getTransfer(params) {
 
-  let data = await axios.get(mainUrl + '/transfer/recharge?token=' + params.token + '&type=' + params.type)
+  let data = await axios.get(mainUrl + '/transfer/recharge?token=' + params.token + '&type=' + params.type + '&page=' + params.page + '&limit=' + params.limit)
 
   return data;
   return http.request({
