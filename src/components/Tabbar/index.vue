@@ -1,6 +1,6 @@
 <template>
   <van-tabbar v-model="active" :placeholder="true" :route="true" fixed>
-    <van-tabbar-item
+    <van-tabbar-item @click="showTaskDialog(item)"
       v-for="(item, index) in tabbarData"
       :key="index"
       :icon="item.icon"
@@ -13,7 +13,7 @@
 
 <script setup>
 import { ref, reactive } from "vue";
-
+import {showDialog } from "vant"
 const active = ref(0);
 const tabbarData = reactive([
   {
@@ -35,9 +35,14 @@ const tabbarData = reactive([
   },
   {
     icon: "bag-o",
-    title: "任務",
-    to: {
-      name: "Task"
+    title: "質押",
+     
+    clickHandler: () => {
+      // 使用 Vant 的 Dialog 弹窗
+      Dialog.alert({
+        title: '提示',
+        message: '即將開啟，敬請期待'
+      });
     }
   },
   {
@@ -48,4 +53,13 @@ const tabbarData = reactive([
     }
   }
 ]);
+
+const showTaskDialog = (item)=>{
+  if(item.title=='質押'){
+    showDialog({
+        title: '提示',
+        message: '即將開啟，敬請期待'
+      });
+  }
+}
 </script>

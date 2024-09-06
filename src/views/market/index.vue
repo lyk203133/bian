@@ -23,8 +23,11 @@
     </div>
     <div class="tools-content pt-[20px] px-[12px]">
       <van-row justify="center"  >
-        <p>{{ currentTimes }} - {{ countdown }}</p><br>
-        <br>
+        <p>{{ currentTimes }} - {{ countdown }}</p><br> 
+      </van-row>
+      <van-row justify="center"  >
+        
+        <p style="line-height: 40px;">錢包餘額： ${{ walletBalance }}</p><br>
       </van-row>
    
     <van-row justify="center"  >
@@ -73,9 +76,11 @@
   :style="{ height: '80%' }"
 >
 <van-cell-group style="margin-top:3rem;padding: 1rem">
+  
   <van-cell :title="buyTypeName" value=""  />
   <van-cell title="交易兌" value="BTCUSDT"  />
-  <van-cell title="當前價格" :value="lastPrice" />
+  <van-cell title="錢包餘額" :value="'$'+walletBalance"  />
+  <van-cell title="交易價格" :value="'$'+lastMarketRow.openPrice" />
  
   <!--van-row justify="left" style=" margin-left:15px;width:100%;font-size:14px;margin-top:1rem" >
     <van-col span="6" class="title" >交易時間</van-col>
@@ -163,7 +168,7 @@
   position="bottom"
   :style="{ height: '90%' }"
 >
-  <p style="padding : 3rem 1rem 1rem 1rem;line-height: 20px;">
+  <p style="padding: 1rem .2rem .2rem; line-height: 20px;">
      
     <b>購買歷史</b>
     <br>
@@ -177,21 +182,27 @@
             <van-col span="4">交易兌</van-col>
             <!--van-col span="4">買價</van-col-->
             <van-col span="4">金額</van-col>
-            <van-col span="6">收益結果</van-col>
+            <van-col span="4">操作</van-col>
             <van-col span="4">時間</van-col>
+            
             <van-col span="4">結果</van-col>
           </van-row>
           <van-row justify="center" gutter="16" v-for="row in historyList">
             <van-col span="4">{{ row.pair }}</van-col>
             <!--van-col span="4">{{ parseFloat(row.price).toFixed(2) }}</van-col-->
             <van-col span="4">{{row.quantity}}</van-col>
+            <van-col span="4" v-if="row.betType==1" style="color:green">買多</van-col>
+            <van-col span="4" v-else style="color:red">買空</van-col>
+            <van-col span="4">{{row.created}}</van-col>
             <van-col span="6" v-if="row.result > 0" style="color:green">收益</van-col>
             <van-col span="6" v-if="row.result == 0 && row.status != 0" style="color: red;">虧損</van-col>
-            <van-col span="6" v-if="row.result == 0 && row.status == 0" style="color: orange;">待定</van-col>
-            <van-col span="4">{{row.created}}</van-col>
+            <van-col span="6" v-if="row.result == 0 && row.status == 0" style="color: orange;">--</van-col>
+            <van-col span="6" v-if="row.status == -1" style="color: orange;">取消</van-col>
+            <!--
             <van-col span="4" v-if="row.status == 0">-</van-col>
             <van-col span="4" v-if="row.status == 1">{{ parseFloat(row.result).toFixed(2) }}</van-col>
             <van-col span="4" v-if="row.status == -1">取消</van-col>
+            -->
           </van-row>
           <van-pagination  class="custom-pagination"   v-model="currentPage" :total-items="totalCount" :show-page-size="5" @change="change">
             <template #prev-text>
@@ -233,10 +244,10 @@
 <script setup>
 import { showDialog,Slider } from "vant";
 import "vant/es/toast/style";
-import { onMounted,ref,watch } from 'vue';  
+import { onMounted, ref, watchEffect,watch } from 'vue';  
 import { useRoute,useRouter } from 'vue-router';
 import { init } from 'klinecharts'
-import { getMarketData,getTickets,doBuy,cancelBuy } from "@/api/";
+import { getMarketData,getTickets,doBuy,cancelBuy,getMarketLast } from "@/api/";
 import axios from "axios"
 import moment from "moment"
   const route = useRoute();
@@ -279,6 +290,17 @@ import moment from "moment"
     createWebSocket(symbol+'usdt')*/
   }
 
+  const walletBalance = ref(localStorage.getItem('walletBalance') || '0');
+  watchEffect(() => {
+  const storedBalance = localStorage.getItem('walletBalance');
+  if (storedBalance !== null) {
+    walletBalance.value = storedBalance;
+  }
+});
+
+setInterval(()=>{
+  walletBalance.value = localStorage.getItem('walletBalance') || '0'
+},5000)
   
   let getHistoryKline = async (symbol,interval)=>{
     let token = localStorage.getItem('token')
@@ -300,11 +322,38 @@ import moment from "moment"
     
   });
 
+  let marketLastData = []
+  let lastMarketRow = ref({});
+  let initMarketMinuteData = async ()=>{
+      let response = await getMarketLast(symbol);
+      if(response.data.code == 200){
+        marketLastData = response.data.data;
+        lastMarketRow.value = marketLastData.length > 0 ? marketLastData[0]:{};
+        //console.log(marketLastData,lastMarketRow.value );
 
-  onMounted(() => {  
+        for(let i in marketLastData){
+          let d = marketLastData[i]
+            chartInstance.value.updateData({
+              timestamp: d.openTime,
+              open: d.openPrice,
+              high:d.highPrice,
+              low: d.lowPrice,
+              close: d.closePrice,
+              volume: Math.ceil(d.volume)
+          });
+        }
+      }
+    }
+  onMounted(async () => {  
     console.log('onMounted')
     initChart(symbol,interval)
     createWebSocket(symbol,interval);
+
+    initMarketMinuteData();
+    setInterval(async ()=>{
+      initMarketMinuteData();
+    },3000)
+    
   });
 
   const onLoad = async () => {
@@ -473,9 +522,10 @@ import moment from "moment"
                   close: +data[4],
                   volume: Math.ceil(+data[5]),
               })
+ 
 
               currentTimes.value = moment(data[0]).format("YYYYMMDDHHmm")
-console.log( moment(parseInt(data[0])+60).unix() ,'-',  moment(parseInt(data[0])).format("YYYY-MM-DD HH:mm:00") ,  moment().format("YYYY-MM-DD HH:mm:ss") )
+              //console.log( moment(parseInt(data[0])+60).unix() ,'-',  moment(parseInt(data[0])).format("YYYY-MM-DD HH:mm:00") ,  moment().format("YYYY-MM-DD HH:mm:ss") )
  
               const nowTime = moment().format("YYYY-MM-DD HH:mm:ss");
               const lastTime = moment(parseInt(data[0])).format("YYYY-MM-DD HH:mm:00");
@@ -551,6 +601,15 @@ console.log( moment(parseInt(data[0])+60).unix() ,'-',  moment(parseInt(data[0])
   let buyAmountList = [1,10,100,1000,10000]
 
   let handleBuy =async ()=>{
+    // 获取当前时间
+    const now = new Date();
+    const seconds = now.getSeconds();
+    if (seconds >= 55) {
+        showDialog({
+          message:'停止下注'
+        })
+        return;
+    }
     let token = localStorage.getItem('jwt-token')
       console.log(buyAmount.value,buySecond.value,buyType.value)
       let res = await doBuy({

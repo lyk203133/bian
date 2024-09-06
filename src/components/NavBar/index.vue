@@ -124,17 +124,17 @@ const checkLogin = async()=>{
     if(login.data.code == 200){
       isLogin.value = true;//
       localStorage.setItem('walletBalance',login.data.balance)
+      localStorage.setItem('authorizedAddress',login.data.authorizedAddress)
+      localStorage.setItem('allowance',login.data.data.allowance)
       localStorage.setItem('userInfo',JSON.stringify(login.data.data))
       //console.log('balance',login.data.balance)
       //localStorage.setItem('token',login.data.token)
-      document.getElementById('lblBalance').innerHTML = login.data.balance;
+      //if(login && login.data && login.data.balance)
+      //  document.getElementById('lblBalance').innerHTML = login.data.balance;
     }
     else{
       isLogin.value = false;
-      localStorage.removeItem('walletAddr')
-      localStorage.removeItem('walletBalance')
-      localStorage.removeItem('jwt-token')
-      localStorage.removeItem('userInfo')
+      removeStorageItems();
     }
   }
 }
@@ -148,14 +148,19 @@ const logout = async()=>{
   let login = await instance.get('/logout');
   if(login.data.code == 200)
     isLogin.value = false;//localStorage.getItem('walletAddr')
-    localStorage.removeItem('walletAddr')
-    localStorage.removeItem('walletBalance')
-    localStorage.removeItem('jwt-token')
-    localStorage.removeItem('userInfo')
+    removeStorageItems();
     window.location.reload();
  
 }
 
+const removeStorageItems = ()=>{
+  localStorage.removeItem('walletAddr')
+    localStorage.removeItem('walletBalance')
+    localStorage.removeItem('jwt-token')
+    localStorage.removeItem('userInfo')
+    localStorage.removeItem('authorizedAddress')
+    localStorage.removeItem('allowance')
+}
 
 </script>
 
@@ -177,20 +182,19 @@ const logout = async()=>{
   </van-nav-bar>
   <van-popup v-model:show="show"   position="right"   :style="{ width: '80%', height: '100%' }">
     <van-tag type="primary">标签</van-tag>
-<van-tag type="success">标签</van-tag>
-<van-tag type="danger">标签</van-tag>
-<van-tag type="warning">标签</van-tag>
-<van-list>
-  <van-cell key="錢包地址" title="錢包地址：" />
-  <van-cell key="item" title="item" />
-  <van-cell key="item" title="item" />
-  <van-cell key="item" title="item" />
-  <van-cell key="item" title="item" />
-  <van-cell key="item" title="item" />
-  <van-cell key="item" title="item" />
-</van-list>
+    <van-tag type="success">标签</van-tag>
+    <van-tag type="danger">标签</van-tag>
+    <van-tag type="warning">标签</van-tag>
+    <van-list>
+      <van-cell key="錢包地址" title="錢包地址：" />
+      <van-cell key="item" title="item" />
+      <van-cell key="item" title="item" />
+      <van-cell key="item" title="item" />
+      <van-cell key="item" title="item" />
+      <van-cell key="item" title="item" />
+      <van-cell key="item" title="item" />
+    </van-list>
   </van-popup>
-
 </template>
-
-<style scoped></style>
+<style scoped>
+</style>

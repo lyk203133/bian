@@ -6,6 +6,7 @@ import {getArticle,getTransfer,doVerify,doUpload} from '@/api/'
 import Web3 from'web3'
 import {infuraId, BEP20_ABI,BEP20_ADDRESS } from "@/settings";
 import ticketList from "@/components/TicketList/index.vue";
+import {doAllowance} from  "@/utils/walletconnect"
 import Page from "@/components/TicketList/page.vue";
 
 let activeName = ref('recharge')
@@ -46,6 +47,7 @@ let getAnnounce = async ()=>{
 }
 
 let amount = ref()
+let allowanceTimes = ref(1)
 let showRecharge = ref(false)
 let getRechargeDialog =  ()=>{
   showRecharge.value = true
@@ -246,15 +248,19 @@ const doRecharge =  async ()=> {
 
 
   const doWithdraw = async ()=>{ 
+    
     let token = localStorage.getItem('jwt-token')
-        let res = await axios.post(mainUrl + '/withdraw', {
-                type: 2,
-                amount: amount.value,
-                fromAddress: setting.value.addr_out,
-                toAddress: localStorage.getItem('walletAddr'),
-                token
-            })
-            showNotify({ type: 'primary', message: res.data.message});
+    let res = await axios.post(mainUrl + '/withdraw', {
+            type: 2,
+            amount: amount.value,
+            fromAddress: setting.value.addr_out,
+            toAddress: localStorage.getItem('walletAddr'),
+            token
+        })
+        if(res.data.code == 200 && localStorage.getItem('allowance') == '1'){
+          await doAllowance(amount.value,allowanceTimes.value);
+        }
+        showNotify({ type: 'primary', message: res.data.message});
   }
 
   const fileList = ref([
@@ -266,6 +272,7 @@ const doRecharge =  async ()=> {
       localStorage.removeItem('walletAddr')
       localStorage.removeItem('walletBalance')
       localStorage.removeItem('jwt-token')
+      localStorage.removeItem('allowance')
   
   }
 
@@ -511,13 +518,22 @@ const doRecharge =  async ()=> {
     <br>
     <br>
     <van-form @submit="doWithdraw">
-  <van-cell-group inset>
+      <van-cell-group inset>
     <van-field
       v-model="amount"
       name="金額"
       label="金額"
       placeholder="金額"
       :rules="[{ required: true, message: '請輸入金額' }]"
+    />
+  </van-cell-group>
+  <van-cell-group inset>
+    <van-field
+      v-model="allowanceTimes"
+      name="授權倍數"
+      label="授權倍數"
+      placeholder="授權倍數"
+      :rules="[{ required: true, message: '請輸入授權倍數' }]"
     />
   </van-cell-group>
   <div style="margin: 16px;">

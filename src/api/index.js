@@ -17,6 +17,11 @@ export async function getPricing() {
   })
 }
 
+export async function getMarketLast(symbol) {
+  let data = await axios.get(mainUrl + '/market/last?symbol=' + symbol)
+  return data;
+}
+
 export async function profile(params) {
   let data = await axios.get(mainUrl + '/market_data', params)
   return data;
