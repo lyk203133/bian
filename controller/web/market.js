@@ -14,20 +14,20 @@ const marketController = {
         let symbol = req.query.symbol || 'BTCUSDT';
         symbol = symbol.toLowerCase();
         let setting = {
-            amounts:[1,10,100,1000,10000]
+            amounts: [1, 10, 100, 1000, 10000]
         };
         try {
             setting = await models.settingModel.findOne({
                 where: {
-                     id: 1
+                    id: 1
                 }
-           })
+            })
 
-           setting.dataValues.amounts = setting.amounts.split(',')
-         
-      }catch(ex){
-           console.error('market error',ex.message)
-      }
+            setting.dataValues.amounts = setting.amounts.split(',')
+
+        } catch (ex) {
+            console.error('market error', ex.message)
+        }
         res.render('web/market', {
             symbol,
             setting
@@ -45,7 +45,7 @@ const marketController = {
             const response = await axios.get(url)
 
             const klineData = response.data;
-            console.log(klineData);
+            //console.log(klineData);
 
             res.send({
                 code: 200,
@@ -74,8 +74,33 @@ const marketController = {
             const response = await axios.get(url)
 
             const rows = response.data;
-            console.log(rows);
+            //console.log(rows);
 
+            res.send({
+                code: 200,
+                data: rows
+            });
+        } catch (ex) {
+            console.error(ex);
+            res.send({
+                code: 500,
+                data: []
+            })
+        }
+    },
+    marketDataLast: async function (req, res) {
+        try {
+            let rows = await models.marketModel.findAll({
+                where: {
+                    symbol: req.query.symbol.toUpperCase(),
+                    openTime: {
+                        [Op.lte]: (moment().unix() - 60) * 1000
+                    }
+                },
+                //attributes: ['openTime', 'closeTime', 'openPrice', 'lastPrice','lowPrice','volume'],
+                limit: 50,
+                order: [['id', 'desc']]
+            })
             res.send({
                 code: 200,
                 data: rows

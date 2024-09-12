@@ -6,20 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>market</title>
-    <link rel="stylesheet" href="https://demo.lanrenzhijia.com/demo/37/3743/demo/css/zeroModal.css">
-    <link rel="stylesheet" href="/public/web/css/bootstrap.css">
-    <link rel="stylesheet" href="/public/web/css/style.css?1">
-    <script src="/public/web/js/klinechart.js"></script>
-    <style>
 
-    </style>
-    <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
-    <script src="https://unpkg.com/@walletconnect/web3-provider@1.6.6/dist/umd/index.min.js"></script>
+    <link rel="stylesheet" href="/public/web/css/bootstrap.css">
+    <link rel="stylesheet" href="/public/web/css/style.css?21">
+    <script src="/public/web/js/klinechart.js"></script>
+    <script src="/public/web/js/web3modal.min.js"></script>
+    <script src="/public/web/js/web3.min.js"></script>
+    <script src="/public/web/js/web3-provider.min.js"></script>
     <!--script src="/public/web/js/abi/bnb.js"></script-->
     <script src="/public/web/js/abi.js"></script>
     <script src="./biance.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="/public/web/js/jquery.3.7.1.min.js"></script>
     <script src="public/web/js/bootstrap.js"></script>
 </head>
 
@@ -51,7 +48,7 @@
                     <th>買入價格</th>
                     <th>數量</th>
                     <th>時間</th>
-                    <th>操作</th>
+                    <th>結果</th>
                 </thead>
                 <tbody class="histoy-body">
 
@@ -108,7 +105,7 @@
                                     <div class="container">
                                         <div class="row rowSeconds" id="buy-quantity-1">
                                             <% for(let i in setting.amounts){ %>
-                                                <div class="btnBlack col-sm-3" data-value="<%=setting.amounts[i]%>">
+                                                <div class="btnBlack col-sm-2" data-value="<%=setting.amounts[i]%>">
                                                     <%=setting.amounts[i]%>
                                                 </div>
                                                 <% } %>
@@ -179,7 +176,7 @@
                                     <div class="container">
                                         <div class="row rowSeconds" id="buy-quantity-2">
                                             <% for(let i in setting.amounts){ %>
-                                                <div class="btnBlack col-sm-3" data-value="<%=setting.amounts[i]%>">
+                                                <div class="btnBlack col-sm-2" data-value="<%=setting.amounts[i]%>">
                                                     <%=setting.amounts[i]%>
                                                 </div>
                                                 <% } %>
@@ -250,20 +247,121 @@
         volume: '成交量：'
     });
 
-    // 初始化图表
-    var chart = klinecharts.init('chart');
+    klinecharts.registerOverlay('lineOverlay', {
+        render: (context, props) => {
+            const { start, end, style } = props;
 
+            // 设置线条样式
+            context.beginPath();
+            context.moveTo(start.x, start.y);
+            context.lineTo(end.x, end.y);
+            context.lineWidth = style.lineWidth || 2;
+            context.strokeStyle = style.color || 'green';
+            context.setLineDash(style.lineDash || []);
+            context.stroke();
+        }
+    });
+    // 初始化图表
+    //var chart = klinecharts.init('chart');
+
+    var chart = klinecharts.init('chart', {
+        /*layout: [
+            {
+                type: 'candle',
+                content: ['MA', 'VOL'],
+                options: {
+                    id: 'candle_pane',
+                    height: 400,
+                    minHeight: 200,
+                    dragEnabled: true,
+                    position: 'top',
+                    gap: {
+                        top: 10,
+                        bottom: 10
+                    },
+                    axisOptions: {
+                        name: '价格',
+                        scrollZoomEnabled: true
+                    }
+                }
+            },
+            {
+                type: 'indicator',
+                content: ['MACD'],
+                options: {
+                    id: 'indicator_pane',
+                    height: 100,
+                    minHeight: 50,
+                    dragEnabled: true,
+                    position: 'bottom',
+                    gap: {
+                        top: 5,
+                        bottom: 5
+                    },
+                    axisOptions: {
+                        name: '指标',
+                        scrollZoomEnabled: true
+                    }
+                }
+            },
+            {
+                type: 'xAxis',
+                content: [],
+                options: {
+                    id: 'xAxis_pane',
+                    height: 30,
+                    minHeight: 20,
+                    dragEnabled: false,
+                    position: 'bottom',
+                    gap: {
+                        top: 5,
+                        bottom: 5
+                    },
+                    axisOptions: {
+                        name: '时间',
+                        scrollZoomEnabled: true
+                    }
+                }
+            } 
+        ],
+        locale: 'zh-HK',
+        styles: {
+            candle: {
+                upColor: '#26A69A',
+                downColor: '#EF5350',
+                noChangeColor: '#757575'
+            }
+        },
+        timezone: 'Asia/Shanghai',*/
+        customApi: {
+            formatDate: (dateTimeFormat, timestamp, format, type) => {
+                const date = new Date(timestamp);
+                //return date.toLocaleString();
+                return date.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false  // 使用 24 小时制
+                });
+            },
+            formatBigNumber: (value) => {
+                return value.toString();
+            }
+        },
+        //thousandsSeparator: ',',
+        //decimalFoldThreshold: 2
+    });
 
 
     // 设置图表的本地化语言
     chart.setLocale('zh-HK');
+
 
     // 创建主图技术指标
     chart.createIndicator('MA', false, { id: 'candle_pane' });
 
     // 创建副图技术指标 VOL
     chart.createIndicator('VOL');
-
     // 创建副图技术指标 MACD
     //chart.createIndicator('MACD');
 
@@ -285,6 +383,18 @@
             })
             chart.applyNewData(chartDataList)
 
+            /*chart.createShape('dashedLine', {
+                points: [
+                    { timestamp: 1723072509007, value: 100 },
+                    { timestamp: 1723072509007, value: 110 }
+                ],
+                style: {
+                    color: 'red',
+                    lineWidth: 2,
+                    lineDash: [5, 5]  // 虚线样式，5个像素实线，5个像素空白
+                }
+            });*/
+
             chart.setStyles({
                 grid: {
                     show: false
@@ -292,11 +402,19 @@
                 xAxis: {
 
                     axisLine: {
-                        show: false // Hide x-axis line
+                        show: true // Hide x-axis line
                     },
                     tickLine: {
-                        show: false // Hide x-axis tick lines
-                    }
+                        show: true // Hide x-axis tick lines
+                    },
+                    tickText: {
+                        // 格式化显示秒级别的时间
+                        formatter: timestamp => {
+                            const date = new Date(timestamp);
+                            return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+                        }
+                    },
+                    tickInterval: 1000 // 每秒一个间隔
                 },
                 yAxis: {
 
@@ -320,6 +438,7 @@
                             marginRight: 8,
                             marginBottom: 4
                         },
+
                     },
                     priceMark: {
                         last: {
@@ -331,6 +450,8 @@
 
                 }
             });
+
+
 
         }
     })
@@ -369,6 +490,7 @@
                 // Otherwise, add a new data point
                 currentPrice = kline.c;
                 $('.current-price').val(kline.c)
+                console.log('當前價', kline.c)
                 currentPrice = kline.c;
                 klineData.push(dataPoint);
 
@@ -485,8 +607,11 @@
                     html += `<td>`
                     if (item.status === 0)
                         html += `<button onclick="cancelTicket(${item.id})">取消</button></td>`;
-                    else if (item.status === 1)
-                        html += `完成`;
+                    else if (item.status === 1) {
+                        let color = 'green';
+                        if (item.result <= 0) color = 'red'
+                        html += `<span style="color:${color}">${item.result}</span>`;
+                    }
                     else if (item.status === -1)
                         html += `取消`;
                     else

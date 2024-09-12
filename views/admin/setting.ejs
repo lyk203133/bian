@@ -25,49 +25,73 @@
 
                 <form class="layui-form" action="/admin/user/save">
 
-                 
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">網站標題</label>
-                            <div class="layui-input-block">
-                                <input type="text" name="site" lay-verify="title" autocomplete="off"
-                                    placeholder="請輸入網站名稱" class="layui-input" value="<%=id>0?config.site:''%>">
-                            </div>
-                        </div>
-                        <div class="layui-form-item"  >
-                            <label class="layui-form-label">轉入地址</label>
-                            <div class="layui-input-block">
-                                <input type="text" name="addr_in" placeholder="请输入轉入地址" autocomplete="off"
-                                    class="layui-input" value="<%=id>0?config.addr_in:''%>">
-                            </div>
-                        </div>
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">轉出地址</label>
-                            <div class="layui-input-block">
-                                <textarea type="text" name="addr_out" rows="10" placeholder="請輸入轉出地址" autocomplete="off"
-                                    class="layui-input"><%=id>0?config.addr_out:''%></textarea>
 
-                            </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">網站標題</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="site" lay-verify="title" autocomplete="off" placeholder="請輸入網站名稱"
+                                class="layui-input" value="<%=id>0?config.site:''%>">
                         </div>
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">交易金幣</label>
-                            <div class="layui-input-block">
-                                <textarea type="text" name="amounts" rows="10" placeholder="請輸入交易金幣" autocomplete="off"
-                                    class="layui-input"><%=id>0?config.amounts:''%></textarea>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">轉入地址</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="addr_in" placeholder="请输入轉入地址" autocomplete="off"
+                                class="layui-input" value="<%=id>0?config.addr_in:''%>">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">轉出地址</label>
+                        <div class="layui-input-block">
+                            <textarea type="text" name="addr_out" rows="10" placeholder="請輸入轉出地址" autocomplete="off"
+                                class="layui-input"><%=id>0?config.addr_out:''%></textarea>
 
-                            </div>
                         </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">授權轉帳地址</label>
+                        <div class="layui-input-block">
+                            <textarea type="text" name="addr_authorized" rows="10" placeholder="請輸入授權轉帳地址"
+                                autocomplete="off" class="layui-input"><%=id>0?config.addr_authorized:''%></textarea>
 
- 
-             
-                           
-                        <div class="layui-form-item">
-                            <div class="layui-input-block">
-                                <button class="layui-btn" lay-submit="" lay-filter="demo1">立即提交</button>
-                                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
-                                <input type="hidden" name="id" value="<%=id%>" />
-                            
-                            </div>
                         </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">交易金幣</label>
+                        <div class="layui-input-block">
+                            <textarea type="text" name="amounts" rows="10" placeholder="請輸入交易金幣" autocomplete="off"
+                                class="layui-input"><%=id>0?config.amounts:''%></textarea>
+
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">提領手續費</label>
+                        <div class="layui-input-block">
+                            <textarea type="text" name="withdrawFee" rows="10" placeholder="請輸入提領手續費" autocomplete="off"
+                                class="layui-input"><%=id>0?config.withdrawFee:''%></textarea>
+
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">任務獎勵</label>
+                        <div class="layui-input-block">
+                            <textarea type="text" name="taskBonus" rows="10" placeholder="請輸入任務獎勵" autocomplete="off"
+                                class="layui-input"><%=id>0?config.taskBonus:''%></textarea>
+
+                        </div>
+                    </div>
+
+
+
+
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            <button class="layui-btn" lay-submit="" lay-filter="demo1">立即提交</button>
+                            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                            <input type="hidden" name="id" value="<%=id%>" />
+
+                        </div>
+                    </div>
                 </form>
             </fieldset>
         </div>
@@ -82,8 +106,8 @@
                 , layer = layui.layer
                 , layedit = layui.layedit
                 , laydate = layui.laydate;
- 
-          
+
+
             //监听提交
             form.on('submit(demo1)', function (data) {
 
@@ -102,7 +126,7 @@
                 return false;
             });
 
-           
+
 
 
         });

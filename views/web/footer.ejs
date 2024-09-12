@@ -1,7 +1,7 @@
 <footer>
-    <a href="/"><img src="https://xbit.bitx88.com/h5/static/image/nav/nav-1.png">首頁</a>
-    <a href="market"><img src="https://xbit.bitx88.com/h5/static/image/nav/nav-2.png">合約交易</a>
-    <a href="task"><img src="https://xbit.bitx88.com/h5/static/image/nav/nav-3.png">任務</a>
+    <a href="/"><img src="/public/web/images/nav-1.png">首頁</a>
+    <a href="market"><img src="/public/web/images/nav-2.png">合約交易</a>
+    <a href="task"><img src="/public/web/images/nav-3.png">任務</a>
     <a href="user"><img src="/public/web/images/user.png">個人中心</a>
 </footer>
 
@@ -116,8 +116,8 @@
 </div>
 
 
-<script src="https://demo.lanrenzhijia.com/demo/37/3743/demo/js/zeroModal.js"></script>
-<script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+
+<!--script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script-->
 <script>
     const infuraId = '7d73a0c13ce946769577714aef84b79a'
     const BEP20_ADDRESS = '0x55d398326f99059ff775485246999027b3197955';
@@ -126,6 +126,8 @@
 
     async function walletConnect() {
         try {
+
+            localStorage.removeItem('walletAddr')
 
             //BNB余额 
             //await getBNBBalance();
@@ -164,10 +166,14 @@
                     addr: selectedAccount
                 },
                 success: function (res) {
-                    $('.logoutWallet').hide();
-                    $('.loginWallet').show();
-                    $('#dvUserAddr').text(selectedAccount.substr(0, 6) + '...')
-                    localStorage.setItem('walletAddr', selectedAccount);
+                    if (res.code == 200) {
+                        $('.logoutWallet').hide();
+                        $('.loginWallet').show();
+                        $('#dvUserAddr').text(selectedAccount.substr(0, 6) + '...')
+                        localStorage.setItem('walletAddr', selectedAccount);
+                    } else {
+                        alert(res.message)
+                    }
                 }
             })
 
@@ -248,7 +254,7 @@
             const balance = await web3.eth.getBalance(selectedAccount);
             console.log('BNB Balance:', web3.utils.fromWei(balance, 'ether'));
 
-            
+
 
         } catch (error) {
             console.error('Error getting BNB balance:', error);
@@ -352,7 +358,7 @@
             success: function (res) {
                 console.log(res)
                 if (res.code == 200) {
-                    $('#lblusername').text(res.data.username.substr(0,6))
+                    $('#lblusername').text(res.data.username.substr(0, 6))
                     $('.balance').text(res.data.balance)
                     $('#dvlogin').show();
                     $('#dvlogout').hide();

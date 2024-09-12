@@ -42,14 +42,14 @@
           ]
         },
         {
-          "title": "幣種管理",
+          "title": "市場管理",
           "href": "",
           "icon": "fa fa-calendar",
           "target": "_self",
           "child": [
             {
-              "title": "幣種列表",
-              "href": "/admin/bi/",
+              "title": "市場列表",
+              "href": "/admin/market",
               "icon": "fa fa-navicon",
               "target": "_self"
             }
@@ -80,16 +80,64 @@
               "href": "/admin/user/",
               "icon": "fa fa-navicon",
               "target": "_self"
-            },
+            }
+          ]
+        },
+        {
+          "title": "統計管理",
+          "href": "",
+          "icon": "fa fa-calendar",
+          "target": "_self",
+          "child": [
             {
-              "title": "轉入列表",
+              "title": "充值列表",
               "href": "/admin/transfer/1",
               "icon": "fa fa-list-alt",
               "target": "_self"
             },
             {
-              "title": "轉出列表",
+              "title": "提領列表",
               "href": "/admin/transfer/2",
+              "icon": "fa fa-list-alt",
+              "target": "_self"
+            }
+          ]
+        },
+        {
+          "title": "實名驗證",
+          "href": "",
+          "icon": "fa fa-calendar",
+          "target": "_self",
+          "child": [
+            {
+              "title": "實名審核",
+              "href": "/admin/cus_task/",
+              "icon": "fa fa-list-alt",
+              "target": "_self"
+            },
+            {
+              "title": "驗證記錄",
+              "href": "/admin/cus_task/record",
+              "icon": "fa fa-list-alt",
+              "target": "_self"
+            }
+          ]
+        },
+        {
+          "title": "贊助商任務",
+          "href": "",
+          "icon": "fa fa-calendar",
+          "target": "_self",
+          "child": [
+            {
+              "title": "任務審核",
+              "href": "/admin/task/",
+              "icon": "fa fa-list-alt",
+              "target": "_self"
+            },
+            {
+              "title": "任務記錄",
+              "href": "/admin/task/record",
               "icon": "fa fa-list-alt",
               "target": "_self"
             }

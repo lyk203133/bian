@@ -27,6 +27,11 @@ Transfer.init({
         type: DataTypes.INTEGER,
         allowNull: true,
     },
+    fee: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 0
+    },
     amount: {
         type: DataTypes.DECIMAL,
         allowNull: true,
@@ -39,9 +44,21 @@ Transfer.init({
         type: DataTypes.DATE,
         allowNull: false
     },
-    receipt:{
-        type:DataTypes.JSON,
-        allowNull:false
+    fromAddr: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    toAddr: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    transactionHash: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    receipt: {
+        type: DataTypes.JSON,
+        allowNull: false
     }
 
 

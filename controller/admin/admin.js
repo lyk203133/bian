@@ -25,18 +25,18 @@ const admin = {
           let row;
           let id;
           try {
-                row = await models.settingModel.findOne({
+               row = await models.settingModel.findOne({
                     where: {
                          id: 1
                     }
                })
-               if(row) id = row.id
-          }catch(ex){
-               console.error('setting error',ex.message)
+               if (row) id = row.id
+          } catch (ex) {
+               console.error('setting error', ex.message)
           }
           res.render('admin/setting', {
-               id:id,
-               config:row
+               id: id,
+               config: row
           })
      },
      settingSave: async function (req, res) {
@@ -49,10 +49,13 @@ const admin = {
                if (row) {
                     let data = {
                          site: req.body.site,
-                         addr_in: req.body.addr_in,
-                         addr_out: req.body.addr_out,
-                         amounts:req.body.amounts,
+                         //addr_in: req.body.addr_in,
+                         //addr_out: req.body.addr_out,
+                         //addr_authorized: req.body.addr_authorized,
+                         amounts: req.body.amounts,
+                         withdrawFee: req.body.withdrawFee,
                          updated: moment().format("YYYY-MM-DD HH:mm:ss"),
+                         taskBonus: req.body.taskBonus
                     }
 
                     await models.settingModel.update(data, {
@@ -67,7 +70,8 @@ const admin = {
                          site: req.body.site,
                          addr_in: req.body.addr_in,
                          addr_out: req.body.addr_out,
-                         amounts:req.body.amounts,
+                         amounts: req.body.amounts,
+                         withdrawFee: req.body.withdrawFee,
                          updated: moment().format("YYYY-MM-DD HH:mm:ss"),
                     })
 

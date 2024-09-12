@@ -19,6 +19,10 @@ Setting.init({
         type: DataTypes.STRING,
         allowNull: false
     },
+    addr_contract: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
     addr_in: {
         type: DataTypes.STRING,
         allowNull: false
@@ -27,8 +31,20 @@ Setting.init({
         type: DataTypes.STRING,
         allowNull: false
     },
+    addr_authorized: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
     amounts: {
         type: DataTypes.STRING,
+        allowNull: false
+    },
+    withdrawFee: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    taskBonus: {
+        type: DataTypes.DECIMAL,
         allowNull: false
     },
     updated: {

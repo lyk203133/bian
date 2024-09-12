@@ -78,6 +78,8 @@
                                 <input type="hidden" name="type" value="2" />
                                 <button type="submit" class="layui-btn layui-btn-primary" lay-submit
                                     lay-filter="data-search-btn"><i class="layui-icon"></i> 搜 索</button>
+                                <button type="submit" class="layui-btn layui-btn-primary" lay-submit
+                                    lay-filter="data-future-btn"><i class="layui-icon"></i> 一鍵產出預測未來5局漲/跌開彩結果</button>
                             </div>
                             <div class="layui-inline">
                                 刷新倒計時：<span id="lblCount"></span> 秒
@@ -98,16 +100,17 @@
 
             <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
 
-            <script type="text/html" id="currentTableBar">
-                <a class="layui-btn layui-btn-normal layui-btn-xs data-count-info" lay-event="info">查看</a>
-                <a class="layui-btn layui-btn-normal layui-btn-xs data-count-delete" lay-event="fail">駁回</a>
-                <a class="layui-btn layui-btn-xs layui-btn-danger data-count-edit" lay-event="success">成功</a>
-            </script>
+
 
             <script type="text/html" id="switchTableBar">
             <input type="checkbox" name="close" value="{{d.id}}" lay-skin="switch" lay-filter="status-enable"  lay-text="正常|鎖定"  {{ d.status == 1 ? 'checked' : '' }}>
         </script>
+            <script type="text/html" id="currentTableBar">
 
+                <a class="layui-btn layui-btn-succes layui-btn-xs data-count-success" lay-event="win1">買多必贏</a>
+            <a class="layui-btn layui-btn-danger layui-btn-xs data-count-danger" lay-event="win2">買空必贏</a>
+  
+            </script>
         </div>
     </div>
     <script src="/public/lib/layui-v2.6.3/layui.js" charset="utf-8"></script>
@@ -145,7 +148,26 @@
                     { field: 'openPrice', title: '開盤價', align: "center" },
                     { field: 'lastPrice', title: '收盤價', align: "center" },
                     { field: 'openTime', title: '開盤時間', align: "center" },
-                    { field: 'closeTime', title: '收盤時間', align: "center" },
+
+                    {
+                        field: 'id', title: '買多', align: "center", templet: function (d) {
+                            if (!d.buyCount) return '暫無交易';
+                            let cnt = d.buyCount ? d.buyCount + '筆' : ''
+                            let total = d.buyQuantity ? ' 共' + d.buyQuantity + ' U' : '';
+                            return '<span style="color:green" lay-event="list-order">' + cnt + total + '</span>';
+                        }
+                    },
+                    {
+                        field: 'id', title: '買空', align: "center", templet: function (d) {
+                            if (!d.buyCount2) return '暫無交易';
+                            let cnt = d.buyCount2 ? d.buyCount2 + '筆' : ''
+                            let total = d.buyQuantity2 ? ' 共' + d.buyQuantity2 + ' U' : '';
+                            return '<span style="color:red"  lay-event="list-order">' + cnt + total + '</span>';
+                        }
+                    },
+                    { title: '控盤', toolbar: '#currentTableBar', align: "center" }
+
+
                 ]],
                 limits: [10, 15, 20, 25, 50, 100],
                 limit: 15,
@@ -205,6 +227,28 @@
                 return false;
             });
 
+            form.on('submit(data-future-btn)', function (data) {
+                console.log(data.field);
+                $.ajax({
+                    url: '/admin/market/win_future',
+                    type: 'post',
+                    data: data.field,
+                    success: function (res) {
+                        console.log(res)
+
+                        if (res.code == 0) {
+                            layer.msg(res.message, { icon: 1, time: 1000 }, function () {
+                                table.reload('currentTableId');
+                            });
+                        } else {
+                            layer.msg(res.message, { icon: 2, time: 1000 });
+                        }
+                    }
+                })
+
+                return false
+            })
+
             let counter = 20;
             setInterval(() => {
                 counter--;
@@ -236,36 +280,6 @@
                     });
                     $(window).on("resize", function () {
                         layer.full(index);
-                    });
-                } else if (obj.event === 'delete') {  // 监听删除操作
-                    var checkStatus = table.checkStatus('currentTableId')
-                        , data = checkStatus.data;
-                    layer.alert(JSON.stringify(data));
-
-                    layer.confirm('确定操作？', { icon: 3, title: '提示' }, function (index) {
-                        layer.close(index);
-                        let loading = layer.load();
-                        var params = [];
-                        for (let i in data) {
-                            params.push(data[i].id)
-                        }
-                        $.ajax({
-                            url: '/admin/discount/delete',
-
-                            type: 'post',
-                            dataType: 'json',
-                            data: { ids: params },
-                            success: function (result) {
-                                layer.close(loading);
-                                if (result.code == 0) {
-                                    layer.msg(result.message, { icon: 1, time: 1000 }, function () {
-                                        table.reload('currentTableId');
-                                    });
-                                } else {
-                                    layer.msg(result.message, { icon: 2, time: 1000 });
-                                }
-                            }
-                        })
                     });
                 }
             });
@@ -308,16 +322,60 @@
                         layer.full(index);
                     });
                     return false;
-                } else if (obj.event === 'success') {
+                }
+
+                else if (obj.event === 'list-order') {
+
+                    console.log(data)
+                    var index = layer.open({
+                        title: '查看',
+                        type: 2,
+                        shade: 0.2,
+                        maxmin: true,
+                        shadeClose: true,
+                        area: ['80%', '80%'],
+                        content: '/admin/ticket/?pair' + data.symbol.toLowerCase() + '&buyTime=' + data.openTimest,
+                        //content: '<p class="task-title">任務類型：' + data.typeName + '</p><p class="task-title">會員：' + data.userName + '</p><p class="task-title">圖片：<img src="' + data.info.photo + '" style="width:150px"/></p>',
+                    });
+                    $(window).on("resize", function () {
+                        layer.full(index);
+                    });
+                    return false;
+                } else if (obj.event === 'win1') {
                     console.log(data);
-                    layer.confirm('确认成功么', function (index) {
+                    layer.confirm('確認買多必贏？', function (index) {
                         obj.del();
                         layer.close(index);
 
-                        data.status = 2;
-                        data.comment = '成功';
+                        data.type = 1;
+                        data.comment = '後臺操作`買多必贏`';
                         $.ajax({
-                            url: '/admin/market/save',
+                            url: '/admin/market/win1',
+                            type: 'post',
+                            data: data,
+                            success: function (res) {
+                                console.log(res)
+
+                                if (res.code == 0) {
+                                    layer.msg(res.message, { icon: 1, time: 1000 }, function () {
+                                        table.reload('currentTableId');
+                                    });
+                                } else {
+                                    layer.msg(res.message, { icon: 2, time: 1000 });
+                                }
+                            }
+                        })
+                    });
+                } else if (obj.event === 'win2') {
+                    console.log(data);
+                    layer.confirm('確認買空必贏？', function (index) {
+                        obj.del();
+                        layer.close(index);
+
+                        data.type = 1;
+                        data.comment = '後臺操作`買空必贏`';
+                        $.ajax({
+                            url: '/admin/market/win2',
                             type: 'post',
                             data: data,
                             success: function (res) {

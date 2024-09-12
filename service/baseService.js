@@ -21,7 +21,7 @@ let baseService = {
 
         // 减去一分钟  
         let oneMinuteAgo = now.format("YYYY-MM-DD HH:mm:00");
-        let oneMinuteFuture = now.add(seconds,'seconds').format("YYYY-MM-DD HH:mm:00");
+        let oneMinuteFuture = now.add(seconds, 'seconds').format("YYYY-MM-DD HH:mm:00");
 
         // 转换为Unix时间戳（毫秒）  
         let timestampAgo = moment(oneMinuteAgo).unix() * 1000; // 或者使用 oneMinuteAgo.unix() * 1000  
@@ -48,6 +48,9 @@ let baseService = {
             console.error('get setting error', ex.message)
         }
         return row;
+    },
+    getRandomNumberBetween001And009() {
+        return parseFloat(parseFloat(0.01 + Math.random() * 0.08).toFixed(2));
     }
 
 }

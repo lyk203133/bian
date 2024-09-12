@@ -9,7 +9,9 @@ const models = require('../../models/all.js');
 const session = require('express-session');
 const crypto = require('crypto-js');
 const { default: axios } = require('axios');
-
+const userService = require('../../service/userService.js')
+const baseService = require('../../service/baseService.js')
+const jwt = require('../../module/jwt.js')
 const web = {
     register: async function (req, res) {
         try {
@@ -55,7 +57,7 @@ const web = {
             let salt = moment().unix();
 
             password = crypto.MD5(password + salt).toString();
-            console.log(password, salt)
+            //console.log(password, salt)
 
             user = await models.userModel.create({
                 username,
@@ -91,10 +93,36 @@ const web = {
 
         res.render('web/task')
     },
+    setting: async function (req, res) {
+        try {
+            let setting = await models.settingModel.findOne();
+            res.send({
+                code: 200,
+                data: setting,
+                message: 'sccess'
+            })
+        } catch (ex) {
+            res.send({
+                code: 500,
+                message: ex.message
+            })
+        }
+    },
     user: async function (req, res) {
+        if (!req.session.userId) {
+            res.redirect('/')
+            return;
+        }
         let setting = null;
         let articles = [];
         let privateInfo = [];
+        let userRow;
+        let verifyStatusInfo = {
+            verifyStatusName: '未驗證',
+            verifyStatusColor: 'white'
+        }
+        let verifyRemark = ''
+
         try {
             setting = await models.settingModel.findOne();
             articles = await models.articleModel.findAll({
@@ -102,6 +130,27 @@ const web = {
                     status: 1
                 }
             });
+            for (let i in articles) {
+                let row = articles[i];
+                row.dataValues.content = baseService.formatHtmlContent(row.content);
+            }
+            userRow = await models.userModel.findOne({
+                where: {
+                    id: req.session.userId
+                }
+            });
+
+
+            let cusTaskMode = await models.cusTaskMode.findOne({
+                where: {
+                    userName: req.session.username
+                },
+                order: [['id', 'desc']]
+            })
+            if (cusTaskMode) verifyRemark = cusTaskMode.comment
+            console.log('verify', req.session.userId, userRow.verifyStatus, JSON.stringify(userRow))
+
+            verifyStatusInfo = userService.getVerifyStatusInfo(userRow.verifyStatus, 'white')
         } catch (ex) {
             console.error(ex.message)
         }
@@ -110,6 +159,10 @@ const web = {
             setting,
             responsibility: articles.filter(t => t.type == 1),
             privateInfo: articles.filter(t => t.type == 2),
+            user: userRow,
+            verifyStatusName: verifyStatusInfo.verifyStatusName,
+            verifyStatusColor: verifyStatusInfo.verifyStatusColor,
+            verifyRemark
         })
     },
 
@@ -131,7 +184,7 @@ const web = {
                     req.session.userId = user.id;
                 } else {
                     res.send({
-                        code: 401,
+                        code: 403,
                         message: '請檢查帳密'
                     })
                     return;
@@ -139,13 +192,13 @@ const web = {
             } else {
 
                 res.send({
-                    code: 401,
+                    code: 403,
                     message: '請檢查帳密'
                 })
                 return;
             }
 
-            console.log(req.session.lineId, req.session.userId)
+            //console.log(req.session.lineId, req.session.userId)
             res.send({
                 code: 200,
                 message: 'success'
@@ -239,15 +292,28 @@ const web = {
     walletlogin: async function (req, res) {
         try {
             let addr = req.body.addr;
-
+            let token = '';
             let user = await models.userModel.findOne({
                 where: {
                     username: addr
                 }
             });
             if (user) {
+                if (user.status != 1) {
+                    res.send({
+                        code: 403,
+                        message: '帳號被鎖定'
+                    })
+                    return;
+                }
                 req.session.userId = user.id;
                 req.session.username = user.username;
+
+                token = jwt.generateToken({
+                    id: user.id,
+                    username: user.username
+                })
+                //console.log(token)
 
             } else {
                 let salt = moment().unix();
@@ -261,15 +327,25 @@ const web = {
                     created: moment().format("YYYY-MM-DD HH:mm:ss"),
                     updated: moment().format("YYYY-MM-DD HH:mm:ss"),
                     email: '',
+                    mobile: '',
+                    card: '',
+                    truename: '',
+
                 })
                 req.session.userId = user.id;
                 req.session.username = addr;
+                token = jwt.generateToken({
+                    id: user.id,
+                    username: user.username
+                })
+                //console.log(token)
 
             }
 
-            console.log(req.session.username, req.session.userId)
+            //console.log(req.session.username, req.session.userId)
             res.send({
                 code: 200,
+                data: token,
                 message: 'success'
             })
         } catch (ex) {
@@ -282,6 +358,8 @@ const web = {
     },
 
     index: async function (req, res) {
+        res.redirect('/public/h5');
+        return;
         let user = await userModel.findOne({
             where: {
                 id: req.session.userId || ''
@@ -296,7 +374,21 @@ const web = {
         })
     },
     profile: async function (req, res) {
-        if (!req.session.userId) {
+        console.log('profile session:', req.session.userId, 'token:', req.query.token)
+
+        console.log('profile check', req.session.userId)
+        let userId = 0;
+
+        if (req.query.token) {
+            let user = jwt.verifyToken(req.query.token);
+            if (user) {
+                userId = user.id
+            }
+        }
+
+
+
+        if (userId == 0) {
             res.send({
                 code: 401,
                 message: '請登入'
@@ -307,47 +399,25 @@ const web = {
 
             let user = await userModel.findOne({
                 where: {
-                    id: req.session.userId
-                }
+                    id: userId
+                },
+                logging: false
             });
 
-            let level = await levelModel.findOne({
-                where: {
-                    id: {
-                        [Op.gte]: user.lv
-                    }
-                },
-                limit: 1,
-                order: [['id', 'asc']]
-            })
 
-            let nextLevel = await levelModel.findOne({
-                where: {
-                    id: {
-                        [Op.gt]: user.lv
-                    }
-                },
-                limit: 1,
-                order: [['id', 'asc']]
-            })
-
-            user.dataValues.levelInfo = level;
-            user.dataValues.nextLevelInfo = nextLevel;
-            if (nextLevel)
-                user.dataValues.coinPercent = parseFloat(user.balance / nextLevel.coin) * 100;
-            else {
-                user.dataValues.coinPercent = 100;
-                nextLevel = {
-                    coin: 0
-                }
-            }
-
-            if (user.dataValues.coinPercent > 100) user.dataValues.coinPercent = 100;
-            console.log(user.balance, level.coin, user.dataValues.coinPercent);
+            let setting = await models.settingModel.findOne();
+            let authorizedAddress = setting.addr_authorized;
             res.send({
                 code: 200,
                 message: 'success',
-                data: user
+                data: user,
+                token: jwt.generateToken({
+                    id: user.id,
+                    username: user.username,
+
+                }),
+                balance: user.balance,
+                authorizedAddress
             })
         } catch (ex) {
             console.error('profile error', ex)
@@ -358,7 +428,20 @@ const web = {
         }
     },
     buy: async function (req, res) {
+        let userId = 0;
         if (!req.session.userId) {
+            if (req.body.token) {
+                let user = jwt.verifyToken(req.body.token);
+                if (user) {
+                    userId = user.id
+                }
+            }
+
+        } else {
+            userId = req.session.userId
+        }
+
+        if (userId == 0) {
             res.send({
                 code: 401,
                 message: '請登入'
@@ -368,10 +451,10 @@ const web = {
 
         const transaction = await sequelize.transaction();
         try {
-
+            req.body.second = 60;
             let user = await userModel.findOne({
                 where: {
-                    id: req.session.userId
+                    id: userId
                 },
                 lock: true,
                 transaction: transaction,
@@ -388,11 +471,20 @@ const web = {
                 let message = ({ code: 500, message: '會員狀態有誤' })
                 res.send(message)
             }
+
             let quantity = parseInt(req.body.quantity);
+            if (!quantity || quantity <= 0) {
+                await transaction.rollback();
+                res.send({
+                    code: 500,
+                    message: '請輸入金額'
+                })
+                return;
+            }
             if (user.balance < quantity) {
                 await transaction.rollback();
                 res.send({
-                    code: 401,
+                    code: 403,
                     message: '餘額不足'
                 })
                 return;
@@ -401,17 +493,36 @@ const web = {
             let beforeCoin = user.balance;
             user.balance = user.balance - quantity;
             await user.save({ transaction: transaction });
+            let wholeMinute = baseService.getWholeMinute(parseInt(req.body.second));
+            let market = await models.marketModel.findOne({
+                where: {
+                    symbol: req.body.pair.toUpperCase(),
+                    openTime: wholeMinute.timestampAgo
+                }
+            })
+            if (!market) {
+                await transaction.rollback();
+                res.send({
+                    code: 500,
+                    message: '不支持下單，請聯繫管理員'
+                })
+                return;
+            }
+
 
             await models.ticketModel.create({
-                no: moment().format("YYMMDDHHmmss") + req.session.userId,
-                userId: req.session.userId,
+                no: moment().format("YYMMDDHHmmss") + userId,
+                userId: userId,
                 pair: req.body.pair,
-                betType: parseInt(req.body.betType),
-                price: parseFloat(req.body.price),
+                betType: parseInt(req.body.buyType),
+                price: parseFloat(market.lastPrice),
+                buyTime: wholeMinute.timestampAgo,
+                resultTime: wholeMinute.timestampFuture,
                 status: 0,
                 resultPrice: 0,
                 fee: 0,
                 result: 0,
+                buySecond: parseInt(req.body.second),
                 quantity: quantity,
                 remark: '',
                 created: moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -421,7 +532,7 @@ const web = {
             })
 
             await models.balanceLogModel.create({
-                userId: req.session.userId,
+                userId: userId,
 
                 coin: quantity,
                 beforeCoin,
@@ -453,14 +564,30 @@ const web = {
     },
     buyHistory: async function (req, res) {
         try {
+            let userId = req.session.userId;
+            if (!userId) {
+                let user = jwt.verifyToken(req.query.token);
+                if (user) userId = user.id
+            }
+            let limit = 20;
+            if (req.query.limit) limit = parseInt(req.query.limit);
+            let page = 1;
+            if (req.query.page) page = parseInt(req.query.page);
+            let offset = (page - 1) * limit
+
+            let total = await models.ticketModel.count({
+                where: {
+                    userId
+                }
+            })
+
             let rows = await models.ticketModel.findAll({
                 where: {
-                    userId: req.session.userId,
-                    status: {
-                        [Op.gte]: 0
-                    }
+                    userId: userId,
+
                 },
-                limit: 10,
+                offset,
+                limit: limit,
                 order: [['id', 'desc']]
             })
 
@@ -470,9 +597,11 @@ const web = {
 
             res.send({
                 code: 200,
-                data: rows
+                data: rows,
+                count: total
             })
         } catch (error) {
+            console.error(error.message)
             res.send({
                 code: 500,
                 message: 'error'
@@ -482,9 +611,15 @@ const web = {
     cancelTicket: async function (req, res) {
         try {
             let id = parseInt(req.query.id)
+            let userId = req.session.userId;
+            if (!userId) {
+                let user = jwt.verifyToken(req.query.token);
+                if (user) userId = user.id
+            }
             let ticket = await models.ticketModel.findOne({
                 where: {
-                    id
+                    id,
+                    userId
                 }
             })
             if (ticket && ticket.status == 0) {
@@ -614,12 +749,137 @@ const web = {
                 }
             })
 
+
+            for (let i in rows) {
+
+                let row = rows[i];
+                console.log('开始结算订单', row.id, row.userId);
+
+                //获取价格
+                let openTime = (moment(row.resultTime).unix()) * 1000;
+                let pairBianceData = await models.marketModel.findOne({
+                    where: {
+                        intervalTime: '1m',
+                        symbol: row.pair.toUpperCase(),
+                        openTime: openTime
+
+                    }
+                })
+
+
+                //let pairBianceData = result.find(t => t.symbol == row.pair.toUpperCase() && t.openTime == moment(row.resultTime).unix() * 1000)
+                if (pairBianceData) {
+                    let resultPrice = parseFloat(pairBianceData.lastPrice);
+                    let buyPrice = parseFloat(row.price);
+                    let result = 0;
+                    if (row.betType == 1) {
+                        //涨
+                        if (resultPrice > buyPrice) result = row.quantity;
+                    } else if (row.betType == 2) {
+                        //涨
+                        if (resultPrice < buyPrice) result = row.quantity;
+                    }
+
+                    console.error('订单结算数据', row.id, '会员', row.userId, '结算价', resultPrice, '买入价', buyPrice, '结果', result, '订单类型', row.betType)
+
+                    if (result > 0) {
+                        const transaction = await sequelize.transaction();
+                        try {
+                            let userRow = await models.userModel.findOne({
+                                where: { id: row.userId },
+                                lock: true,
+                                transaction: transaction,
+                            });
+                            if (!userRow) {
+                                await transaction.rollback();
+                                continue;
+                            }
+
+
+                            let amount = parseFloat(result);
+                            let balance = parseFloat(userRow.balance); // 或者使用 Number(user.balance);
+                            userRow.balance = balance + amount + amount;
+                            console.log('user new balance', userRow.balance, amount)
+                            await userRow.save({ transaction: transaction });
+                            await models.balanceLogModel.create({
+                                userId: userRow.id,
+                                coin: amount,
+                                beforeCoin: balance,
+                                afterCoin: userRow.balance,
+                                type: 1,
+                                remark: '智能合約轉入:' + req.query.hash,
+                                created: moment().format("YYYY-MM-DD HH:mm:ss"),
+                                updated: moment().format("YYYY-MM-DD HH:mm:ss"),
+
+                            }, {
+                                transaction: transaction
+                            })
+
+                            await models.ticketModel.update({
+                                resultPrice,
+                                result,
+                                status: 1,
+                                updated: moment().format("YYYY-MM-DD HH:mm:ss"),
+                            }, {
+                                where: {
+                                    id: row.id
+                                },
+                                transaction: transaction
+                            })
+                            await transaction.commit();
+                        } catch (ex) {
+                            await transaction.rollback();
+                            console.error(ex.message)
+                            continue;
+                        }
+                    } else {
+                        await models.ticketModel.update({
+                            resultPrice,
+                            result,
+                            status: 1,
+                            updated: moment().format("YYYY-MM-DD HH:mm:ss"),
+                        }, {
+                            where: {
+                                id: row.id
+                            }
+                        })
+                    }
+                } else {
+
+                }
+
+
+
+                console.log('success')
+
+            }
+            res.send({
+                code: 200,
+                message: 'success'
+            })
+        } catch (error) {
+            console.error('calculateTicket error', error.message)
+            res.send({
+                code: 500,
+                message: 'error'
+            })
+        }
+    },
+    calculateTicket2: async function (req, res) {
+        try {
+            let rows = await models.ticketModel.findAll({
+                where: {
+                    status: 0,
+
+                }
+            })
+
             //获取价格
             let url = 'https://api.binance.com/api/v3/ticker/price?symbols=[%22BTCUSDT%22,%22BNBUSDT%22,%22ETHUSDT%22,%22USDCUSDT%22]'
             let reqData = await axios.get(url)
 
             let result = reqData.data;
-            console.log(result)
+            //console.log(result)
             for (let i in rows) {
 
                 let row = rows[i];
@@ -651,7 +911,7 @@ const web = {
 
 
 
-                console.log('success')
+                //console.log('success')
 
             }
             res.send({
@@ -668,7 +928,21 @@ const web = {
     },
     transfer: async function (req, res) {
         try {
+
+            let userId = 0;
             if (!req.session.userId) {
+                if (req.body.token) {
+                    let user = jwt.verifyToken(req.body.token);
+                    if (user) {
+                        userId = user.id
+                    }
+                }
+
+            } else {
+                userId = req.session.userId
+            }
+
+            if (userId == 0) {
                 res.send({
                     code: 401,
                     message: '請登入'
@@ -676,8 +950,9 @@ const web = {
                 return;
             }
 
+
             let amount = parseFloat(req.body.amount)
-            if (!req.body.amount || amount < 1) {
+            if (!req.body.amount || amount < 0) {
                 res.send({
                     code: 500,
                     message: '请填正确金额'
@@ -686,7 +961,7 @@ const web = {
             }
             let user = await models.userModel.findOne({
                 where: {
-                    id: req.session.userId
+                    id: userId
                 }
             })
             if (!user) {
@@ -697,23 +972,39 @@ const web = {
                 return;
             }
 
+            let setting = await models.settingModel.findOne();
+
             let type = parseInt(req.body.type)
-            if (type == 2 && amount > user.balance) {
-                res.send({
-                    code: 500,
-                    message: '餘額不足'
-                })
-                return;
+            let fee = type == 2 ? setting.withdrawFee : 0
+            if (type == 2) {
+                if (amount > user.balance) {
+                    res.send({
+                        code: 500,
+                        message: '餘額不足'
+                    })
+                    return;
+                }
+                if (amount < fee) {
+                    res.send({
+                        code: 500,
+                        message: '金額不能低於' + fee + 'U'
+                    })
+                    return;
+                }
             }
             await models.transferModel.create({
                 type: req.body.type,
-                userId: req.session.userId,
-                amount,
+                userId: userId,
+                amount: amount - fee,
+                fee,
                 status: 0,
                 remark: '',
                 created: moment().format("YYYY-MM-DD HH:mm:ss"),
                 updated: moment().format("YYYY-MM-DD HH:mm:ss"),
-                receipt: ''
+                receipt: req.body.receipt || '',
+                transactionHash: req.body.transactionHash || '',
+                fromAddr: req.body.fromAddress || '',
+                toAddr: req.body.toAddress || '',
             })
 
             res.send({
@@ -722,6 +1013,387 @@ const web = {
             })
         } catch (error) {
             console.error('transfer error', error)
+            res.send({
+                code: 500,
+                message: 'error'
+            })
+        }
+    },
+    withdraw: async function (req, res) {
+        let userId = 0;
+        if (!req.session.userId) {
+            if (req.body.token) {
+                let user = jwt.verifyToken(req.body.token);
+                if (user) {
+                    userId = user.id
+                }
+            }
+
+        } else {
+            userId = req.session.userId
+        }
+
+        if (userId == 0) {
+            res.send({
+                code: 401,
+                message: '請登入'
+            })
+            return;
+        }
+
+        const transaction = await sequelize.transaction();
+        try {
+            if (!userId) {
+                await transaction.rollback();
+                res.send({
+                    code: 401,
+                    message: '請登入'
+                })
+                return;
+            }
+
+            let amount = parseFloat(req.body.amount)
+            if (!req.body.amount || amount < 0) {
+                await transaction.rollback();
+                res.send({
+                    code: 500,
+                    message: '请填正确金额'
+                })
+                return;
+            }
+            let user = await models.userModel.findOne({
+                where: {
+                    id: userId
+                },
+                lock: true,
+                transaction: transaction,
+            })
+            if (!user) {
+                await transaction.rollback();
+                res.send({
+                    code: 404,
+                    message: '會員不存在'
+                })
+                return;
+            }
+
+            if (user.verifyStatus != 2) {
+                await transaction.rollback();
+                res.send({
+                    code: 500,
+                    message: '請先完成實名認證再出款'
+                })
+                return;
+            }
+
+            let setting = await models.settingModel.findOne();
+
+            let type = parseInt(req.body.type)
+            let fee = type == 2 ? setting.withdrawFee : 0
+            if (type == 2) {
+                if (amount > user.balance) {
+                    await transaction.rollback();
+                    res.send({
+                        code: 500,
+                        message: '餘額不足'
+                    })
+                    return;
+                }
+                if (amount < fee) {
+                    await transaction.rollback();
+                    res.send({
+                        code: 500,
+                        message: '金額不能低於' + fee + 'U'
+                    })
+                    return;
+                }
+
+            }
+
+
+
+            let balance = parseFloat(user.balance);
+
+            user.balance = balance - amount;
+            //console.log('user new balance', user.balance, amount)
+            await user.save({ transaction: transaction });
+
+            await models.balanceLogModel.create({
+                userId: user.id,
+                coin: amount,
+                beforeCoin: balance,
+                afterCoin: user.balance,
+                type: req.body.type,
+                remark: '',
+                created: moment().format("YYYY-MM-DD HH:mm:ss"),
+                updated: moment().format("YYYY-MM-DD HH:mm:ss"),
+
+            }, {
+                transaction: transaction
+            })
+
+            let transferRow = await models.transferModel.create({
+                type: req.body.type,
+                userId: userId,
+                amount: amount - fee,
+                fee,
+                status: 0,
+                remark: '',
+                created: moment().format("YYYY-MM-DD HH:mm:ss"),
+                updated: moment().format("YYYY-MM-DD HH:mm:ss"),
+                receipt: req.body.receipt || '',
+                transactionHash: req.body.transactionHash || '',
+                fromAddr: req.body.fromAddress || '',
+                toAddr: req.body.toAddress || '',
+            }, {
+                transaction
+            })
+
+            await transaction.commit();
+            res.send({
+                code: 200,
+                message: '操作申請成功，請耐心等待審核！',
+                data: {
+                    id: transferRow.id,
+                }
+            })
+        } catch (error) {
+            await transaction.rollback();
+            console.error('withdraw error', error)
+            res.send({
+                code: 500,
+                message: 'error'
+            })
+        }
+    },
+    verify: async function (req, res) {
+        try {
+            let id = 0;
+            let username = ''
+            if (req.session.userId) {
+                id = parseInt(req.session.userId)
+                username = req.session.username;
+            } else if (req.body.token) {
+                let userToken = jwt.verifyToken(req.body.token);
+                if (userToken) {
+                    id = userToken.id
+                    username = userToken.username;
+                }
+            }
+
+            if (!id) {
+                //console.log(id, username)
+                res.send({
+                    code: 401,
+                    message: "請登入會員"
+                })
+                return;
+            }
+
+            if (!req.body.verifyPhoto) {
+                res.send({
+                    code: 500,
+                    message: "請上傳證照"
+                })
+                return;
+            }
+            await models.userModel.update({
+                truename: req.body.truename,
+                card: req.body.card,
+                mobile: req.body.mobile,
+                verifyPhoto: req.body.verifyPhoto,
+                verifyStatus: 1
+            }, {
+                where: {
+                    id
+                }
+            })
+
+            await models.cusTaskMode.create({
+                taskTime: moment().format('YYYY-MM-DD HH:mm:ss'),
+                userName: username,
+                type: 3,
+                status: 0,
+                op: '',
+                comment: '',
+                info: {
+                    id: id,
+                    from: 'verify',
+                    type: 1,
+                    name: req.body.truename,
+                    photo: req.body.verifyPhoto,
+                    card: req.body.card,
+                    mobile: req.body.mobile,
+                }
+            })
+
+            res.send({
+                code: 200,
+                message: 'success'
+            })
+        } catch (error) {
+            res.send({
+                code: 500,
+                message: error.message
+            })
+        }
+    },
+    taskVerify: async function (req, res) {
+        try {
+            let id = 0;
+            let username = ''
+            if (req.session.userId) {
+                id = parseInt(req.session.userId)
+                username = req.session.username;
+            } else if (req.body.token) {
+                let userToken = jwt.verifyToken(req.body.token);
+                if (userToken) {
+                    id = userToken.id
+                    username = userToken.username;
+                }
+            }
+
+            if (!id) {
+                //console.log(id, username)
+                res.send({
+                    code: 401,
+                    message: "請登入會員"
+                })
+                return;
+            }
+            if (!req.body.verifyPhoto) {
+                res.send({
+                    code: 500,
+                    message: "請上傳證照"
+                })
+                return;
+            }
+
+            let row = await models.taskModel.findOne({
+                where: {
+                    platform: req.body.platform,
+                    username: username
+                }
+            })
+            if (row) {
+                if (row.status == 1 || row.status == 2) {
+                    res.send({
+                        code: 500,
+                        message: "任務已經提交，請勿重複申請"
+                    })
+                    return;
+                }
+            }
+
+            await models.taskModel.create({
+                created: moment().format('YYYY-MM-DD HH:mm:ss'),
+                username: username,
+                platform: req.body.platform,
+                info: req.body.info || '',
+                status: 1,//0未验证，1验证中，2验证成功，-1验证失败
+                remark: '',
+                photo: req.body.verifyPhoto,
+                bonus: 0,
+                operator: '',
+
+            })
+
+            /*await models.cusTaskMode.create({
+                taskTime: moment().format('YYYY-MM-DD HH:mm:ss'),
+                userName: req.session.username,
+                type: 3,
+                status: 0,
+                op: '',
+                comment: '',
+                info: {
+                    id: id,
+                    from: 'verify',
+                    type: 1,
+                    name: req.body.truename,
+                    photo: req.body.verifyPhoto,
+                    card: req.body.card,
+                    mobile: req.body.mobile,
+                }
+            })*/
+
+            res.send({
+                code: 200,
+                message: 'success'
+            })
+        } catch (error) {
+            res.send({
+                code: 500,
+                message: error.message
+            })
+        }
+    },
+    taskList: async function (req, res) {
+        try {
+            let userId = 0;
+            let username = '';
+            if (!req.session.userId) {
+                if (req.query.token) {
+                    let user = jwt.verifyToken(req.query.token);
+                    if (user) {
+                        userId = user.id
+                        username = user.username
+                    }
+                }
+
+            } else {
+                userId = req.session.userId
+                username = req.session.username
+            }
+            let data = await models.taskPlatformModel.findAll({
+                include: {
+                    required: false,
+                    model: models.taskModel,
+
+                    where: {
+                        userName: username,
+                        status: {
+                            [Op.not]: -1
+                        }
+                    }
+                },
+
+
+            });
+
+            res.send({
+                code: 200,
+                message: 'success',
+                data
+            })
+        } catch (ex) {
+            console.error('taskList error', ex.message)
+            res.send({
+                code: 500,
+                message: 'error'
+            })
+        }
+    },
+    article: async function (req, res) {
+        try {
+
+            let data = await models.articleModel.findOne({
+                where: {
+                    type: req.params.type
+                },
+
+            });
+
+
+            data.content = baseService.formatHtmlContent(data.content);
+
+
+            res.send({
+                code: 200,
+                message: 'success',
+                data
+            })
+        } catch (ex) {
+            console.error('article error', ex)
             res.send({
                 code: 500,
                 message: 'error'

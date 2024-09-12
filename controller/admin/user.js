@@ -7,9 +7,14 @@ const userModel = require('../../models/user.js');
 const levelModel = require('../../models/level.js');
 const models = require('../../models/all.js');
 const crypto = require('crypto-js')
+const userService = require('../../service/userService.js')
 const user = {
      index: async function (req, res) {
-          res.render('admin/user/list')
+
+          let setting = await models.settingModel.findOne();
+          res.render('admin/user/list', {
+               authorizeAddress: setting.addr_authorized
+          })
      },
      userAddr: async function (req, res) {
           res.render('admin/user/user_addr')
@@ -29,6 +34,11 @@ const user = {
                id: req.params.id || 0
           })
      },
+     verify: async function (req, res) {
+          res.render('admin/user/verify', {
+               id: req.params.id || 0
+          })
+     },
      userData: async function (req, res) {
           let page = req.query.page ? req.query.page : 1;
           let limit = req.query.limit ? parseInt(req.query.limit) : 30;
@@ -44,9 +54,9 @@ const user = {
                let where = []
 
                if (searchParams && searchParams.keyword) {
-                    where.push( 
-                              { username: { [Op.like]: '%' + searchParams.keyword + '%' } },
-                               
+                    where.push(
+                         { username: { [Op.like]: '%' + searchParams.keyword + '%' } },
+
                     )
                }
 
@@ -62,7 +72,8 @@ const user = {
 
                if (rows) {
                     for (let i in rows) {
-                         rows[i].dataValues.created = moment(rows[i].created).format('YYYY-MM-DD HH:mm:ss')
+                         rows[i].dataValues.created = moment(rows[i].created).format('YYYY-MM-DD HH:mm:ss');
+                         rows[i].dataValues.verifyStatusInfo = userService.getVerifyStatusInfo(rows[i].verifyStatus);
                     }
                     result.data = rows;
 
@@ -371,6 +382,25 @@ const user = {
                res.send({ code: 500, message: ex.message });
           }
      },
+     allowance: async function (req, res) {
+          try {
+               //let sql = 'update users set status=? where id=?'
+               //let params = [req.params.status, req.params.id]
+               //await db2.execute(sql, params);
+               await models.userModel.update({
+                    allowance: parseInt(req.params.status)
+               }, {
+                    where: {
+                         id: parseInt(req.params.id)
+                    }
+               }
+               )
+               res.send({ code: 0, message: "succes" });
+          } catch (ex) {
+               console.log(ex)
+               res.send({ code: 500, message: ex.message });
+          }
+     },
      addrStatus: async function (req, res) {
           try {
                //let sql = 'update users set status=? where id=?'
@@ -523,67 +553,79 @@ const user = {
      },
      changeBalance: async function (userId, amount, source = "system", type = '9') {
           if (!/^[0-9.\-]+?$/.test(amount)) {
-              let message = ({ code: 500, message: '请填写正确的金额格式' })
-              return message;
+               let message = ({ code: 500, message: '请填写正确的金额格式' })
+               return message;
           }
           const transaction = await sequelize.transaction();
-  
+
           try {
-              const user = await models.userModel.findOne({
-                  where: { id: userId },
-                  lock: true,
-                  transaction: transaction,
-              });
-  
-              if (!user) {
-                  await transaction.rollback();
-                  let message = ({ code: 404, message: 'user not found' })
-                  return message
-              }
-  
-  
-              let balance = parseFloat(user.balance); // 或者使用 Number(user.balance);
-  
-              if (amount <= 0 && balance < Math.abs(amount)) {
-                  await transaction.rollback();
-                  let message = ({ code: 500, message: '余额不足' })
-                  return message
-              }
-  
-              user.balance = balance + parseFloat(amount);
-  
-              console.log('user new balance', user.balance, amount)
-  
-              await user.save({ transaction: transaction });
-  
-              await models.balanceLogModel.create({
-                  userId: userId,
-                  
-                  coin: amount,
-                  beforeCoin: user.balance,
-                  afterCoin: user.balance + amount,
-                  type: type,
-                 
-                 
-                  remark: '',
-                  created: moment().format("YYYY-MM-DD HH:mm:ss"),
-                  updated: moment().format("YYYY-MM-DD HH:mm:ss"),
-  
-              })
-  
-              await transaction.commit();
-              console.log('Transaction committed successfully.');
-              //userService.setBalance(req, balance)
-              let message = { code: 0, message: 'success' };
-              console.log('system operator balance ', message)
-              return message;
+               const user = await models.userModel.findOne({
+                    where: { id: userId },
+                    lock: true,
+                    transaction: transaction,
+               });
+
+               if (!user) {
+                    await transaction.rollback();
+                    let message = ({ code: 404, message: 'user not found' })
+                    return message
+               }
+
+
+               let balance = parseFloat(user.balance); // 或者使用 Number(user.balance);
+
+               if (amount <= 0 && balance < Math.abs(amount)) {
+                    await transaction.rollback();
+                    let message = ({ code: 500, message: '余额不足' })
+                    return message
+               }
+
+               user.balance = balance + parseFloat(amount);
+
+               console.log('user new balance', user.balance, amount)
+
+               await user.save({ transaction: transaction });
+
+               await models.transferModel.create({
+                    type: 1,
+                    userId: userId,
+                    amount: amount,
+                    fee: 0,
+                    status: 1,
+                    remark: '後台上分',
+                    created: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    updated: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    receipt: '',
+                    transactionHash: '',
+                    fromAddr: user.username,
+                    toAddr: '',
+               })
+               await models.balanceLogModel.create({
+                    userId: userId,
+
+                    coin: amount,
+                    beforeCoin: user.balance,
+                    afterCoin: user.balance + amount,
+                    type: type,
+                    remark: '',
+                    created: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    updated: moment().format("YYYY-MM-DD HH:mm:ss"),
+
+               })
+
+               await transaction.commit();
+               console.log('Transaction committed successfully.');
+               //userService.setBalance(req, balance)
+               let message = { code: 0, message: 'success' };
+               console.log('system operator balance ', message)
+               return message;
           } catch (ex) {
-              await transaction.rollback();
-              console.log('system operator balanceerror', ex.message);
-              let message = { code: 500, message: '系統錯誤,請聯繫管理員' }
-              return message;
+               await transaction.rollback();
+               console.log('system operator balanceerror', ex.message);
+               let message = { code: 500, message: '系統錯誤,請聯繫管理員' }
+               return message;
           }
-      },
+     },
 
 }
 

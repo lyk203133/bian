@@ -41,7 +41,18 @@ Ticket.init({
         type: DataTypes.DECIMAL,
         allowNull: false
     },
-
+    buyTime: {
+        type: DataTypes.BIGINT,
+        allowNull: false
+    },
+    resultTime: {
+        type: DataTypes.DATE,
+        allowNull: false
+    },
+    buySecond: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
     quantity: {
         type: DataTypes.INTEGER,
         allowNull: false

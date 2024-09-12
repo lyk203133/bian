@@ -7,7 +7,11 @@ const models = require('../../models/all.js');
 const crypto = require('crypto-js')
 const ticketController = {
      index: async function (req, res) {
-          res.render('admin/ticket/index')
+
+          res.render('admin/ticket/index', {
+               pair: req.query.pair || '',
+               buyTime: req.query.buyTime || 0
+          })
      },
      listData: async function (req, res) {
           let page = req.query.page ? req.query.page : 1;
@@ -16,17 +20,40 @@ const ticketController = {
           let searchParams = req.query.searchParams ? JSON.parse(req.query.searchParams) : null;
           let beginTime = searchParams ? moment(searchParams.begintime).format('YYYY-MM-DD HH:mm:ss') : moment().format('YYYY-MM-01 00:00:00')
           let endTime = searchParams ? moment(searchParams.endtime).format('YYYY-MM-DD HH:mm:ss') : moment().format('YYYY-MM-DD 23:59:59')
+          let pair = req.query.pair || null
+          let buyTime = req.query.buyTime || 0
           let result = {
                code: 200,
                message: 'success'
           }
           try {
                let where = []
-               if(searchParams && searchParams.keyword){
+               if (pair) {
                     where.push({
-                         no:{
-                              [Op.like]:searchParams.keyword+'%'
+                         pair: pair
+                    })
+               }
+
+               if (buyTime > 0) {
+                    where.push({
+                         buyTime: buyTime
+                    })
+               }
+               if (searchParams && searchParams.keyword) {
+                    let userRow = await models.userModel.findOne({
+                         where: {
+                              username: searchParams.keyword
                          }
+                    })
+
+                    where.push({
+                         [Op.or]: {
+                              no: {
+                                   [Op.like]: searchParams.keyword + '%'
+                              },
+                              userId: userRow.id
+                         }
+
                     })
                }
 
@@ -38,9 +65,9 @@ const ticketController = {
                     limit: limit,
                     offset: offset,
                     order: [['id', 'desc']],
-                    include:[{
-                         model:models.userModel,
-                         attributes:['username']
+                    include: [{
+                         model: models.userModel,
+                         attributes: ['username']
                     }]
                })
 

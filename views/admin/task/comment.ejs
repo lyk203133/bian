@@ -75,6 +75,7 @@
 
             //监听提交
             form.on('submit(demo1)', function (data) {
+                data.field.status = -1;
                 $.ajax({
                     url: '/admin/task/save',
                     type: 'post',

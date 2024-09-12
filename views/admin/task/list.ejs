@@ -140,7 +140,11 @@
 
                     { field: 'created', title: '時間', align: "center" },
                     { field: 'username', title: '會員帳號', sort: true },
-                    { field: 'platform', title: '平臺' },
+                    {
+                        field: 'platform', title: '平臺', templet: function (d) {
+                            return d.TaskPlatform ? d.TaskPlatform.name : ''
+                        }
+                    },
 
                     { title: '操作', toolbar: '#currentTableBar', align: "center" }
                 ]],

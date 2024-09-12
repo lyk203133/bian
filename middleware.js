@@ -8,6 +8,7 @@ const middleware = {
         if (req.body) console.log('api body:', JSON.stringify(req.body))
         next();
     },
+
     apiToken: (req, res, next) => {
         console.log('req url', req.url);
 
@@ -34,6 +35,25 @@ const middleware = {
             return;
         }
         req.payload = payload
+
+        next();
+    },
+    jwtToken: (req, res, next) => {
+        console.log('req url', req.url);
+
+        if (req.query) console.log('api query:', JSON.stringify(req.query))
+        if (req.query.token) console.log('api token:', JSON.stringify(req.query.token))
+        let token = req.query.token;
+        if (!token) token = req.header.token;
+        let payload = null;
+        try {
+            payload = jwtHelper.verifyToken(token);
+        } catch (ex) {
+            console.log(' token parse error')
+            //log.writeLog(' token parse error')
+            //console.log(ex.message)
+        }
+        req.token = payload
 
         next();
     },

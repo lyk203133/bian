@@ -49,8 +49,36 @@ User.init({
         type: DataTypes.INTEGER,
         allowNull: false
     },
-
-
+    allowance: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue:0
+    },
+    truename: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    birthday: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    mobile: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    card: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    verifyPhoto: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    verifyStatus: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: '0'
+    },
 }, {
     // 这是其他模型参数
     sequelize, // 我们需要传递连接实例

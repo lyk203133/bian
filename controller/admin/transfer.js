@@ -8,32 +8,59 @@ const crypto = require('crypto-js')
 const transferController = {
      index: async function (req, res) {
           let type = req.params.type;
-          res.render('admin/transfer/index',{
+
+          res.render('admin/transfer/index', {
                type,
-               typeName:type == 1?'轉入':'轉出'
+               typeName: type == 1 ? '轉入' : '轉出',
+               beginTime: moment().format("YYYY-MM-DD 00:00:00"),
+               endTime: moment().format("YYYY-MM-DD 23:59:59")
           })
      },
      check: async function (req, res) {
           let id = 0;
           let row = null;
-          try{
+          try {
                id = parseInt(req.params.id)
                row = await models.transferModel.findOne({
-                    where:{
+                    where: {
                          id
                     },
-                    include:{
-                         model:models.userModel,
-                         attributes:['username']
+                    include: {
+                         model: models.userModel,
+                         attributes: ['username']
                     }
                })
-          }catch(ex){
-               console.error('check error',ex.message)
+          } catch (ex) {
+               console.error('check error', ex.message)
           }
-          res.render('admin/transfer/check',{
+          res.render('admin/transfer/check', {
                id,
                row
           })
+     },
+     findOne: async function (req, res) {
+          let id = 0;
+          let row = null;
+          try {
+               id = parseInt(req.params.id)
+               row = await models.transferModel.findOne({
+                    where: {
+                         id
+                    }
+
+               })
+               res.send({
+                    code: 200,
+                    data: row
+               })
+          } catch (ex) {
+               console.error('check error', ex.message)
+               res.send({
+                    code: 500,
+                    message: ex.message
+               })
+          }
+
      },
      listData: async function (req, res) {
           let page = req.query.page ? req.query.page : 1;
@@ -48,30 +75,44 @@ const transferController = {
           }
           try {
                let where = []
-              
+
+               let userWhere = []
                if (searchParams && searchParams.keyword) {
-                    where.push(
+                    userWhere.push(
                          { username: { [Op.like]: '%' + searchParams.keyword + '%' } },
                     )
                }
 
-               let cnt = await models.transferModel.count({
-                     where:{
-                         type:req.params.type
+               where.push({
+                    created: {
+                         [Op.gte]: beginTime
                     }
                })
+
+               where.push({
+                    created: {
+                         [Op.lte]: endTime
+                    }
+               })
+
+               where.push({
+                    type: req.params.type
+               })
+
+               console.log('transfer query where', where)
+               let cnt = await models.transferModel.count({
+                    where
+               })
                let rows = await models.transferModel.findAll({
-                    where:{
-                         type:req.params.type
-                    },
+                    where,
                     limit: limit,
                     offset: offset,
                     order: [['id', 'desc']],
-                    include:[{
-                         model:models.userModel,
-                         attributes:['username'],
-                         where 
-                         
+                    include: [{
+                         model: models.userModel,
+                         attributes: ['username'],
+                         where: userWhere
+
                     }]
                })
 
@@ -95,44 +136,235 @@ const transferController = {
           res.send(result)
 
      },
-     
      status: async function (req, res) {
+          res.send({
+               code: 200
+          })
+
+     },
+     updateHash: async function (req, res) {
           try {
-               //let sql = 'update users set status=? where id=?'
-               //let params = [req.params.status, req.params.id]
-               //await db2.execute(sql, params);
                await models.transferModel.update({
-                    status: parseInt(req.params.status)
+                    transactionHash: req.body.hash
                }, {
                     where: {
-                         id: parseInt(req.params.id)
-                    }
-               }
-               )
-               res.send({ code: 0, message: "succes" });
+                         id: parseInt(req.body.id)
+                    },
+
+               })
+               res.send({
+                    code: 200
+               })
           } catch (ex) {
+               res.send({ code: 500, message: ex.message });
+          }
+     },
+     checkSave: async function (req, res) {
+          const transaction = await sequelize.transaction();
+          try {
+
+
+
+               let transferRow = await models.transferModel.findOne({
+                    where: {
+                         id: parseInt(req.body.id)
+                    },
+                    lock: true,
+                    transaction: transaction,
+               })
+               if (!transferRow) {
+                    await transaction.rollback();
+                    res.send({ code: 500, message: '數據不存在' });
+                    return;
+               }
+
+               if (transferRow.status != 0) {
+                    await transaction.rollback();
+                    res.send({ code: 500, message: '此申請已結束，請忽重提交' });
+                    return;
+               }
+
+               let remark
+               if (req.body.status == -1) {
+                    remark = req.body.remark ? req.body.remark : '後臺取消'
+                    await models.transferModel.update({
+                         status: -1,
+                         remark: remark
+                    }, {
+                         where: {
+                              id: transferRow.id
+                         },
+                         transaction: transaction
+                    })
+                    await transaction.commit();
+
+                    res.send({ code: 0, message: "succes" });
+                    return;
+               }
+
+               const userRow = await models.userModel.findOne({
+                    where: { id: transferRow.userId },
+                    lock: true,
+                    transaction: transaction,
+               });
+               if (!userRow) {
+                    await transaction.rollback();
+                    res.send({ code: 500, message: '會員數據不存在' });
+                    return;
+               }
+
+
+               let amount = parseFloat(transferRow.amount);
+
+               let balance = parseFloat(userRow.balance); // 或者使用 Number(user.balance);
+               if (transferRow.type == 1) {
+                    userRow.balance = balance + amount;
+               }
+               else {
+                    if (amount <= 0 && balance < Math.abs(amount) + transferRow.fee) {
+                         await transaction.rollback();
+                         let message = ({ code: 500, message: '余额不足' })
+                         res.send(message)
+                         return;
+                    }
+                    amount += transferRow.fee;
+
+                    userRow.balance = balance - amount;
+               }
+
+               console.log('user new balance', userRow.balance, amount)
+
+               await userRow.save({ transaction: transaction });
+
+               await models.balanceLogModel.create({
+                    userId: userRow.id,
+
+                    coin: amount,
+                    beforeCoin: balance,
+                    afterCoin: userRow.balance,
+                    type: transferRow.type,
+                    remark: '',
+                    created: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    updated: moment().format("YYYY-MM-DD HH:mm:ss"),
+
+               }, {
+                    transaction: transaction
+               })
+
+               remark = req.body.remark ? req.body.remark : '後臺通過'
+               await models.transferModel.update({
+                    status: parseInt(req.body.status),
+                    remark
+               }, {
+                    where: {
+                         id: parseInt(transferRow.id)
+                    },
+                    transaction: transaction
+               })
+               await transaction.commit();
+               console.log('Transaction committed successfully.');
+               //userService.setBalance(req, balance)
+
+               res.send({ code: 200, message: "succes" });
+          } catch (ex) {
+               await transaction.rollback();
                console.log(ex)
                res.send({ code: 500, message: ex.message });
           }
      },
-
-     checkSave:async function(req,res){
+     withdrawFail: async function (req, res) {
+          const transaction = await sequelize.transaction();
           try {
-              
-               await models.transferModel.update({
-                    status: parseInt(req.body.status),
-                    remark:req.body.remark
-               }, {
+               let transferRow = await models.transferModel.findOne({
                     where: {
                          id: parseInt(req.body.id)
-                    }
+                    },
+                    lock: true,
+                    transaction: transaction,
+               })
+               if (!transferRow) {
+                    await transaction.rollback();
+                    res.send({ code: 500, message: '數據不存在' });
+                    return;
                }
-               )
-               res.send({ code: 0, message: "succes" });
+
+               if (transferRow.status != 0) {
+                    await transaction.rollback();
+                    res.send({ code: 500, message: '此申請已結束，請忽重提交' });
+                    return;
+               }
+
+
+
+               const userRow = await models.userModel.findOne({
+                    where: { id: transferRow.userId },
+                    lock: true,
+                    transaction: transaction,
+               });
+               if (!userRow) {
+                    await transaction.rollback();
+                    res.send({ code: 500, message: '會員數據不存在' });
+                    return;
+               }
+
+
+               let amount = parseFloat(transferRow.amount) + parseFloat(transferRow.fee);
+
+               let balance = parseFloat(userRow.balance); // 或者使用 Number(user.balance);
+
+
+               userRow.balance = balance + amount;
+
+
+               console.log('user new balance', userRow.balance, amount)
+
+               await userRow.save({ transaction: transaction });
+
+               let remark = req.body.remark ? req.body.remark : '後臺取消'
+               await models.transferModel.update({
+                    status: -1,
+                    remark: remark
+               }, {
+                    where: {
+                         id: transferRow.id
+                    },
+                    transaction: transaction
+               })
+
+
+               await models.balanceLogModel.create({
+                    userId: userRow.id,
+
+                    coin: amount,
+                    beforeCoin: balance,
+                    afterCoin: userRow.balance,
+                    type: transferRow.type,
+                    remark: '',
+                    created: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    updated: moment().format("YYYY-MM-DD HH:mm:ss"),
+
+               }, {
+                    transaction: transaction
+               })
+
+
+               await transaction.commit();
+               console.log('withdraw committed successfully.');
+               //userService.setBalance(req, balance)
+
+               res.send({ code: 200, message: "succes" });
           } catch (ex) {
+               await transaction.rollback();
                console.log(ex)
                res.send({ code: 500, message: ex.message });
           }
+     },
+     openTrans: function (req, res) {
+          res.render('admin/transfer/openTrans', {
+               toAddress: req.params.to,
+               amount: req.params.amount,
+               id: req.params.id
+          })
      }
 }
 

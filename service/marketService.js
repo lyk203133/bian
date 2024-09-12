@@ -43,7 +43,7 @@ let marketService = {
         return formatRow;
     },
 
-    async getKlineData() {
+    async getKlineData(interval = '1m') {
         let symbols = [
             'BTCUSDT',
             'ETHUSDT',
@@ -51,10 +51,11 @@ let marketService = {
 
         ]
 
+        await sequelizeDb.query('ALTER TABLE market AUTO_INCREMENT = 1;');
         for (let i in symbols) {
 
             let params = [];
-            let listData = await this.getKlineDataBySymbol('1s', symbols[i]);
+            let listData = await this.getKlineDataBySymbol(interval, symbols[i]);
             if (!listData) continue;
 
             listData.forEach(element => {
@@ -74,12 +75,12 @@ let marketService = {
                     "17928899.62484339" // 请忽略该参数
                 ]
                 */
-                let row = this.formatRow(symbols[i], element, '1s')
+                let row = this.formatRow(symbols[i], element, interval)
                 row.openTime = element[0];
                 row.closeTime = element[6];
                 params.push(row)
             });
-            await sequelizeDb.query('ALTER TABLE market AUTO_INCREMENT = 1;');
+
             await models.marketModel.bulkCreate(params, {
                 updateOnDuplicate: ['updated'],
                 logging: false

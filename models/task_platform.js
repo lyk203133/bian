@@ -1,9 +1,9 @@
 const { Sequelize, DataTypes, Model } = require('sequelize');
 const sequelize = require('../sequelize.js')
 
-class Card extends Model { }
+class TaskPlatform extends Model { }
 
-Card.init({
+TaskPlatform.init({
     // 在这里定义模型属性
     id: {
         primaryKey: true,
@@ -15,23 +15,13 @@ Card.init({
         type: DataTypes.STRING,
         allowNull: false
     },
-    cardId: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-    },
-    lv: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-    },
-
-
 
 }, {
     // 这是其他模型参数
     sequelize, // 我们需要传递连接实例
-    modelName: 'Card', // 我们需要选择模型名称
-    tableName: 'card',
+    modelName: 'TaskPlatform', // 我们需要选择模型名称
+    tableName: 'task_platform',
     timestamps: false
 });
 
-module.exports = Card;
+module.exports = TaskPlatform;

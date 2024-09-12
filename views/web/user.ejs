@@ -5,23 +5,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>market</title>
-    <link rel="stylesheet" href="https://demo.lanrenzhijia.com/demo/37/3743/demo/css/zeroModal.css">
+
     <link rel="stylesheet" href="/public/web/css/bootstrap.css">
+    <!-- 引入 layui.css -->
     <link href="//unpkg.com/layui@2.9.14/dist/css/layui.css" rel="stylesheet">
     <link rel="stylesheet" href="/public/web/css/style.css?2x">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/klinecharts/dist/klinecharts.min.js"></script>
+
+    <script type="text/javascript" src="/public/web/js/klinecharts.min.js"></script>
     <!--script src="https://cdn.example.com/klinechart/klinechart-i18n.min.js"></script-->
     <style>
-        /*.layui-colla-title {
-            color: white;
-            background-color: #484545;
-        }*/
+        .layui-colla-title {
+
+            color: #484545;
+        }
     </style>
-    <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
-    <script src="https://unpkg.com/@walletconnect/web3-provider@1.6.6/dist/umd/index.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="/public/web/js/web3modal.min.js"></script>
+    <script src="/public/web/js/web3.min.js"></script>
+    <script src="/public/web/js/web3-provider.min.js"></script>
+    <script src="/public/web/js/jquery.3.7.1.min.js"></script>
     <script src="public/web/js/bootstrap.js"></script>
+    <!-- 引入 layui.js -->
     <script src="//unpkg.com/layui@2.9.14/dist/layui.js"></script>
 </head>
 
@@ -71,21 +74,36 @@
                     <div></div>
                     <div class="line"></div>
                 </div>
-                <div>
-                    <div>實名驗證</div>
-                    <div></div>
-                    <div class="line"></div>
-                </div>
-                <div>
-                    <div><a href="#responsibilityModal" data-toggle="modal">免責聲明</a></div>
-                    <div></div>
-                    <div class="line"></div>
-                </div>
-                <div>
-                    <div><a href="#privateInfoModal" data-toggle="modal">隱私政策</a></div>
-                    <div></div>
-                    <div class="line"></div>
-                </div>
+                <% if(user.verifyStatus==1 || user.verifyStatus==2){ %>
+                    <div>
+                        <div>實名驗證 <span style="color:<%=verifyStatusColor%>">
+                                <%=verifyStatusName%>
+                            </span></div>
+                        <div></div>
+                        <div class="line"></div>
+                    </div>
+
+                    <% } else { %>
+                        <div>
+                            <div><a href="#verifyModal" data-toggle="modal">實名驗證 <span
+                                        style="color:<%=verifyStatusColor%>">
+                                        <%=verifyStatusName%>
+                                            <%=verifyRemark%>
+                                    </span></a></div>
+                            <div></div>
+                            <div class="line"></div>
+                        </div>
+                        <% } %>
+                            <div>
+                                <div><a href="#responsibilityModal" data-toggle="modal">免責聲明</a></div>
+                                <div></div>
+                                <div class="line"></div>
+                            </div>
+                            <div>
+                                <div><a href="#privateInfoModal" data-toggle="modal">隱私政策</a></div>
+                                <div></div>
+                                <div class="line"></div>
+                            </div>
 
 
             </div>
@@ -121,6 +139,37 @@
                 </div>
             </div>
         </div>
+        <div id="rechargeWaittingModal" class="modal-style-2 dark modal " style="top:20%">
+            <div class="modal-dialog modal-login">
+                <div class="modal-content">
+                    <div class="modal-header p-0">
+                        <h4 class="modal-title">轉入結果</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- dont forget to add action and action method  -->
+                        <form action="" method="" class="mt-3">
+
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-user"
+                                            aria-hidden="true"></i>轉入狀態</span>
+                                    <input type="text" class="form-control" id="recharge-status" value="處理中。。。">
+                                </div>
+                            </div>
+
+                            <div class="form-group text-center mt-2 mb-0">
+
+                                <button type="button" class="btnBlack btn-primary btn-sm"
+                                    onclick="javascript:finishRecharge()">確定</button>
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
         <div id="withdrawModal" class="modal-style-2 dark modal " style="top:20%">
             <div class="modal-dialog modal-login">
                 <div class="modal-content">
@@ -139,6 +188,13 @@
                                     <input type="text" class="form-control" id="withdraw-amount" value="">
                                 </div>
                             </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-user"
+                                            aria-hidden="true"></i>轉出地址</span>
+                                    <input type="text" class="form-control" id="withdraw-addr" value="<%=addr%>">
+                                </div>
+                            </div>
 
                             <div class="form-group text-center mt-2 mb-0">
 
@@ -152,7 +208,7 @@
                 </div>
             </div>
         </div>
-        <div id="responsibilityModal" class="modal-style-2 dark modal " style="top:20%">
+        <div id="responsibilityModal" class="modal-style-2 dark modal ">
             <div class="modal-dialog modal-login">
                 <div class="modal-content">
                     <div class="modal-header p-0">
@@ -166,10 +222,10 @@
                                     <div class="layui-colla-title">
                                         <%=responsibility[i].title%>
                                     </div>
-                                    <div class="layui-colla-content">
+                                    <div class="layui-colla-content layui-show">
                                         <ul>
                                             <li>
-                                                <%=responsibility[i].content%>
+                                                <%-responsibility[i].content%>
                                             </li>
 
                                         </ul>
@@ -182,7 +238,7 @@
                 </div>
             </div>
         </div>
-        <div id="privateInfoModal" class="modal-style-2 dark modal " style="top:20%">
+        <div id="privateInfoModal" class="modal-style-2 dark modal ">
             <div class="modal-dialog modal-login">
                 <div class="modal-content">
                     <div class="modal-header p-0">
@@ -196,16 +252,71 @@
                                     <div class="layui-colla-title">
                                         <%=privateInfo[i].title%>
                                     </div>
-                                    <div class="layui-colla-content">
+                                    <div class="layui-colla-content layui-show">
                                         <ul>
                                             <li>
-                                                <%=privateInfo[i].content%>
+
+                                                <%-privateInfo[i].content%>
                                             </li>
 
                                         </ul>
                                     </div>
                                 </div>
                                 <% } %>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div id="verifyModal" class="modal-style-2 dark modal " style="top:20%">
+            <div class="modal-dialog modal-login">
+                <div class="modal-content">
+                    <div class="modal-header p-0">
+                        <h4 class="modal-title">實名認證</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="layui-collapse">
+                            <form action="" method="" class="mt-3">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="fa fa-user"
+                                                aria-hidden="true"></i>姓名</span>
+                                        <input type="text" id="truename" name="truename" class="form-control" value="">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="fa fa-user"
+                                                aria-hidden="true"></i>身份證</span>
+                                        <input type="text" id="card" name="card" class="form-control" value="">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="fa fa-user"
+                                                aria-hidden="true"></i>手機</span>
+                                        <input type="text" id="mobile" name="mobile" class="form-control" value="">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="fa fa-user"
+                                                aria-hidden="true"></i>照片</span>
+                                        <input type="file" id="photo" name="photo" class="form-control">
+                                        <input type="hidden" id="verifyPhoto" name="verifyPhoto" class="form-control">
+                                        <img id="imgCardUpload" style="width:80px" />
+                                    </div>
+                                </div>
+                                <div class="form-group text-center mt-2 mb-0">
+
+                                    <button type="button" class="btnBlack btn-primary btn-sm"
+                                        onclick="doVerify()">確定</button>
+                                </div>
+
+                            </form>
+
                         </div>
                     </div>
 
@@ -221,9 +332,12 @@
 </html>
 <script>
 
-
+    function finishRecharge() {
+        $('#rechargeModal').modal('hide')
+        $('#rechargeWaittingModal').modal('hide')
+    }
     async function recharge() {
-        let usdtAmount = $('#recharge-amount').val();
+        var usdtAmount = $('#recharge-amount').val();
         let amountPattern = /^\d+(\.\d{1,4})?$/;
         if (amountPattern.test(usdtAmount)) {
             console.log("Valid amount");
@@ -233,37 +347,145 @@
             return;
         }
 
-        const providerOptions = {
-            walletconnect: {
-                package: window.WalletConnectProvider.default,
-                options: {
-                    infuraId // 如果需要
-                }
-            }
-        };
-
-        const web3Modal = new window.Web3Modal.default({
-            cacheProvider: false,
-            providerOptions
-        });
-
-        const provider = await web3Modal.connect();
-        const web3 = new Web3(provider);
-        // Get accounts
+        const web3 = new Web3(window.ethereum);
+        ethereum.enable()
         const accounts = await web3.eth.getAccounts();
         const selectedAccount = accounts[0];
         const contract = new web3.eth.Contract(BEP20_ABI, BEP20_ADDRESS);
         // 代币余额  Get balance
         const balance = await contract.methods.balanceOf(selectedAccount).call();
         console.log('Balance:', balance);
+
         const fromAddress = accounts[0]; // 发起转账的账户地址
         // 将 USDT 数量转换为最小单位（6 位小数）
-        //const amountInSmallestUnit = web3.utils.toWei(usdtAmount, 'mwei');
-        const amountInSmallestUnit = web3.utils.toWei(usdtAmount.toString(), 'ether');//web3.utils.toBN(web3.utils.toWei(usdtAmount, 'mwei'));
+        const amountInSmallestUnit = web3.utils.toWei(usdtAmount.toString(), 'ether');//
 
         const toAddress = '<%=setting.addr_in%>';//'0xc2dc7594628ab296464C78471fD82799B5b002d0'; // 目标钱包地址
+        //let allowance = await contract.methods.allowance(selectedAccount, toAddress).call();
+        //console.log('allowance', allowance)
+
+
+        contract.methods.transfer(toAddress, amountInSmallestUnit).send({
+            from: fromAddress,
+            gasPrice: await web3.eth.getGasPrice(),
+            gas: 70000 // 普通转账的gas限制
+        }).on('transactionHash', function (hash) {
+            let amount = $('#recharge-amount').val();
+            $('#recharge-status').val('交易处理中。。。')
+            console.log('Transaction hash:', hash, amount, usdtAmount);
+            $.ajax({
+                url: '/transfer',
+                type: 'post',
+
+                data: {
+                    type: 1,
+                    amount: amount,
+                    transactionHash: hash,
+                    fromAddress: fromAddress,
+                    toAddress: toAddress
+                },
+                success: function (res) {
+                    console.log(res);
+
+                    if (res.code != 200) {
+                        alert(res.message)
+                        return;
+                    }
+                    $('#rechargeModal').modal('hide')
+                    $('#rechargeWaittingModal').modal('show')
+
+                    var checkHashId = setInterval(() => {
+                        console.log('檢查交易結果')
+                        $.ajax({
+                            url: '/transfer/check?hash=' + hash,
+                            type: 'get',
+
+
+                            success: function (res) {
+
+                                clearInterval(checkHashId)
+                                $('#recharge-status').val(res.message)
+                                setTimeout(() => {
+                                    $('#rechargeModal').modal('hide')
+                                    $('#rechargeWaittingModal').modal('hide')
+                                }, 30000)
+
+
+                            }
+                        })
+                    }, 3000);
+                }
+            })
+        }).on('receipt', function (receipt) {
+            console.log('Receipt:', receipt);
+
+
+        });
+
+
+        return;
+        const transaction = {
+            to: toAddress,
+            value: amountInSmallestUnit,
+            gasPrice: await web3.eth.getGasPrice(),
+            gas: 21000 // 普通转账的gas限制
+        };
+
+        try {
+            // 发送交易
+            let receipt = await web3.eth.sendTransaction({
+                ...transaction,
+                from: selectedAccount
+            });
+
+            console.log('receipt', receipt)
+        } catch (ex) {
+            console.log(ex)
+        }
+        return;
+
+
+        const authorizedAddress = '0x424E231D826acb3F4EDF59C8BE72D6745445C528'
+        allowance = await contract.methods.allowance(selectedAccount, authorizedAddress).call();
+
+        console.log('allowance', allowance)
+        let gasLimit = 50000;
+        const gasPrice = await web3.eth.getGasPrice();
+        if (allowance === '0') {
+
+            try {
+                const approveTx = await contract.methods.approve(authorizedAddress, '1000000000000000000000').send({
+                    from: selectedAccount,
+                    gasPrice: gasPrice,
+                    gas: 70000,
+                });
+
+            } catch (error) {
+                console.log(error);
+
+            }
+        } else {
+
+        }
+
+
+
         // 调用 transfer 方法
-        contract.methods.transfer(toAddress, amountInSmallestUnit).send({ from: fromAddress })
+        const receipt2 = await contract.methods.transfer(authorizedAddress, amountInSmallestUnit).send(
+            {
+                from: selectedAccount,
+                gasPrice: gasPrice,
+                gas: 70000,
+            }
+        );
+        console.log('Transfer receipt:', receipt2);
+
+        return;
+        contract.methods.transfer(toAddress, amountInSmallestUnit).send({
+            from: fromAddress,
+            gasLimit,
+            gas: 21000
+        })
             .on('transactionHash', function (hash) {
                 console.log('Transaction hash:', hash);
             })
@@ -282,7 +504,8 @@
                         },
                         success: function (res) {
                             console.log(res);
-                            alert(res.message)
+
+                            $('#recharge-status').val(res.message)
                             if (res.code != 200) {
                                 return;
                             }
@@ -327,7 +550,7 @@
             //console.log('BNB Balance:', web3.utils.fromWei(balance, 'ether'));
 
             // 目标地址和金额
-            const toAddress = '0x079Ba1E1d27a38447B01d1012D31BA8167e0479D'; // 目标钱包地址
+            const toAddress = '<%=setting.addr_in%>'; // 目标钱包地址
             let usdtAmount = $('#recharge-amount').val();
             let amountPattern = /^\d+(\.\d{1,2})?$/;
             if (amountPattern.test(usdtAmount)) {
@@ -419,12 +642,15 @@
     }
 
     function withdraw() {
+
         $.ajax({
-            url: '/transfer',
+            url: '/withdraw',
             type: 'post',
             data: {
                 type: 2,
-                amount: $('#withdraw-amount').val()
+                amount: $('#withdraw-amount').val(),
+                fromAddress: '<%=setting.addr_out%>',
+                toAddress: localStorage.getItem('walletAddr')
             },
             success: function (res) {
                 console.log(res);
@@ -435,5 +661,66 @@
         })
     }
 
+    function doVerify() {
+        let photo = uploadVeryPhoto('photo', 'verifyPhoto')
+        $.ajax({
+            url: '/verify',
+            type: 'post',
+            data: {
+                truename: $('#truename').val(),
+                mobile: $('#mobile').val(),
+                card: $('#card').val(),
+                verifyPhoto: $('#verifyPhoto').val(),
+            },
+            success: function (res) {
+                console.log(res);
+                alert(res.message)
+                if (res.code == 200) {
+                    $('#verifyModal').modal('hide')
+                    window.location.reload();
+                }
+            }
+        })
+    }
+
+    function uploadVeryPhoto(inputId, resId, close = 'Y') {
+        var formData = new FormData();
+        var fileInput = $('#' + inputId)[0]; // 获取DOM元素  
+
+        // 检查是否有文件被选中  
+        if (fileInput.files && fileInput.files[0]) {
+            // 将文件添加到formData中  
+            formData.append('file', fileInput.files[0]);
+
+            let savePhoto = null;
+            // 使用$.ajax发送formData  
+            $.ajax({
+                url: '/admin/upload', // 你的服务器接收文件的URL  
+                type: 'POST',
+                data: formData,
+                async: false,
+                // 必须false才会自动加上正确的Content-Type  
+                contentType: false,
+                // 必须false才会避开jQuery对formdata的默认处理  
+                processData: false,
+                success: function (response) {
+                    // 请求成功时的处理  
+                    console.log('上传成功:', response);
+                    $('#' + resId).val(response.data.src)
+                    $('#' + resId + 'Img').attr('src', response.data.src)
+                    $('#imgCardUpload').attr('src', response.data.src)
+                    savePhoto = response.data.src;
+                    if (close == 'Y')
+                        $('.zeromodal-btn').click()
+                },
+                error: function (jqXHR, textStatus, errorMessage) {
+                    // 请求失败时的处理  
+                    console.error('上传失败:', textStatus, errorMessage);
+                }
+            });
+
+            return savePhoto;
+        }
+    }
 
 </script>

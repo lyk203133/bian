@@ -6,38 +6,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>market</title>
 
-    <link rel="stylesheet" href="https://demo.lanrenzhijia.com/demo/37/3743/demo/css/zeroModal.css">
+     
     <link rel="stylesheet" href="/public/web/css/bootstrap.css">
-    <link rel="stylesheet" href="/public/web/css/style.css?2">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/klinecharts/dist/klinecharts.min.js"></script>
-    <!--script src="https://cdn.example.com/klinechart/klinechart-i18n.min.js"></script-->
-    <style>
+    <link rel="stylesheet" href="/public/web/css/style.css?3">
+     
+    <script src="/public/web/js/web3modal.min.js"></script>
+    <script src="/public/web/js/web3.min.js"></script>
+    <script src="/public/web/js/web3-provider.min.js"></script>
 
-    </style>
-    <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
-    <script src="https://unpkg.com/@walletconnect/web3-provider@1.6.6/dist/umd/index.min.js"></script>
-    <script src="./js/abi.js"></script>
-    <script src="./biance.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="public/web/js/bootstrap.js"></script>
-
+    <script src="/public/web/js/jquery.3.7.1.min.js"></script>
+     
+    <script src="/public/web/js/bootstrap.js"></script>
+    <script src="/public/web/js/d3.v7.min.js"></script>
     <style>
-        .bigTitle{
-            line-height:50px;
+        .bigTitle {
+            line-height: 50px;
             font-size: 20px;
             font-family: Roboto, "PingFang SC", -apple-system, BlinkMacSystemFont, "Microsoft YaHei";
         }
-        .grayTitle{
-            color:gray;
+
+        .grayTitle {
+            color: gray;
             font-size: 14px;
             font-family: Roboto, "PingFang SC", -apple-system, BlinkMacSystemFont, "Microsoft YaHei";
         }
 
-        .middleFlex{
-            display:flex;
-            align-items: center; /* 垂直居中 */  
+        .middleFlex {
+            display: flex;
+            align-items: center;
+            /* 垂直居中 */
         }
     </style>
 </head>
@@ -55,25 +52,25 @@
                         <span class="bigTitle">200+</span><br>
                         <span class="grayTitle">覆蓋國家</span>
                     </div>
-                    <div class="col-sm-4"> 
+                    <div class="col-sm-4">
 
                     </div>
                     <div class="col-sm-4">
-                        <span class="bigTitle">3000萬</span><br>
-                        <span class="grayTitle">全球投資者</span>
+                        <span class="bigTitle">9000萬</span><br>
+                        <span class="grayTitle">線上用戶數量</span>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-sm-4">
-                        <span class="bigTitle">700+</span><br>
-                        <span class="grayTitle">數字貨幣</span>
-                    </div> 
+                        <span class="bigTitle">3000萬</span><br>
+                        <span class="grayTitle">活躍用戶數量</span>
+                    </div>
                     <div class="col-sm-4">
 
                     </div>
                     <div class="col-sm-4">
                         <span class="bigTitle">15.04億</span><br>
-                        <span class="grayTitle">24h 成交額</span>
+                        <span class="grayTitle">24h交易量</span>
                     </div>
                 </div>
             </div>
@@ -88,7 +85,7 @@
             </div>
             <div class="line"></div>
             <div class="main-content">
-                
+
                 <table>
                     <thead>
                         <th>
@@ -105,7 +102,7 @@
                         <tr>
                             <td colspan="3">loading...</td>
                         </tr>
-                         
+
                     </tbody>
                 </table>
                 <div class="line"></div>
@@ -128,7 +125,7 @@
                             <div class="grayTitle">我們堅持最高的安全標準並實施最嚴格的安全措施，以確保您的帳戶安全。</div>
                         </div>
                     </div>
-                   
+
                     <div class="row">
                         <div class="col-sm-4 middleFlex">
                             <img src="/public/web/images/good3.png" style="width:4rem" />
@@ -144,13 +141,14 @@
                         </div>
                         <div class="col-sm-8">
                             <h3 class="bigTitle">資產儲備證明—資產透明度</h3>
-                            <div class="grayTitle">資產儲備證明（PoR）是一種廣泛使用的證明區塊鏈資產託管的方法。 這意味着 KuCoin 擁有涵蓋我們賬面上所有用戶資產的資金。</div>
+                            <div class="grayTitle">資產儲備證明（PoR）是一種廣泛使用的證明區塊鏈資產託管的方法。 這意味着 KuCoin 擁有涵蓋我們賬面上所有用戶資產的資金。
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- Footer -->
         <%- include('footer') %>
 
@@ -200,12 +198,41 @@
                                 $${parseFloat(item.lastPrice).toFixed(2)}
                             </td>
                             <td>
-                                $${parseFloat(item.priceChange).toFixed(2)}
+
+                                <svg style="margin-top:1.5rem" id="chart${i}" width="100" height="40"></svg>
                             </td>
                         </tr>`
+            //$${parseFloat(item.priceChange).toFixed(2)}
         }
 
         $('#tbody').html(html)
+
+        let drawFun = () => {
+            for (let i in data) {
+                let item = data[i];
+                $.ajax({
+                    url: '/market_data?symbol=' + item.currencyName + 'USDT&limit=150&interval=15m',
+                    type: 'get',
+                    success: function (res) {
+                        let item_data = res.data.map((e, n) => {
+                            return {
+                                x: n * 50,
+                                y: e[1]
+                            }
+                        })
+
+                        draw('chart' + i, item_data)
+                    }
+                })
+
+
+
+            }
+        }
+        setInterval(() => {
+            drawFun();
+        }, 30000)
+        drawFun();
     }
 
     init();
@@ -219,7 +246,7 @@
             if (row) {
 
                 setPrice($(this), row.lastPrice, 1);
-                setPrice($(this), row.priceChange, 2);
+                //setPrice($(this), row.priceChange, 2);
                 /*
                 let oriPrice = $(this).find('td').eq(1).attr('data');
                 if (oriPrice < row.lastPrice) {
@@ -245,7 +272,7 @@
         })
 
 
-    }, 2000)
+    }, 5000)
 
 
     function setPrice(obj, price, index) {
@@ -345,4 +372,38 @@
             }
         }).mount('#app');
         */
+
+
+
+    function draw(id, data) {
+
+        // 设置SVG的宽度和高度  
+        var svg = d3.select("#" + id),
+            width = +svg.attr("width"),
+            height = +svg.attr("height");
+
+        // 定义比例尺  
+        var xScale = d3.scaleLinear()
+            .domain([0, d3.max(data, function (d) { return d.x; })])
+            .range([0, width]);
+
+        var yScale = d3.scaleLinear()
+            .domain([0, d3.max(data, function (d) { return d.y; })])
+            .range([height, 0]);
+
+        // 定义线条生成器  
+        var lineGenerator = d3.line()
+            .x(function (d) { return xScale(d.x); })
+            .y(function (d) { return yScale(d.y); })
+            .curve(d3.curveLinear); // 你可以更改curve方法以使用不同的曲线，如d3.curveBasis  
+
+        // 绘制线条  
+        svg.append("path")
+            .datum(data) // 绑定数据  
+            .attr("fill", "none")
+            .attr("stroke", "steelblue")
+            .attr("stroke-width", 2)
+            .attr("d", lineGenerator); // 应用线条生成器  
+    }
+
 </script>

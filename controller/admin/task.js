@@ -3,7 +3,7 @@ const moment = require('moment');
 
 const cusTaskService = require('../../service/cusTask.js')
 const models = require("../../models/all.js");
-
+const sequelize = require('../../sequelize.js');
 const { Op } = require('sequelize');
 
 const taskController = {
@@ -55,28 +55,88 @@ const taskController = {
         try {
             let row = await models.taskModel.findOne({
                 where: {
-                    id: req.body.id
+                    id: parseInt(req.body.id)
                 }
             })
             console.log(JSON.stringify(row))
 
+            if (req.body.status == 2) {
+                let setting = await models.settingModel.findOne();
+                const transaction = await sequelize.transaction();
+                try {
 
-            await models.taskModel.update({
-                status: req.body.status,
-                remark: req.body.comment,
-                verifyTime: moment().format("YYYY-MM-DD HH:mm:ss"),
-                operator: req.session.loginUser
-            }, {
-                where: {
-                    id: parseInt(req.body.id)
+                    const userRow = await models.userModel.findOne({
+                        where: { username: row.username },
+                        lock: true,
+                        transaction: transaction,
+                    });
+                    if (!userRow) {
+                        await transaction.rollback();
+                        res.send({ code: 500, message: '會員數據不存在' });
+                        return;
+                    }
+
+
+                    let amount = parseFloat(setting.taskBonus);
+                    let balance = parseFloat(userRow.balance); // 或者使用 Number(user.balance);
+                    userRow.balance = balance + amount;
+                    console.log('user new balance', userRow.balance, amount)
+                    await userRow.save({ transaction: transaction });
+                    await models.balanceLogModel.create({
+                        userId: userRow.id,
+
+                        coin: amount,
+                        beforeCoin: balance,
+                        afterCoin: userRow.balance,
+                        type: 4,
+                        remark: '贊助商任務獎勵:' + row.id,
+                        created: moment().format("YYYY-MM-DD HH:mm:ss"),
+                        updated: moment().format("YYYY-MM-DD HH:mm:ss"),
+
+                    }, {
+                        transaction: transaction
+                    })
+
+                    await models.taskModel.update({
+                        status: req.body.status,
+                        remark: req.body.comment,
+                        verifyTime: moment().format("YYYY-MM-DD HH:mm:ss"),
+                        operator: req.session.loginUser
+                    }, {
+                        where: {
+                            id: row.id
+                        },
+                        transaction: transaction
+                    })
+                    await transaction.commit();
+                    res.send({ code: 0, message: "succes" });
+                    return;
+                } catch (error) {
+                    await transaction.rollback();
+                    console.error('task save error', error)
+                    res.send({
+                        code: 500,
+                        message: 'error'
+                    })
+                    return;
                 }
-            })
+            } else {
+                await models.taskModel.update({
+                    status: req.body.status,
+                    remark: req.body.comment,
+                    verifyTime: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    operator: req.session.loginUser
+                }, {
+                    where: {
+                        id: parseInt(req.body.id)
+                    }
+                })
+            }
             res.send({ code: 0, message: "succes" });
         } catch (ex) {
             res.send({ code: 500, message: ex.message });
+            return;
         }
-
-
     },
     list_data: async function (req, res) {
         try {
@@ -129,20 +189,26 @@ const taskController = {
             status = parseInt(status)
             if (status === 0) {
                 where.push({
-                    status: 0,
+                    status: 1,
                 })
             } else {
                 where.push({
-                    status: { [Op.gt]: 0 }
+                    status: { [Op.gt]: 1 }
                 })
             }
 
             console.log('task data', where, req.query.searchParams)
             const total = await models.taskModel.count({
-                where: where
+                where: where,
+                include: {
+                    model: models.taskPlatformModel
+                }
             })
             const result = await models.taskModel.findAll({
                 where: where,
+                include: {
+                    model: models.taskPlatformModel
+                },
                 limit: limit,
                 offset: offset,
                 order: [

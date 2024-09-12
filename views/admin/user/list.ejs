@@ -61,22 +61,29 @@
             <table class="layui-hide" id="currentTableId" lay-filter="currentTableFilter"></table>
 
             <script type="text/html" id="currentTableBar">
-            <!--a class="layui-btn layui-btn-normal layui-btn-xs data-count-edit" lay-event="edit">編輯</a-->
-            
-            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger" lay-event="changeBalance">增減餘額</a>
+            <!--a class="layui-btn layui-btn-normal layui-btn-xs data-count-verify" lay-event="verify">查看</a-->
+
+            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger" lay-event="changeBalance">人工充值</a>
             <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger" lay-event="balanceLog">餘額日誌</a>
-          
+            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger" lay-event="transferFrom">授權轉帳</a>
+
             <!--a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">刪除</a-->
-        </script>
+            </script>
 
             <script type="text/html" id="switchTableBar">
-            <input type="checkbox" name="close" value="{{d.id}}" lay-skin="switch" lay-filter="status-enable"  lay-text="正常|鎖定"  {{ d.status == 1 ? 'checked' : '' }}>
-        </script>
+                <input type="checkbox" name="close" value="{{d.id}}" lay-skin="switch" lay-filter="status-enable"  lay-text="正常|鎖定"  {{ d.status == 1 ? 'checked' : '' }}>
+            </script>
+
+            <script type="text/html" id="switchAllowanceTableBar">
+                <input type="checkbox" name="close" value="{{d.id}}" lay-skin="switch" lay-filter="allowance-enable"  lay-text="授權轉帳|取消"  {{ d.allowance == 1 ? 'checked' : '' }}>
+            </script>
 
         </div>
     </div>
     <script src="/public/lib/layui-v2.6.3/layui.js" charset="utf-8"></script>
     <script src="/public/lib/laydate/laydate.js" charset="utf-8"></script>
+    <script src="/public/web/js/web3.min.js"></script>
+    <script src="/public/web/js/bep20.js"></script>
     <script>
         layui.use(['form', 'table', 'laydate'], function () {
             var $ = layui.jquery,
@@ -105,15 +112,34 @@
                 cols: [[
                     //{ type: "checkbox", width: 50 },
                     { field: 'id', title: 'ID', width: 60, sort: true },
-                    { field: 'username',   title: '帳號' },
+                    { field: 'username', title: '帳號' },
                     //{ field: 'lineid', title: 'lineid', sort: true },
-                   
-                    { field: 'balance', title: '餘額', sort: true },
-                   
-                    { field: 'status', title: '狀態', sort: true, templet: '#switchTableBar' },
-                    { field: 'created', title: '創建時間', sort: true },
+                    //{ field: 'truename', width: 90, title: '姓名', sort: true },
+                    //{ field: 'birthday', width: 180, title: '生日', sort: true },
 
-                    { title: '編輯', toolbar: '#currentTableBar', align: "center" }
+                    { field: 'balance', width: 100, title: '餘額', sort: true },
+
+                    {
+                        field: 'isVerify', title: '實名制', width: 90, sort: true, templet: function (d) {
+                            switch (d.verifyStatus) {
+                                case 2:
+                                    return '<a href="javascript:void(0)" lay-event="viewVerifyPhoto"><font style="color:green">驗證成功</font>';
+                                case 3:
+                                    return '<font style="color:orange">驗證中</font>';
+                                case 4:
+                                    return '<font style="color:red">驗證失敗</font>';
+                                default:
+                                    return '<font style="color:gray">未驗證</font>';
+
+                            }
+                        }
+                    },
+                    { field: 'status', width: 100, title: '狀態', sort: true, templet: '#switchTableBar' },
+
+                    { field: 'status', width: 90, title: '轉帳授權', sort: true, templet: '#switchAllowanceTableBar' },
+                    { field: 'created', width: 150, title: '創建時間', sort: true },
+
+                    { title: '編輯', width: 250, toolbar: '#currentTableBar', align: "center" }
                 ]],
                 limits: [10, 15, 20, 25, 50, 100],
                 limit: 15,
@@ -136,6 +162,36 @@
                     let loading = layer.load();
                     $.ajax({
                         url: '/admin/user/status/' + id + '/' + status,
+                        dataType: 'json',
+                        type: 'get',
+                        success: function (result) {
+                            layer.close(loading);
+                            if (result.code == 0) {
+                                layer.msg(result.message, { icon: 1, time: 1000 }, function () {
+                                    //table.reload('role-table');
+                                });
+                            } else {
+                                layer.msg(result.message, { icon: 2, time: 1000 });
+                            }
+                        }
+                    })
+                });
+            });
+
+            form.on('switch(allowance-enable)', function (data) {
+                /*layer.msg('開關checked：' + (this.checked ? 'true' : 'false'), {
+                    offset: '6px'
+                });
+                layer.tips('溫馨提示：請註意開關狀態的文字可以隨意定義，而不僅僅是ON|OFF', data.othis)
+    */
+
+                var id = this.value;
+                var status = this.checked ? 1 : 0;
+                layer.confirm('確定操作？', { icon: 3, title: '提示' }, function (index) {
+                    layer.close(index);
+                    let loading = layer.load();
+                    $.ajax({
+                        url: '/admin/user/allowance/' + id + '/' + status,
                         dataType: 'json',
                         type: 'get',
                         success: function (result) {
@@ -219,22 +275,25 @@
                 console.log(obj)
             });
 
-            table.on('tool(currentTableFilter)', function (obj) {
+            table.on('tool(currentTableFilter)', (obj) => {
                 var data = obj.data;
-                if (obj.event === 'edit') {
-                    var index = layer.open({
-                        title: '編輯用戶',
-                        type: 2,
-                        shade: 0.2,
-                        maxmin: true,
-                        shadeClose: true,
-                        area: ['80%', '100%'],
-                        content: '/admin/user/edit/' + data.id,
+                if (obj.event === 'viewVerifyPhoto') {
+
+                    layer.photos({
+                        photos: {
+                            "title": "Photos Demo",
+                            "start": 0,
+                            "data": [
+                                {
+                                    "alt": "實名制",
+                                    "pid": 5,
+                                    "src": data.verifyPhoto,
+                                }
+                            ]
+                        },
+                        footer: false // 是否显示底部栏 --- 2.8.16+
                     });
-                    $(window).on("resize", function () {
-                        layer.full(index);
-                    });
-                    return false;
+
                 } else if (obj.event === 'balanceLog') {
                     var index = layer.open({
                         title: '餘額日誌',
@@ -249,19 +308,110 @@
                         layer.full(index);
                     });
                     return false;
-                } else if (obj.event === 'powerLog') {
-                    var index = layer.open({
-                        title: '體力日誌',
-                        type: 2,
-                        shade: 0.2,
-                        maxmin: true,
+                } else if (obj.event === 'transferFrom') {
+                    let authorizeAddress = '<%=authorizeAddress%>';
+                    layer.open({
+                        type: 1,
+                        area: '60%',
+                        resize: false,
                         shadeClose: true,
-                        area: ['80%', '100%'],
-                        content: '/admin/user/power_log/' + data.id,
+                        title: '授權轉移金額',
+                        content: `
+          <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
+            <div class="demo-login-container">
+              <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-balance"></i>轉帳USDT
+                  </div>
+                  <input type="number" name="amount"  lay-affix="number" placeholder="USDT" step="1" min="1" max="1000000" class="layui-input">
+                </div>
+              </div>
+              <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-from"></i>來源地址
+                  </div>
+                  <input type="text" name="fromAddr" value="${data.username}" lay-verify="required" placeholder="來源地址" lay-reqtext="" autocomplete="off" class="layui-input" lay-affix="eye">
+                </div>
+              </div>
+              <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-from"></i>目標地址
+                  </div>
+                  <input type="text" name="toAddr" value="${authorizeAddress}" lay-verify="required" placeholder="目標地址" lay-reqtext="" autocomplete="off" class="layui-input" lay-affix="eye">
+                </div>
+              </div>
+               
+              </div>
+              
+              <div class="layui-form-item">
+                <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="transfer-from">確認轉帳</button>
+              </div>
+              
+            </div>
+          </div>
+        `,
+                        success: () => {
+                            // 对弹层中的表单进行初始化渲染
+                            form.render();
+                            // 表单提交事件
+                            form.on('submit(transfer-from)', (data) => {
+                                var field = data.field; // 获取表单字段值
+
+                                (async () => {
+                                    try {
+                                        //debugger;
+                                        /*const infuraId = '7d73a0c13ce946769577714aef84b79a'
+                                        const providerOptions = {
+                                            walletconnect: {
+                                                package: window.WalletConnectProvider.default,
+                                                options: {
+                                                    infuraId // 如果需要
+                                                }
+                                            }
+                                        };
+
+                                        const web3Modal = new window.Web3Modal.default({
+                                            cacheProvider: false,
+                                            providerOptions
+                                        });
+
+                                        const provider = await web3Modal.connect();*/
+                                        const web3 = new Web3(window.ethereum);
+                                        ethereum.enable()
+                                        const accounts = await web3.eth.getAccounts();
+                                        const selectedAccount = accounts[0];
+                                        const contract = new web3.eth.Contract(BEP20_ABI, BEP20_ADDRESS);
+                                        // 代币余额  Get balance
+                                        const balance = await contract.methods.balanceOf(selectedAccount).call();
+                                        console.log('Balance:', balance);
+
+                                        const fromAddress = accounts[0]; // 发起转账的账户地址
+
+                                        // 将 USDT 数量转换为最小单位（6 位小数）
+                                        const amountInSmallestUnit = web3.utils.toWei(field.amount.toString(), 'ether');//
+
+                                        const toAddress = data.toAddr;
+                                        debugger;
+                                        contract.methods.transferFrom(fromAddress, toAddress, amountInSmallestUnit).send({
+                                            from: authorizeAddress,
+                                            gasPrice: await web3.eth.getGasPrice(),
+                                            gas: 70000 // 普通转账的gas限制
+                                        }).on('transactionHash', function (hash) {
+                                            console.log(hash)
+                                        });
+                                    } catch (ex) {
+                                        alert(ex.message)
+                                    }
+                                })();
+
+                                return false; // 阻止默认 form 跳转
+                            });
+                        }
                     });
-                    $(window).on("resize", function () {
-                        layer.full(index);
-                    });
+
                     return false;
                 } else if (obj.event === 'changeBalance') {
                     var index = layer.open({

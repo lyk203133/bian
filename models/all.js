@@ -12,6 +12,10 @@ const ticketModel = require("./ticket.js");
 const transferModel = require("./transfer.js");
 const settingModel = require("./setting.js");
 const articleModel = require("./article.js");
+const cusTaskMode = require("./cus_task.js");
+const marketModel = require("./market.js");
+const taskModel = require("./task.js");
+const taskPlatformModel = require("./task_platform.js");
 userModel.hasMany(balanceLogModel, { foreignKey: 'userId' })
 userModel.hasMany(powerLogModel, { foreignKey: 'userId' })
 userModel.hasOne(levelModel, { foreignKey: 'lv', targetKey: 'id' });
@@ -22,6 +26,8 @@ userCardModel.belongsTo(cardLevelModel, { foreignKey: 'lvId', targetKey: 'id' })
 userModel.hasMany(userAddrModel, { foreignKey: 'userId' })
 ticketModel.belongsTo(userModel, { foreignKey: 'userId', targetKey: 'id' });
 transferModel.belongsTo(userModel, { foreignKey: 'userId', targetKey: 'id' });
+taskModel.belongsTo(taskPlatformModel, { foreignKey: 'platform', });
+taskPlatformModel.hasOne(taskModel, { foreignKey: 'platform' });
 module.exports = {
     adminModel,
     userModel,
@@ -35,5 +41,10 @@ module.exports = {
     ticketModel,
     transferModel,
     settingModel,
-    articleModel
+    articleModel,
+    cusTaskMode,
+    marketModel,
+    taskModel,
+    taskPlatformModel
+
 };

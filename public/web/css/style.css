@@ -50,8 +50,9 @@ body {
     background-color: black;
     border-radius: 4px;
     height: 30px;
+    width: 2.8rem;
     background-size: 100% 100%;
-    margin: .2rem;
+    margin: .15rem;
     border: none;
     color: white;
     align-items: center;
@@ -145,6 +146,7 @@ header .login-panel {
     padding-bottom: 3rem;
     /* Add padding to avoid content overlap with footer */
     overflow-y: auto;
+    margin-bottom: 4rem;
     /* Make the content area scrollable */
 }
 

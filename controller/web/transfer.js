@@ -3,7 +3,7 @@ const baseService = require('../../service/baseService');
 const sequelize = require('../../sequelize.js');
 const models = require('../../models/all.js');
 const moment = require('moment');
-const { hash } = require('crypto');
+const jwt = require('../../module/jwt');
 const transferController = {
     checkTransfer: async function (req, res) {
         try {
@@ -127,7 +127,7 @@ const transferController = {
                     transaction: transaction
                 })
 
-                remark = '系統自動審核通過'
+                remark = '合約上分'
                 await models.transferModel.update({
                     status: 1,
                     remark
@@ -263,7 +263,7 @@ const transferController = {
                     return;
                 }
 
-                let remark = '系統自動審核通過'
+                let remark = '合約下分'
                 await models.transferModel.update({
                     status: 1,
                     remark
@@ -471,7 +471,84 @@ const transferController = {
                 message: error.message
             })
         }
-    }
+    },
+    listData: async function (req, res) {
+        let id = 0;
+        let username = ''
+        if (req.session.userId) {
+            id = parseInt(req.session.userId)
+            username = req.session.username;
+        } else if (req.query.token) {
+            let userToken = jwt.verifyToken(req.query.token);
+            if (userToken) {
+                id = userToken.id
+                username = userToken.username;
+            }
+        }
+
+        if (!id) {
+            //console.log(id, username)
+            res.send({
+                code: 500,
+                message: "請登入會員"
+            })
+            return;
+        }
+
+        let page = req.query.page ? req.query.page : 1;
+        if (page < 1) page = 1;
+        let limit = req.query.limit ? parseInt(req.query.limit) : 30;
+        let offset = (page - 1) * limit;
+        let type = req.query.type || 1
+
+        let result = {
+            code: 0
+        }
+        try {
+            let where = []
+            where.push({
+                type
+            })
+            where.push({
+                userId: id
+            })
+
+            console.log('transfer query where', where)
+            let cnt = await models.transferModel.count({
+                where
+            })
+            let rows = await models.transferModel.findAll({
+                where,
+                limit: limit,
+                offset: offset,
+                order: [['id', 'desc']],
+                include: [{
+                    model: models.userModel,
+                    attributes: ['username'],
+
+                }]
+            })
+
+            for (let i in rows) {
+                rows[i].dataValues.created = moment(rows[i].dataValues.created).format('MM-DD HH:mm:ss')
+            }
+
+            result.data = rows;
+
+            result.code = 0;
+            result.count = cnt;
+
+        } catch (ex) {
+            console.error(ex.message)
+            result = {
+                code: 500,
+                message: ex.toString()
+            }
+        }
+
+        res.send(result)
+
+    },
 }
 
 

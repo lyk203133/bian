@@ -12,6 +12,9 @@ class Web3Service {
             const receipt = await this.web3.eth.getTransactionReceipt(transactionHash);
             const transaction = await this.web3.eth.getTransaction(transactionHash);
 
+            console.log('transactionHash', transactionHash)
+            console.log('receipt', receipt)
+            console.log('transaction', transaction)
             let toAddress = '';
             let fromAddress = '';
             if (receipt.logs && receipt.logs.length > 0) {

@@ -5,20 +5,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>market</title>
-    <link rel="stylesheet" href="https://demo.lanrenzhijia.com/demo/37/3743/demo/css/zeroModal.css">
+    
     <link rel="stylesheet" href="/public/web/css/bootstrap.css">
     <link rel="stylesheet" href="/public/web/css/style.css?2">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/klinecharts/dist/klinecharts.min.js"></script>
-    <!--script src="https://cdn.example.com/klinechart/klinechart-i18n.min.js"></script-->
+     
     <style>
 
     </style>
-    <script src="https://unpkg.com/web3modal@1.9.12/dist/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.0/dist/web3.min.js"></script>
-    <script src="https://unpkg.com/@walletconnect/web3-provider@1.6.6/dist/umd/index.min.js"></script>
+    <script src="/public/web/js/web3modal.min.js"></script>
+    <script src="/public/web/js/web3.min.js"></script>
+    <script src="/public/web/js/web3-provider.min.js"></script>
     <script src="./js/abi.js"></script>
     <script src="./biance.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="/public/web/js/jquery.3.7.1.min.js"></script>
     <script src="public/web/js/bootstrap.js"></script>
 </head>
 
@@ -40,23 +39,23 @@
             <div class="line"></div>
             <div class="main-content">
                 <div>
-                    <div>幣安任務</div>
+                    <div onclick="showVerify('幣安')">幣安任務</div>
                     <div></div>
                     <div class="line"></div>
                 </div>
                 <div>
-                    <div>Maicion任務</div>
+                    <div onclick="showVerify('Maicion')">Maicion任務</div>
                     <div></div>
                     <div class="line"></div>
                 </div>
                 <div>
-                    <div>Ace任務</div>
+                    <div onclick="showVerify('Ace')">Ace任務</div>
                     <div></div>
                     <div class="line"></div>
                 </div>
 
                 <div>
-                    <div>Bito任務</div>
+                    <div onclick="showVerify('Bito')">Bito任務</div>
                     <div></div>
                     <div class="line"></div>
                 </div>
@@ -64,9 +63,126 @@
             </div>
         </div>
 
+        <div id="verifyModal" class="modal-style-2 dark modal " style="top:20%">
+            <div class="modal-dialog modal-login">
+                <div class="modal-content">
+                    <div class="modal-header p-0">
+                        <h4 class="modal-title" id="taskTitle">任务認證</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="layui-collapse">
+                            <form action="" method="" class="mt-3">
+
+
+
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="fa fa-user"
+                                                aria-hidden="true"></i><span id="lblInfo">信息</span></span>
+                                        <input type="text" id="info" name="info" class="form-control" value="">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="fa fa-user"
+                                                aria-hidden="true"></i>照片</span>
+                                        <input type="file" id="photo" name="photo" class="form-control">
+                                        <input type="hidden" id="verifyPhoto" name="verifyPhoto" class="form-control">
+                                        <img id="imgCardUpload" style="width:80px" />
+                                    </div>
+                                </div>
+                                <div class="form-group text-center mt-2 mb-0">
+
+                                    <button type="button" class="btnBlack btn-primary btn-sm"
+                                        onclick="doVerify()">確定</button>
+                                    <input type="hidden" id="platform" />
+                                </div>
+
+                            </form>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
         <!-- Footer -->
         <%- include('footer') %>
 
 </body>
 
 </html>
+
+<script>
+    function showVerify(type) {
+        $('#platform').val(type)
+        $('#taskTitle').text(type + '任务認證')
+        if (type == '幣安')
+            $('#lblInfo').text('手機')
+        else
+            $('#lblInfo').text('信箱')
+        $('#verifyModal').modal('show')
+    }
+
+    function doVerify() {
+        let photo = uploadVeryPhoto('photo', 'verifyPhoto')
+        $.ajax({
+            url: '/task/verify',
+            type: 'post',
+            data: {
+                platform: $('#platform').val(),
+                info: $('#info').val(),
+                verifyPhoto: $('#verifyPhoto').val(),
+            },
+            success: function (res) {
+                console.log(res);
+                alert(res.message)
+                if (res.code == 200) {
+                    $('#verifyModal').modal('hide')
+                    window.location.reload();
+                }
+            }
+        })
+    }
+
+    function uploadVeryPhoto(inputId, resId, close = 'Y') {
+        var formData = new FormData();
+        var fileInput = $('#' + inputId)[0]; // 获取DOM元素  
+
+        // 检查是否有文件被选中  
+        if (fileInput.files && fileInput.files[0]) {
+            // 将文件添加到formData中  
+            formData.append('file', fileInput.files[0]);
+
+            let savePhoto = null;
+            // 使用$.ajax发送formData  
+            $.ajax({
+                url: '/admin/upload', // 你的服务器接收文件的URL  
+                type: 'POST',
+                data: formData,
+                async: false,
+                // 必须false才会自动加上正确的Content-Type  
+                contentType: false,
+                // 必须false才会避开jQuery对formdata的默认处理  
+                processData: false,
+                success: function (response) {
+                    // 请求成功时的处理  
+                    console.log('上传成功:', response);
+                    $('#' + resId).val(response.data.src)
+                    $('#' + resId + 'Img').attr('src', response.data.src)
+                    $('#imgCardUpload').attr('src', response.data.src)
+                    savePhoto = response.data.src;
+                    if (close == 'Y')
+                        $('.zeromodal-btn').click()
+                },
+                error: function (jqXHR, textStatus, errorMessage) {
+                    // 请求失败时的处理  
+                    console.error('上传失败:', textStatus, errorMessage);
+                }
+            });
+
+            return savePhoto;
+        }
+    }
+</script>

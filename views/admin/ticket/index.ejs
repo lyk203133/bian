@@ -21,9 +21,10 @@
                     <form class="layui-form layui-form-pane" action="">
                         <div class="layui-form-item">
                             <div class="layui-inline">
-                                <label class="layui-form-label">订单号</label>
+                                <label class="layui-form-label">關鍵字</label>
                                 <div class="layui-input-inline">
-                                    <input type="text" name="keyword" autocomplete="off" class="layui-input">
+                                    <input type="text" name="keyword" placeholder="單號 或 錢包地址" autocomplete="off"
+                                        class="layui-input">
                                 </div>
                             </div>
 
@@ -100,7 +101,7 @@
             //常规用法
             laydate.render({
                 elem: '#betTime',
-                 
+
             });
 
             laydate.render({
@@ -115,7 +116,7 @@
             table.render({
                 elem: '#currentTableId',
                 type: 'post',
-                url: '/admin/ticket/list_data',
+                url: '/admin/ticket/list_data?pair=<%=pair%>&buyTime=<%=buyTime%>',
                 toolbar: '#toolbarDemo',
                 defaultToolbar: ['filter', 'exports', 'print', {
                     title: '提示',
@@ -125,55 +126,93 @@
                 cols: [[
                     //{ type: "checkbox", width: 50 },
                     //{ field: 'id',   title: 'ID', sort: true },
-                    { field: 'no',   title: '訂單號' },
+                    { field: 'no', title: '訂單號' },
                     //{ field: 'agent', minWidth: 70, title: '代理', sort: true },
-                    { field: 'username', minWidth: 170, title: '會員',templet:function(d){
-                        return d.User ? d.User.username : '';
-                    } },
                     {
-                        field: 'buyType', minWidth: 100, title: '類別', sort: true, templet: function (d) {
-                            return d.betType == 1 ? '<span style="color: green;">買多</div>' :'<span style="color: red;">買空</div>'
+                        field: 'username', minWidth: 270, title: '會員', templet: function (d) {
+                            return d.User ? d.User.username : '';
+                        }
+                    },
+                    {
+                        field: 'buyType', width: 80, title: '類別', sort: true, templet: function (d) {
+                            return d.betType == 1 ? '<span style="color: green;">買多</div>' : '<span style="color: red;">買空</div>'
                         }
                     },
                     //{ field: 'league', minWidth: 300, title: '联赛', sort: true, templet: '#orderInfoTpl' },
-                     
 
 
-                    { field: 'quantity', minWidth: 100, title: '下注金额' },
-                    
+
                     {
-                        field: 'result', minWidth: 100, title: '结果', sort: true, templet: function (d) {
-                            let color = 'orange';
-                            if (d.result > 0)
-                                color = 'green'
-                            else if (d.result <= 0)
-                                color = 'red'
-
-                            return '<div style="color:' + color + '">' + d.result + '</div>'
+                        field: 'quantity', width: 100, title: '下注金額', templet: function (d) {
+                            return '<div style="color:blue">' + d.quantity + 'U</div>'
                         }
                     },
-                    
+                    { field: 'price', minWidth: 100, title: '買入價' },
+                    { field: 'resultPrice', minWidth: 100, title: '结算價' },
+
                     {
-                        field: 'status', minWidth: 50, title: '状态', sort: true, templet: function (d) {
+                        field: 'result', minWidth: 100, title: '盈虧結果', sort: true, templet: function (d) {
                             let color = 'orange';
                             let statusName = '待結算';
-                            if (d.status == 1){
+                            if (d.result > 0) {
+                                color = 'green'
+                                statusName = '盈利';
+
+
+                            } else if (d.result <= 0) {
+                                color = 'red'
+                                statusName = '虧損';
+                            }
+                            return '<div style="color:' + color + '">' + statusName + '</div>'
+                        }
+                    },
+                    {
+                        field: 'result', minWidth: 100, title: '結果', sort: true, templet: function (d) {
+                            let color = 'orange';
+                            let statusName = '待結算';
+                            if (d.status == 1) {
                                 color = 'green'
                                 statusName = '已結算';
-                            } else if (d.status == -1){
+                                if (d.result > 0)
+                                    color = 'green'
+                                else if (d.result <= 0)
+                                    color = 'red'
+
+                                return '<div style="color:' + color + '">' + d.result + '</div>'
+
+                            } else if (d.status === 0) {
+                                color = 'red'
+                                statusName = '待結算';
+                            } else if (d.status === -1) {
                                 color = 'red'
                                 statusName = '已取消';
                             }
-                                
+
                             return '<div style="color:' + color + '">' + statusName + '</div>'
                         }
-                    },  
-                    { field: 'created', minWidth: 130, title: '下注时间', sort: true },
-                    {
-                        field: 'remark', minWidth: 70, title: '备注', sort: true, templet: function (d) {
+                    },
+
+                    /*{
+                        field: 'status', minWidth: 50, title: '訂單狀態', sort: true, templet: function (d) {
+                            let color = 'orange';
+                            let statusName = '待結算';
+                            if (d.status == 1) {
+                                color = 'green'
+                                statusName = '已結算';
+                            } else if (d.status == -1) {
+                                color = 'red'
+                                statusName = '已取消';
+                            }
+
+                            return '<div style="color:' + color + '">' + statusName + '</div>'
+                        }
+                    },*/
+                    { field: 'created', minWidth: 130, title: '下注時間', sort: true },
+                    /*{
+                        field: 'remark', minWidth: 70, title: '備註', sort: true, templet: function (d) {
                             return '<div style="color: gray;">' + (d.remark) + '</div>';
                         }
-                    },
+                    },*/
                     //{ title: '操作', width: 100, style: 'height: 100px', toolbar: '#currentTableBar', align: "center" }
 
                 ]],
