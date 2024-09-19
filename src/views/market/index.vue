@@ -78,7 +78,7 @@
 <van-cell-group style="margin-top:3rem;padding: 1rem">
   
   <van-cell :title="buyTypeName" value=""  />
-  <van-cell title="交易兌" value="BTCUSDT"  />
+  <van-cell title="交易兌" :value="pair.toUpperCase()"  />
   <van-cell title="錢包餘額" :value="'$'+walletBalance"  />
   <van-cell title="交易價格" :value="'$'+lastMarketRow.openPrice" />
  

@@ -67,17 +67,15 @@ export async function getArticle(id) {
 }
 
 export async function getTransfer(params) {
-
   let data = await axios.get(mainUrl + '/transfer/recharge?token=' + params.token + '&type=' + params.type + '&page=' + params.page + '&limit=' + params.limit)
-
   return data;
-  return http.request({
-    url: "/transfer/recharge",
-    method: "get",
-    params
-  })
 }
 
+
+export async function getBalanceLog(params) {
+  let data = await axios.get(mainUrl + '/balance-log?token=' + params.token + '&type=' + params.type + '&page=' + params.page + '&limit=' + params.limit)
+  return data;
+}
 
 export async function doTaskVerify(params) {
   let data = await axios.post(mainUrl + '/task/verify', params)

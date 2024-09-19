@@ -2,7 +2,7 @@
 import {ref,onMounted} from 'vue';
 import axios from 'axios';
 import {showDialog,showNotify ,Tab, Tabs } from 'vant'
-import {getArticle,getTransfer,doVerify,doUpload} from '@/api/'
+import {getArticle,getTransfer,getBalanceLog,doVerify,doUpload} from '@/api/'
 import Web3 from'web3'
 import {infuraId, BEP20_ABI,BEP20_ADDRESS } from "@/settings";
 import ticketList from "@/components/TicketList/index.vue";
@@ -31,7 +31,6 @@ let privateInfo = ref('loading')
 
 
 let getPrivate = async ()=>{
-  
   showPrivate.value = true
   let data = await getArticle(1)//await axios.get(mainUrl+'/article/1')
   privateInfo.value = data.data.data.content
@@ -52,6 +51,24 @@ let showRecharge = ref(false)
 let getRechargeDialog =  ()=>{
   showRecharge.value = true
 }
+
+let balanceLogData = ref([])
+let getBalanceLogData = async (p)=>{
+  currentPage.value = p;
+  let token = localStorage.getItem('jwt-token')
+  let res = await getBalanceLog({
+    token,
+    type:1,
+    page:currentPage.value,
+    limit
+  });
+ 
+  console.log(res.data)
+  balanceLogData.value = res.data.data
+  page.value = currentPage.value;
+  totalCount.value = res.data.count;
+}
+
 
 let showRechargeHistory = ref(false)
 let rechargeData = ref([])
@@ -83,8 +100,6 @@ let getWithdrawDialog =  async(name)=>{
   showWithdraw.value = true
 }
 let showWithdrawHistory = ref(false)
- 
-
 let getWithdrawHistoryData = async (p)=>{
   currentPage.value = p;
   let token = localStorage.getItem('jwt-token')
@@ -99,6 +114,7 @@ let getWithdrawHistoryData = async (p)=>{
   page.value = currentPage.value;
   totalCount.value = res.data.count;
 }
+
 
 const changeRecharge = async  (e)=>{
     console.log('change',e)
@@ -116,8 +132,11 @@ const changeRecharge = async  (e)=>{
     console.log(title,title.name)
     if(title.name == 'recharge'){
       changeRecharge(1)
-    }else{
+    }else if(title.name == 'withdraw'){
       changeWithdraw(1);
+    }else{
+      currentPage.value = 1;
+      getBalanceLogData(1)
     }
   }
 
@@ -228,7 +247,7 @@ const doRecharge =  async ()=> {
               token
           })
 
-      showNotify({ type: 'primary', message: res.data.message});
+          showNotify({ type: 'primary', message: res.data.message});
           if (res.data.code != 200) {
               return;
           }
@@ -248,7 +267,6 @@ const doRecharge =  async ()=> {
 
 
   const doWithdraw = async ()=>{ 
-    
     let token = localStorage.getItem('jwt-token')
     let res = await axios.post(mainUrl + '/withdraw', {
             type: 2,
@@ -276,12 +294,7 @@ const doRecharge =  async ()=> {
   
   }
 
-
-
-
 </script>
- 
-
 <template>
   <div class="tools-content pt-[20px] px-[12px]">
     <div class="pl-[12px] border-l-[3px] border-[color:#41b883] mb-[12px]">
@@ -490,6 +503,30 @@ const doRecharge =  async ()=> {
                 <van-col span="6">{{  getStatusName(row.status) }}</van-col>
               </van-row>
               <van-pagination  class="custom-pagination"  :items-per-page="limit" v-model="currentPage" :total-items="totalCount" :show-page-size="5" @change="changeWithdraw">
+                <template #prev-text>
+                  <van-icon name="arrow-left" />
+                </template>
+                <template #next-text>
+                  <van-icon name="arrow" />
+                </template>
+                <template #page="{ text }">{{ text }}</template>
+              </van-pagination>
+            </div>
+            
+      </van-tab>
+      <van-tab title="流水記錄" name="balanceLog"  ><br>
+        <div class="history" style="height: 100vw;width:100%">
+            <van-row justify="center" gutter="16" class="title" >
+                <van-col span="6"><b>金額</b></van-col>
+                <van-col span="8"><b>時間</b></van-col>
+                <van-col span="8"><b>備註</b></van-col>
+              </van-row>
+              <van-row justify="center" gutter="16" v-for="row in balanceLogData">
+                <van-col span="6">{{ parseFloat(row.coin).toFixed(2) }}</van-col>
+                <van-col span="8">{{row.created}}</van-col>
+                <van-col span="8">{{  row.remark }}</van-col>
+              </van-row>
+              <van-pagination  class="custom-pagination"  :items-per-page="limit" v-model="currentPage" :total-items="totalCount" :show-page-size="5" @change="getBalanceLogData">
                 <template #prev-text>
                   <van-icon name="arrow-left" />
                 </template>
