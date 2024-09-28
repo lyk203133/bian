@@ -3,10 +3,11 @@ import {ref,onMounted} from 'vue';
 import axios from 'axios';
 import {showDialog} from 'vant'
 import {doTaskVerify,getTasks} from "@/api/";
+import { getApiUrl } from "@/utils/base";
 let addr = ref()
 addr.value = localStorage.getItem('walletAddr');
 
-let mainUrl = import.meta.env.VITE_BASE_API;
+let mainUrl = getApiUrl();
 let showTask = ref(false)
 
 let getTask = async (name,id)=>{

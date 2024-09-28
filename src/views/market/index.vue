@@ -15,7 +15,7 @@
       class="text-[14px] py-[2px] px-[10px] rounded-[4px] bg-[var(--color-block-background)] mt-[14px]"
     >
       <p class="my-[14px] leading-[24px]">
-        <div id="chart" class="k-line-chart" style="height: 600px;"/>
+        <div id="chart" class="k-line-chart" style="height: 450px;"/>
          
       </p>
     </div>
@@ -455,14 +455,14 @@ setInterval(()=>{
       candle: {
           tooltip: {
               text: {
-                  size: 12,
+                  size: 11,
                   family: 'Helvetica Neue',
                   weight: 'normal',
                   color: 'red',
                   marginLeft: 8,
-                  marginTop: 4,
+                  marginTop: 1,
                   marginRight: 8,
-                  marginBottom: 4
+                  marginBottom: 1
               },
 
           },

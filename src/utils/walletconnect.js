@@ -1,6 +1,6 @@
 
 import { useWeb3Modal } from '@web3modal/wagmi/vue'
-
+import { getApiUrl } from "@/utils/base";
 import Web3 from 'web3'
 import axios from 'axios'
 import { infuraId, BEP20_ABI, BEP20_ADDRESS } from "@/settings";
@@ -22,7 +22,7 @@ export async function myWalletConnect(openModel) {
       let data = {
         addr: selectedAccount
       }
-      const mainUrl = import.meta.env.VITE_BASE_API;
+      const mainUrl = getApiUrl();
       const response = await axios.post(mainUrl + '/walletlogin', data);
       let res = response.data;
       if (res.code == 200) {

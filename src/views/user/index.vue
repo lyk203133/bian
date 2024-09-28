@@ -8,6 +8,7 @@ import {infuraId, BEP20_ABI,BEP20_ADDRESS } from "@/settings";
 import ticketList from "@/components/TicketList/index.vue";
 import {doAllowance} from  "@/utils/walletconnect"
 import Page from "@/components/TicketList/page.vue";
+import { getApiUrl } from "@/utils/base";
 
 let activeName = ref('recharge')
 let currentPage = ref(1);
@@ -25,7 +26,7 @@ addr.value = localStorage.getItem('walletAddr');
 
 let balance = ref(localStorage.getItem('walletBalance'))
 
-let mainUrl = import.meta.env.VITE_BASE_API;
+let mainUrl = getApiUrl();
 let showPrivate = ref(false)
 let privateInfo = ref('loading')
 
