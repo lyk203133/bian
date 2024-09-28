@@ -104,13 +104,14 @@ let getImageSrc = (currencyName) =>{
 
 <template>
   <div class="index-top-bg" >
+       
        <div class="index-ad-words">
           <h1>
-            <span>在 KuCoin 上<br>
-              尋找下一個<span class="primary"> Crypto Gem </span></span>
+            <span>在 MEXC 上<br>
+              尋找下一個<div class="primary"> Crypto Gem </div></span>
           </h1>
        </div>
-       <div class="index-ad-words2"><span>全球每四個數字貨幣持有者，就有一個是 KuCoin 的用戶</span></div>
+       <div class="index-ad-words2"><span>全球每四個數字貨幣持有者，就有一個是 MEXC 的用戶</span></div>
        <Space></Space>
        <Space></Space>
        <Space></Space>
@@ -205,7 +206,7 @@ let getImageSrc = (currencyName) =>{
       <van-col span="6" class=""><img src="~@/assets/images/good3.png" style="width:4rem" /></van-col>
       <van-col span="18" class="">
         <h1>資產儲備證明—資產透明度</h1>
-        <span class="desc">資產儲備證明（PoR）是一種廣泛使用的證明區塊鏈資產託管的方法。 這意味着 KuCoin 擁有涵蓋我們賬面上所有用戶資產的資金。</span>
+        <span class="desc">資產儲備證明（PoR）是一種廣泛使用的證明區塊鏈資產託管的方法。 這意味着 MEXC 擁有涵蓋我們賬面上所有用戶資產的資金。</span>
       </van-col>
     </van-row>
     <Space></Space>
@@ -231,7 +232,7 @@ let getImageSrc = (currencyName) =>{
  }
 
  .index-ad-words .primary {
-    color: rgb(1, 188, 141);
+    color: var(--van-blue);;
 }
 
 .index-ad-words2  {
@@ -241,7 +242,18 @@ let getImageSrc = (currencyName) =>{
   line-height: 130%;
 }
 
-.index-top-bg{
+.index-top-bg  {
+    font-family: Roboto, "PingFang SC", -apple-system, BlinkMacSystemFont, "Microsoft YaHei";
+    padding-top: 1rem;
+    margin: 1rem .2rem 1rem .2rem;
+    background-image: url(/src/assets/images/cati_bg.png);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    /* height: 100vw; */
+    /* width: 100%; */
+}
+.index-top-bg-delete{
   font-family: Roboto, "PingFang SC", -apple-system, BlinkMacSystemFont, "Microsoft YaHei";
   padding-top: 5rem;
   margin: 1rem .2rem 1rem .2rem;
@@ -259,7 +271,7 @@ let getImageSrc = (currencyName) =>{
 }
 
 .info .title {
-    color: rgb(29, 29, 29);
+    color: white;
     font-weight: 700;
     font-size: 20px;
     line-height: 130%;
@@ -272,7 +284,7 @@ let getImageSrc = (currencyName) =>{
     margin-top: 10px;
     font-size: 14px;
     line-height: 130%;
-    color: rgba(29, 29, 29, 0.4);
+    color: white;
  
 }
 

@@ -8,7 +8,7 @@
     >
       {{ item.title }}
     </van-tabbar-item>
-  </van-tabbar>
+  </van-tabbar> 
 </template>
 
 <script setup>
@@ -35,27 +35,29 @@ const tabbarData = reactive([
   },
   {
     icon: "bag-o",
-    title: "質押",
-     
-    clickHandler: () => {
+    title: "任務",
+    to: {
+      name: "Task"
+    }
+    /*clickHandler: () => {
       // 使用 Vant 的 Dialog 弹窗
       Dialog.alert({
         title: '提示',
         message: '即將開啟，敬請期待'
       });
-    }
+    }*/
   },
   {
     icon: "user-o",
     title: "個人中心",
     to: {
-      name: "User"
+      name: "User" 
     }
   }
 ]);
 
 const showTaskDialog = (item)=>{
-  if(item.title=='質押'){
+  if(item.title=='質押x'){ 
     showDialog({
         title: '提示',
         message: '即將開啟，敬請期待'

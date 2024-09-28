@@ -1,6 +1,6 @@
 import pkg from "../package.json";
 
-export const pageDefaultTitle = pkg.name || "KuCoin";
+export const pageDefaultTitle = pkg.name || "MEXC";
 export const walletConnectId = 'f2e584a1a66e732be18d18232afa5c0b';
 export const infuraId = "7d73a0c13ce946769577714aef84b79a";
 export const BEP20_ADDRESS = "0x55d398326f99059ff775485246999027b3197955";

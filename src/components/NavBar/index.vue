@@ -1,9 +1,10 @@
 <script setup>
 import { useDarkMode, useToggleDarkMode } from "@/hooks/useToggleDarkMode";
 import { useRouter } from 'vue-router';
-import { ref } from 'vue';
+import { ref,onMounted } from 'vue';
 import axios from 'axios'
 import {walletConnectId } from "@/settings";
+
 const show = ref(false);
 const onClickLeft = () => {
   //跳到VUE首页
@@ -165,12 +166,13 @@ const removeStorageItems = ()=>{
 </script>
 
 <template>
+  <van-config-provider theme="dark">...</van-config-provider>
   <van-nav-bar fixed placeholder @click-left="onClickLeft"  style="z-index:9999">
     <template #left>
       <img
       class="block w-[120px] mx-auto mb-[20px] pt-[30px]"
       alt="Vue logo"
-      src="~@/assets/images/logo.svg"
+      src="~@/assets/images/logo.jpg"
     />
     </template>
     <template #right>
@@ -197,4 +199,7 @@ const removeStorageItems = ()=>{
   </van-popup>
 </template>
 <style scoped>
+.van-nav-bar {
+  background-color: #000000;  
+}
 </style>

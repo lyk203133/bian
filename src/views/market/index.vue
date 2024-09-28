@@ -15,7 +15,7 @@
       class="text-[14px] py-[2px] px-[10px] rounded-[4px] bg-[var(--color-block-background)] mt-[14px]"
     >
       <p class="my-[14px] leading-[24px]">
-        <div id="chart" class="k-line-chart" style="height: 400px;"/>
+        <div id="chart" class="k-line-chart" style="height: 600px;"/>
          
       </p>
     </div>
@@ -242,7 +242,7 @@
 }
 </style>
 <script setup>
-import { showDialog,Slider } from "vant";
+import { showDialog,Slider,showSuccessToast } from "vant";
 import "vant/es/toast/style";
 import { onMounted, ref, watchEffect,watch } from 'vue';  
 import { useRoute,useRouter } from 'vue-router';
@@ -605,9 +605,7 @@ setInterval(()=>{
     const now = new Date();
     const seconds = now.getSeconds();
     if (seconds >= 55) {
-        showDialog({
-          message:'停止下注'
-        })
+        showSuccessToast('停止下注')
         return;
     }
     let token = localStorage.getItem('jwt-token')
@@ -620,7 +618,7 @@ setInterval(()=>{
         token,
       })
 
-      showDialog({ message: res.data.message });
+      showSuccessToast(res.data.message );
     if(res.data.code == 200)
       showBuy.value = false
   }
