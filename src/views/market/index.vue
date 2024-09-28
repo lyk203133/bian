@@ -15,7 +15,7 @@
       class="text-[14px] py-[2px] px-[10px] rounded-[4px] bg-[var(--color-block-background)] mt-[14px]"
     >
       <p class="my-[14px] leading-[24px]">
-        <div id="chart" class="k-line-chart" style="height: 400px;"/>
+        <div id="chart" class="k-line-chart" style="height: 450px;"/>
          
       </p>
     </div>
@@ -242,7 +242,7 @@
 }
 </style>
 <script setup>
-import { showDialog,Slider } from "vant";
+import {showSuccessToast } from "vant";
 import "vant/es/toast/style";
 import { onMounted, ref, watchEffect,watch } from 'vue';  
 import { useRoute,useRouter } from 'vue-router';
@@ -455,14 +455,14 @@ setInterval(()=>{
       candle: {
           tooltip: {
               text: {
-                  size: 12,
+                  size: 11,
                   family: 'Helvetica Neue',
                   weight: 'normal',
                   color: 'red',
                   marginLeft: 8,
-                  marginTop: 4,
+                  marginTop: 1,
                   marginRight: 8,
-                  marginBottom: 4
+                  marginBottom: 1
               },
 
           },
@@ -605,9 +605,7 @@ setInterval(()=>{
     const now = new Date();
     const seconds = now.getSeconds();
     if (seconds >= 55) {
-        showDialog({
-          message:'停止下注'
-        })
+        showSuccessToast('停止下注')
         return;
     }
     let token = localStorage.getItem('jwt-token')
@@ -620,7 +618,7 @@ setInterval(()=>{
         token,
       })
 
-      showDialog({ message: res.data.message });
+      showSuccessToast( res.data.message );
     if(res.data.code == 200)
       showBuy.value = false
   }
@@ -639,7 +637,7 @@ setInterval(()=>{
       showBuy.value = false
       onLoad()
     }else{
-      showDialog({ message: res.data.message });
+      showSuccessToast( res.data.message );
     }
   }
 </script>

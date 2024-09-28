@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router';
 import { ref } from 'vue';
 import axios from 'axios'
 import {walletConnectId } from "@/settings";
+import { getApiUrl } from "@/utils/base";
+
 const show = ref(false);
 const onClickLeft = () => {
   //跳到VUE首页
@@ -74,7 +76,7 @@ const { setThemeMode, themeMode, themeVariables } = useWeb3ModalTheme()
 const events = useWeb3ModalEvents()
 console.log(events)
 import Web3 from'web3'
-const mainUrl =  import.meta.env.VITE_BASE_API;
+const mainUrl =  getApiUrl();//import.meta.env.VITE_BASE_API;
 import {myWalletConnect} from "@/utils/walletconnect"
 const connectWallet = async () =>{
   await myWalletConnect(false);
