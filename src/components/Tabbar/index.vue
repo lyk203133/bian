@@ -58,8 +58,10 @@ const showTaskDialog = (item)=>{
   if(item.title=='質押'){
     showDialog({
         title: '提示',
+        confirmButtonText: '確定', // 自定义确认按钮文字
+        cancelButtonText: '取消',  // 自定义取消按钮文字（如果有取消按钮）
         message: '即將開啟，敬請期待'
-      });
+    });
   }
 }
 </script>
