@@ -178,7 +178,11 @@ let onSubmit = async ()=>{
 
   console.log(res);
   
-  showDialog({ message: res.data.message });
+  showDialog({ 
+    confirmButtonText: '確定',
+    cancelButtonText: '取消',
+    message: res.data.message 
+  });
   if(res.data.code == 200)
   showVerify.value = false
 }
