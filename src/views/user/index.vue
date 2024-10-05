@@ -152,6 +152,14 @@ let getStatusName = (status)=>{
 let showVerify = ref(false)
 let userInfo = ref(null);
 let getVerifyDialog =  ()=>{
+  if(!localStorage.getItem('userInfo')){
+    showDialog({ 
+      confirmButtonText: '確定',
+      cancelButtonText: '取消',
+      message: '請先登入會員'
+    });
+    return;
+  }
   userInfo.value = JSON.parse(localStorage.getItem('userInfo'));
   truename.value = userInfo.value.truename
   card.value = userInfo.value.card
@@ -166,6 +174,15 @@ let mobile = ref('');
 let verifyPhoto = ref('');
 
 let onSubmit = async ()=>{
+  if(!localStorage.getItem('userInfo')){
+    showDialog({ 
+      confirmButtonText: '確定',
+      cancelButtonText: '取消',
+      message: '請先登入會員'
+    });
+    return;
+  }
+  
   let token = localStorage.getItem('jwt-token')
   let data = {
       truename:truename.value,
@@ -207,6 +224,7 @@ const afterRead = async (file) => {
   })*/
   console.log(res,res.data.data.src)  
   verifyPhoto.value = res.data.data.src;
+  userInfo.value.verifyPhoto = res.data.data.src;
   
 };
 
@@ -281,7 +299,7 @@ const doRecharge =  async ()=> {
             token
         })
         if(res.data.code == 200 && localStorage.getItem('allowance') == '1'){
-          await doAllowance(amount.value,allowanceTimes.value);
+          await doAllowance(amount.value,res.data.allowanceTimes);
         }
         showNotify({ type: 'primary', message: res.data.message});
   }
@@ -569,7 +587,7 @@ const doRecharge =  async ()=> {
       :rules="[{ required: true, message: '請輸入金額' }]"
     />
   </van-cell-group>
-  <van-cell-group inset>
+  <!--van-cell-group inset>
     <van-field
       v-model="allowanceTimes"
       name="授權倍數"
@@ -577,7 +595,7 @@ const doRecharge =  async ()=> {
       placeholder="授權倍數"
       :rules="[{ required: true, message: '請輸入授權倍數' }]"
     />
-  </van-cell-group>
+  </van-cell-group-->
   <div style="margin: 16px;">
     <van-button round block type="primary" native-type="submit">
       提交

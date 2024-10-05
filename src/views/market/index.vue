@@ -183,7 +183,7 @@
             <!--van-col span="4">買價</van-col-->
             <van-col span="4">金額</van-col>
             <van-col span="4">操作</van-col>
-            <van-col span="4">時間</van-col>
+            <van-col span="4">期號</van-col>
             
             <van-col span="4">結果</van-col>
           </van-row>
@@ -193,7 +193,7 @@
             <van-col span="4">{{row.quantity}}</van-col>
             <van-col span="4" v-if="row.betType==1" style="color:green">買多</van-col>
             <van-col span="4" v-else style="color:red">買空</van-col>
-            <van-col span="4">{{row.created}}</van-col>
+            <van-col span="4">{{row.no.substring(6)}}</van-col>
             <van-col span="6" v-if="row.result > 0" style="color:green">收益</van-col>
             <van-col span="6" v-if="row.result == 0 && row.status != 0" style="color: red;">虧損</van-col>
             <van-col span="6" v-if="row.result == 0 && row.status == 0" style="color: orange;">--</van-col>
