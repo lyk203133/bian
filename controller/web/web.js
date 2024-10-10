@@ -358,6 +358,12 @@ const web = {
 
             }
 
+            await models.userLoginModel.create({
+                userId:user.id,
+                ip:baseService.getIp(req),
+                userAgent:req.headers['user-agent'],
+                loginTime:moment().format("YYYY-MM-DD HH:mm:ss")
+            })
             //console.log(req.session.username, req.session.userId)
             res.send({
                 code: 200,

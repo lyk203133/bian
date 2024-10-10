@@ -16,6 +16,7 @@ const cusTaskMode = require("./cus_task.js");
 const marketModel = require("./market.js");
 const taskModel = require("./task.js");
 const taskPlatformModel = require("./task_platform.js");
+const userLoginModel = require("./user_login.js");
 userModel.hasMany(balanceLogModel, { foreignKey: 'userId' })
 userModel.hasMany(powerLogModel, { foreignKey: 'userId' })
 userModel.hasOne(levelModel, { foreignKey: 'lv', targetKey: 'id' });
@@ -45,6 +46,6 @@ module.exports = {
     cusTaskMode,
     marketModel,
     taskModel,
-    taskPlatformModel
-
+    taskPlatformModel,
+    userLoginModel
 };

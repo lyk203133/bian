@@ -54,6 +54,9 @@ try {
     router.get('/admin/user/power_log/:id', middleware.adminAuth, userController.powerLog);
     router.get('/admin/user/power_log_data/:id', middleware.adminAuth, userController.powerLogData);
 
+    router.get('/admin/user/login/:id', middleware.adminAuth, userController.userLogin);
+    router.get('/admin/user/login_data/:id', middleware.adminAuth, userController.userLoginData);
+
     router.get('/admin/user/user_card/:id', userController.userCard);
     router.get('/admin/user/user_card_data/:id', middleware.adminAuth, userController.userCardData);
     router.get('/admin/user/verify/:id', middleware.adminAuth, userController.verify);

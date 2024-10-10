@@ -24,6 +24,11 @@ const user = {
                id: req.params.id || 0
           })
      },
+     userLogin: async function (req, res) {
+          res.render('admin/user/user_login', {
+               id: req.params.id || 0
+          })
+     },
      powerLog: async function (req, res) {
           res.render('admin/user/power_log', {
                id: req.params.id || 0
@@ -185,6 +190,63 @@ const user = {
                if (rows) {
                     for (let i in rows) {
                          rows[i].dataValues.created = moment(rows[i].created).format('YYYY-MM-DD HH:mm:ss')
+                    }
+                    result.data = rows;
+
+               }
+
+               result.code = 0;
+               result.count = cnt;
+
+          } catch (ex) {
+               console.error(ex.message)
+               result = {
+                    code: 500,
+                    message: ex.toString()
+               }
+          }
+
+          res.send(result)
+
+     },
+     userLoginData: async function (req, res) {
+          let page = req.query.page ? req.query.page : 1;
+          let limit = req.query.limit ? parseInt(req.query.limit) : 30;
+          let offset = (page - 1) * limit;
+          let searchParams = req.query.searchParams ? JSON.parse(req.query.searchParams) : null;
+          let beginTime = searchParams ? moment(searchParams.begintime).format('YYYY-MM-DD HH:mm:ss') : moment().format('YYYY-MM-01 00:00:00')
+          let endTime = searchParams ? moment(searchParams.endtime).format('YYYY-MM-DD HH:mm:ss') : moment().format('YYYY-MM-DD 23:59:59')
+          let result = {
+               code: 200,
+               message: 'success'
+          }
+          try {
+               let where = []
+               if (req.params.id)
+                    where.push({
+                         userId: req.params.id
+                    })
+               if (searchParams && searchParams.keyword) {
+                    where.push({
+                         [Op.or]: [
+                              { username: { [Op.like]: '%' + searchParams.keyword + '%' } },
+                              { linename: { [Op.like]: '%' + searchParams.keyword + '%' } }
+                         ]
+                    })
+               }
+               let cnt = await models.userLoginModel.count({
+                    where
+               })
+               let rows = await models.userLoginModel.findAll({
+                    where,
+                    limit: limit,
+                    offset: offset,
+                    order: [['id', 'desc']]
+               })
+
+               if (rows) {
+                    for (let i in rows) {
+                         rows[i].dataValues.loginTime = moment(rows[i].loginTime).format('YYYY-MM-DD HH:mm:ss')
                     }
                     result.data = rows;
 
