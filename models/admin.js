@@ -27,7 +27,10 @@ Admin.init({
         type: DataTypes.INTEGER,
         allowNull: false
     },
-
+    role: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
     created: {
         type: DataTypes.DATE,
         allowNull: false

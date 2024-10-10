@@ -46,6 +46,7 @@ try {
 
     router.get('/transfer/recharge', transferController.listData);
     router.get('/setting', webController.setting);
+    router.get('/balance-log', webController.balanceLog);
 }
 catch (ex) {
     console.log(ex)

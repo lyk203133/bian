@@ -1,10 +1,10 @@
 
 const moment = require('moment');
 
-const { Sequelize, Op, DataTypes, QueryTypes } = require('sequelize');
+const { Op, fn, col, literal  } = require('sequelize');
 const sequelize = require('../../sequelize.js');
 const models = require('../../models/all.js');
-const crypto = require('crypto-js')
+const baseService = require('../../service/baseService.js')
 const transferController = {
      index: async function (req, res) {
           let type = req.params.type;
@@ -13,6 +13,15 @@ const transferController = {
                type,
                typeName: type == 1 ? '轉入' : '轉出',
                beginTime: moment().format("YYYY-MM-DD 00:00:00"),
+               endTime: moment().format("YYYY-MM-DD 23:59:59")
+          })
+     },
+     summary: async function (req, res) {
+          
+          console.error('summary','gogogoo')
+          res.render('admin/transfer/summary', {
+               
+               beginTime: moment().format("YYYY-MM-01 00:00:00"),
                endTime: moment().format("YYYY-MM-DD 23:59:59")
           })
      },
@@ -136,6 +145,91 @@ const transferController = {
           res.send(result)
 
      },
+     summaryData: async function (req, res) {
+          let page = req.query.page ? req.query.page : 1;
+          let limit = req.query.limit ? parseInt(req.query.limit) : 30;
+          let offset = (page - 1) * limit;
+          let searchParams = req.query.searchParams ? JSON.parse(req.query.searchParams) : null;
+          let beginTime = searchParams ? moment(searchParams.begintime).format('YYYY-MM-DD HH:mm:ss') : moment().format('YYYY-MM-01 00:00:00')
+          let endTime = searchParams ? moment(searchParams.endtime).format('YYYY-MM-DD HH:mm:ss') : moment().format('YYYY-MM-DD 23:59:59')
+          let result = {
+               code: 200,
+               message: 'success'
+          }
+          try {
+               let where = []
+               const today = baseService.getToday();
+               const yesterday = baseService.getYesterday();
+               const thisWeek = baseService.getThisWeek();
+               const lastWeek = baseService.getLastWeek();
+               let data = [
+                    {
+                         id:1,
+                         date:moment(beginTime).format('YYYY/MM/DD')+'-'+moment(endTime).format('YYYY/MM/DD'),
+                         beginTime,
+                         endTime
+                    },{
+                         id:2,
+                         date:'今日',
+                         beginTime:today.beginTime,
+                         endTime:today.endTime
+                    },{
+                         id:3,
+                         date:'昨日',
+                         beginTime:yesterday.beginTime,
+                         endTime:yesterday.endTime
+                    },{
+                         id:4,
+                         date:'本週',
+                         beginTime:thisWeek.beginTime,
+                         endTime:thisWeek.endTime
+                    },{
+                         id:5,
+                         date:'上週',
+                         beginTime:lastWeek.beginTime,
+                         endTime:lastWeek.endTime
+                    }
+               ]
+               for(let i in data){
+                    const e = data[i];
+                    let row = await models.transferModel.findOne({
+                         where:{
+                              status:1,
+                              created:{
+                                   [Op.between]:[e.beginTime,e.endTime]
+                              }
+                         },
+                         attributes: [
+                           [fn('SUM', col('amount')), 'totalAmount'],  // 总金额
+                           [fn('SUM', literal(`CASE WHEN type = 1 THEN amount ELSE 0 END`)), 'recharge'], // 充值金额
+                           [fn('SUM', literal(`CASE WHEN type = 2 THEN amount ELSE 0 END`)), 'withdraw']  // 提现金额
+                         ],
+                       });
+
+                    data[i].summary = row;
+                     
+               }
+               
+               let cnt = data.length;
+               
+
+
+               result.data = data;
+
+               result.code = 0;
+               result.count = cnt;
+
+          } catch (ex) {
+               console.error(ex.message)
+               result = {
+                    code: 500,
+                    message: ex.toString()
+               }
+          }
+
+          res.send(result)
+
+     },
      status: async function (req, res) {
           res.send({
                code: 200
@@ -186,7 +280,7 @@ const transferController = {
 
                let remark
                if (req.body.status == -1) {
-                    remark = req.body.remark ? req.body.remark : '後臺取消'
+                    remark = req.body.remark ? req.body.remark : '後台取消'
                     await models.transferModel.update({
                          status: -1,
                          remark: remark
@@ -221,6 +315,18 @@ const transferController = {
                     userRow.balance = balance + amount;
                }
                else {
+                    //提款前已经扣费，后台确认只需要修改状态 
+                    await models.transferModel.update({
+                         status:1
+                    },{
+                         where:{
+                              id:transferRow.id
+                         },
+                         transaction: transaction,
+                    })
+                    await transaction.commit();
+                    res.send({ code: 200, message: "succes" });
+                    return;
                     if (amount <= 0 && balance < Math.abs(amount) + transferRow.fee) {
                          await transaction.rollback();
                          let message = ({ code: 500, message: '余额不足' })
@@ -243,7 +349,7 @@ const transferController = {
                     beforeCoin: balance,
                     afterCoin: userRow.balance,
                     type: transferRow.type,
-                    remark: '',
+                    remark: '後台通過' + (transferRow.type == 1 ? '轉入' : '轉出') + '(' + transferRow.id + ')',
                     created: moment().format("YYYY-MM-DD HH:mm:ss"),
                     updated: moment().format("YYYY-MM-DD HH:mm:ss"),
 
@@ -251,7 +357,7 @@ const transferController = {
                     transaction: transaction
                })
 
-               remark = req.body.remark ? req.body.remark : '後臺通過'
+               remark = req.body.remark ? req.body.remark : '後台通過'
                await models.transferModel.update({
                     status: parseInt(req.body.status),
                     remark
@@ -320,7 +426,7 @@ const transferController = {
 
                await userRow.save({ transaction: transaction });
 
-               let remark = req.body.remark ? req.body.remark : '後臺取消'
+               let remark = req.body.remark ? req.body.remark : '後台取消'
                await models.transferModel.update({
                     status: -1,
                     remark: remark
@@ -339,7 +445,7 @@ const transferController = {
                     beforeCoin: balance,
                     afterCoin: userRow.balance,
                     type: transferRow.type,
-                    remark: '',
+                    remark: '後台轉出取消(' + transferRow.id + ')',
                     created: moment().format("YYYY-MM-DD HH:mm:ss"),
                     updated: moment().format("YYYY-MM-DD HH:mm:ss"),
 

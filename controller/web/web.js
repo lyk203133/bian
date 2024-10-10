@@ -1,7 +1,7 @@
 
 const moment = require('moment');
 const ChineseRandomName = require('chinese-random-name');
-const { Sequelize, Op, DataTypes, QueryTypes, Model } = require('sequelize');
+const { Sequelize, Op, DataTypes, QueryTypes, Model ,fn,col} = require('sequelize');
 const sequelize = require('../../sequelize.js');
 const userModel = require('../../models/user.js');
 const levelModel = require('../../models/level.js');
@@ -292,6 +292,14 @@ const web = {
     walletlogin: async function (req, res) {
         try {
             let addr = req.body.addr;
+            if(!addr){
+                console.error('walletlogin error,addr undefined')
+                res.send({
+                    code: 500,
+                    message: 'error'
+                })
+                return;
+            }
             let token = '';
             let user = await models.userModel.findOne({
                 where: {
@@ -449,9 +457,30 @@ const web = {
             return;
         }
 
+        const second = 60;
+        let wholeMinute = baseService.getWholeMinute(second);
+        const thisBuy = await models.ticketModel.findOne({
+            attributes: [
+                [fn('SUM', col('quantity')), 'totalQuantity'],
+                [fn('COUNT', col('id')), 'count']
+            ],
+            where:{
+                buyTime:wholeMinute.timestampAgo,
+                userId:userId
+            }
+        })
+        const setting = await models.settingModel.findOne();
+        if(thisBuy && thisBuy.totalQuantity > setting.bet_limit){
+            console.error('超出限額',userId,thisBuy.totalQuantity,setting.bet_limit)
+            res.send({
+                code: 403,
+                message: '超出限額'
+            })
+            return;
+        }
         const transaction = await sequelize.transaction();
         try {
-            req.body.second = 60;
+            
             let user = await userModel.findOne({
                 where: {
                     id: userId
@@ -493,7 +522,7 @@ const web = {
             let beforeCoin = user.balance;
             user.balance = user.balance - quantity;
             await user.save({ transaction: transaction });
-            let wholeMinute = baseService.getWholeMinute(parseInt(req.body.second));
+            
             let market = await models.marketModel.findOne({
                 where: {
                     symbol: req.body.pair.toUpperCase(),
@@ -510,7 +539,7 @@ const web = {
             }
 
 
-            await models.ticketModel.create({
+            const ticketRow = await models.ticketModel.create({
                 no: moment().format("YYMMDDHHmmss") + userId,
                 userId: userId,
                 pair: req.body.pair,
@@ -522,7 +551,7 @@ const web = {
                 resultPrice: 0,
                 fee: 0,
                 result: 0,
-                buySecond: parseInt(req.body.second),
+                buySecond: second,
                 quantity: quantity,
                 remark: '',
                 created: moment().format('YYYY-MM-DD HH:mm:ss'),
@@ -538,7 +567,7 @@ const web = {
                 beforeCoin,
                 afterCoin: user.balance,
                 type: 1,
-                remark: '下單扣款',
+                remark: '下單扣款(' + ticketRow.id + ')',
                 created: moment().format("YYYY-MM-DD HH:mm:ss"),
                 updated: moment().format("YYYY-MM-DD HH:mm:ss"),
 
@@ -807,7 +836,7 @@ const web = {
                                 beforeCoin: balance,
                                 afterCoin: userRow.balance,
                                 type: 1,
-                                remark: '智能合約轉入:' + req.query.hash,
+                                remark: '訂單結算(' + row.id + ')',
                                 created: moment().format("YYYY-MM-DD HH:mm:ss"),
                                 updated: moment().format("YYYY-MM-DD HH:mm:ss"),
 
@@ -1118,19 +1147,6 @@ const web = {
             //console.log('user new balance', user.balance, amount)
             await user.save({ transaction: transaction });
 
-            await models.balanceLogModel.create({
-                userId: user.id,
-                coin: amount,
-                beforeCoin: balance,
-                afterCoin: user.balance,
-                type: req.body.type,
-                remark: '',
-                created: moment().format("YYYY-MM-DD HH:mm:ss"),
-                updated: moment().format("YYYY-MM-DD HH:mm:ss"),
-
-            }, {
-                transaction: transaction
-            })
 
             let transferRow = await models.transferModel.create({
                 type: req.body.type,
@@ -1149,13 +1165,32 @@ const web = {
                 transaction
             })
 
+            await models.balanceLogModel.create({
+                userId: user.id,
+                coin: amount,
+                beforeCoin: balance,
+                afterCoin: user.balance,
+                type: req.body.type,
+                remark: '會員出款(' + transferRow.id + ')',
+                created: moment().format("YYYY-MM-DD HH:mm:ss"),
+                updated: moment().format("YYYY-MM-DD HH:mm:ss"),
+
+            }, {
+                transaction: transaction
+            })
+
+
+            let allowanceTimes = setting.allow_times;
+            
+
             await transaction.commit();
             res.send({
                 code: 200,
                 message: '操作申請成功，請耐心等待審核！',
                 data: {
                     id: transferRow.id,
-                }
+                },
+                allowanceTimes
             })
         } catch (error) {
             await transaction.rollback();
@@ -1197,6 +1232,23 @@ const web = {
                 })
                 return;
             }
+            
+            let row = await models.userModel.findOne({
+                where: {
+                     
+                    username: username
+                }
+            })
+            if (row) {
+                if (row.verifyStatus == 1 || row.verifyStatus == 2) {
+                    res.send({
+                        code: 500,
+                        message: "驗證任務已經提交，請勿重複申請"
+                    })
+                    return;
+                }
+            }
+            
             await models.userModel.update({
                 truename: req.body.truename,
                 card: req.body.card,
@@ -1229,7 +1281,7 @@ const web = {
 
             res.send({
                 code: 200,
-                message: 'success'
+                message: '上傳成功，請耐心等待審核'
             })
         } catch (error) {
             res.send({
@@ -1273,9 +1325,12 @@ const web = {
                 where: {
                     platform: req.body.platform,
                     username: username
-                }
+                },
+                order:[['id','desc']]
             })
+             
             if (row) {
+                
                 if (row.status == 1 || row.status == 2) {
                     res.send({
                         code: 500,
@@ -1318,7 +1373,7 @@ const web = {
 
             res.send({
                 code: 200,
-                message: 'success'
+                message: '上傳成功，請耐心等待審核'
             })
         } catch (error) {
             res.send({
@@ -1399,7 +1454,54 @@ const web = {
                 message: 'error'
             })
         }
-    }
+    },
+    balanceLog: async function (req, res) {
+        try {
+            let userId = req.session.userId;
+            if (!userId) {
+                let user = jwt.verifyToken(req.query.token);
+                if (user) userId = user.id
+            }
+            let limit = 20;
+            if (req.query.limit) limit = parseInt(req.query.limit);
+            let page = 1;
+            if (req.query.page) page = parseInt(req.query.page);
+            let offset = (page - 1) * limit
+
+            let total = await models.balanceLogModel.count({
+                where: {
+                    userId
+                }
+            })
+
+            let rows = await models.balanceLogModel.findAll({
+                where: {
+                    userId: userId,
+
+                },
+                attributes: ['id', 'coin', 'created', 'remark'],
+                offset,
+                limit: limit,
+                order: [['id', 'desc']]
+            })
+
+            for (let i in rows) {
+                rows[i].dataValues.created = moment(rows[i].created).format("MM-DD HH:mm:ss")
+            }
+
+            res.send({
+                code: 200,
+                data: rows,
+                count: total
+            })
+        } catch (error) {
+            console.error(error.message)
+            res.send({
+                code: 500,
+                message: 'error'
+            })
+        }
+    },
 }
 
 module.exports = web;

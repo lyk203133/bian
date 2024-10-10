@@ -147,7 +147,7 @@ const market = {
             });
 
 
-            for (const n in result) {
+            for (let  n = 0;n<result.length;n++) {
 
                 //result[n].dataValues.typeName = marketService.getTypeName(result[n].dataValues.type);
                 let buyItemA = buyResult.find(t => t.betType === 1 && t.buyTime === result[n].openTime);
@@ -166,6 +166,11 @@ const market = {
                 result[n].dataValues.closeTime = moment(result[n].dataValues.closeTime).format('YYYY-MM-DD HH:mm:ss');
                 result[n].dataValues.created = moment(result[n].dataValues.created).format('YYYY-MM-DD HH:mm:ss');
                 result[n].dataValues.updated = moment(result[n].dataValues.updated).format('YYYY-MM-DD HH:mm:ss');
+                if(n < result.length-1)
+                    result[n].dataValues.prevLastPrice = result[n+1].dataValues.lastPrice;
+                if(n == result.length -1){
+                     
+                }
             }
 
             res.send({

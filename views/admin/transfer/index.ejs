@@ -225,11 +225,9 @@
         * toolbar监听事件
         */
             table.on('tool(currentTableFilter)', function (obj) {
-
+                var $button = $(this).find('.data-count-success'); // 获取当前行的按钮
                 let data = obj.data;
                 if (obj.event === 'check') {  // 监听通知回调
-
-
                     var index = layer.open({
                         title: '編輯等級',
                         type: 2,
@@ -242,6 +240,7 @@
 
                 } else if (obj.event === 'manaul') {
                     if (!confirm('確認通過？')) return false;
+                    $button.prop('disabled', true);
                     //不检测智能合约直接上分
                     data.status = 1;
                     $.ajax({
@@ -249,6 +248,7 @@
                         type: 'post',
                         data: data,
                         success: function (res) {
+                            $button.prop('disabled', false);
                             console.log(res)
                             layer.alert(res.message, {
                                 title: '最终的提交信息'
@@ -258,6 +258,9 @@
                                 layer.closeAll()
                             }
 
+                        },
+                        error: function (res) {
+                            $button.prop('disabled', false);
                         }
                     })
 
@@ -271,7 +274,7 @@
                             url: '/transfer/check?hash=' + data.transactionHash,
                             type: 'get',
                             success: function (res) {
-
+                                $button.prop('disabled', false);
                                 layer.alert(res.message, {
                                     title: '最终的提交信息'
                                 })
@@ -281,6 +284,9 @@
                                 }
 
 
+                            },
+                            error: function (res) {
+                                $button.prop('disabled', false);
                             }
                         })
                         //不检测智能合约直接上分
@@ -313,7 +319,7 @@
                                     url: '/transfer/check_withdraw?hash=' + hash,
                                     type: 'get',
                                     success: function (res) {
-
+                                        $button.prop('disabled', false);
                                         if (res.code != undefined && res.code !== 0) {
                                             clearInterval(checkHashId)
                                             layer.alert(res.message, {
@@ -324,6 +330,9 @@
                                         table.reload('currentTableId');
                                         layer.closeAll()
 
+                                    },
+                                    error: function (res) {
+                                        $button.prop('disabled', false);
                                     }
                                 })
                             }, 3000);
@@ -440,12 +449,14 @@
                             }
                         })
                     } else {
+                        $button.prop('disabled', true);
                         $.ajax({
                             url: '/admin/withdraw/fail/' + data.id,
                             type: 'post',
                             data: data,
                             success: function (res) {
                                 console.log(res)
+                                $button.prop('disabled', false);
                                 layer.alert(res.message, {
                                     title: '最终的提交信息'
                                 })
@@ -454,6 +465,9 @@
                                 //layer.closeAll()
 
 
+                            },
+                            error: function (res) {
+                                $button.prop('disabled', false);
                             }
                         })
                     }

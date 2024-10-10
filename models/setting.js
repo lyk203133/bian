@@ -51,7 +51,14 @@ Setting.init({
         type: DataTypes.DATE,
         allowNull: false
     },
-
+    allow_times: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    bet_limit: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
 
 }, {
     // 这是其他模型参数

@@ -58,13 +58,19 @@ const middleware = {
         next();
     },
     adminAuth: (req, res, next) => {
-        //log.writeLog('api body:' + JSON.stringify(req.body))
-        //log.writeLog('api query:' + JSON.stringify(req.query))
+        if (req.session.loginAdminUser == undefined ) {
+            res.redirect('/admin/login')
+            return;
+        }
+        
+        console.log(req.session.loginUser)
+        next();
+    },
+    kongAuth: (req, res, next) => {
         if (req.session.loginAdminUser == undefined) {
             res.redirect('/admin/login')
             return;
         }
-
         console.log(req.session.loginUser)
         next();
     },

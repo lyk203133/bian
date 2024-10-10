@@ -80,7 +80,34 @@
 
                         </div>
                     </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">授權倍數</label>
+                        <div class="layui-input-block">
+                            <textarea type="text" name="allow_times" rows="10" placeholder="請輸入授權倍數" autocomplete="off"
+                                class="layui-input"><%=id>0?config.allow_times:''%></textarea>
 
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">單場限額</label>
+                            <div class="layui-input-block">
+                                <textarea type="text" name="limit" id="limit" rows="10" placeholder="請輸入單場限額" autocomplete="off"
+                                    class="layui-input"><%=id>0?config.bet_limit:''%></textarea>
+    
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <%
+                                const arr = [1,2,4,6,8,10,100,1000];
+                                for(const n in arr){
+                            %>
+                            <button class="layui-btn limit" type="button" data-value="<%=arr[n]%>" ><%=arr[n]%>U</button>
+                            
+                            <% } %>
+                            
+                        </div>
+                    </div>
 
 
 
@@ -101,6 +128,13 @@
     <script src="/public/lib/jquery-3.4.1/jquery-3.4.1.min.js" charset="utf-8"></script>
     <!-- 注意：如果你直接复制所有代码到本地，上述js路径需要改成你本地的 -->
     <script>
+        $('.limit').click(function(){
+            const limit = $(this).attr('data-value');
+            console.log('click',limit);
+            $('#limit').val(limit)
+        })
+            
+            
         layui.use(['form', 'layedit', 'laydate'], function () {
             var form = layui.form
                 , layer = layui.layer
@@ -108,6 +142,7 @@
                 , laydate = layui.laydate;
 
 
+            
             //监听提交
             form.on('submit(demo1)', function (data) {
 

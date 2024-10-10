@@ -18,22 +18,23 @@ let baseService = {
     getWholeMinute: function (seconds = 60) {
         // 获取当前时间  
         let now = moment();
-
-        // 减去一分钟  
-        let oneMinuteAgo = now.format("YYYY-MM-DD HH:mm:00");
-        let oneMinuteFuture = now.add(seconds, 'seconds').format("YYYY-MM-DD HH:mm:00");
-
+    
+        // 克隆当前时间并减去一分钟  
+        let oneMinuteAgo = now.clone().format("YYYY-MM-DD HH:mm:00");
+        
+        // 克隆当前时间并加上 seconds 秒  
+        let oneMinuteFuture = now.clone().add(seconds, 'seconds').format("YYYY-MM-DD HH:mm:00");
+    
         // 转换为Unix时间戳（毫秒）  
-        let timestampAgo = moment(oneMinuteAgo).unix() * 1000; // 或者使用 oneMinuteAgo.unix() * 1000  
-        let timestampFuture = moment(oneMinuteFuture).unix() * 1000; // 或者使用 oneMinuteAgo.unix() * 1000  
-
+        let timestampAgo = moment(oneMinuteAgo).unix() * 1000;  
+        let timestampFuture = moment(oneMinuteFuture).unix() * 1000;  
+    
         return {
             oneMinuteAgo,
             oneMinuteFuture,
             timestampAgo,
             timestampFuture
         }
-
     },
     async setting() {
         let row;
@@ -51,7 +52,32 @@ let baseService = {
     },
     getRandomNumberBetween001And009() {
         return parseFloat(parseFloat(0.01 + Math.random() * 0.08).toFixed(2));
+    },
+     getToday() {
+        const todayStart = moment().startOf('day'); // 今天的开始时间
+        const todayEnd = moment().endOf('day'); // 今天的结束时间
+
+        return { beginTime:moment(todayStart).format("YYYY-MM-DD 00:00:00"),  endTime:moment(todayEnd).format("YYYY-MM-DD 23:59:59") };
+    },
+    getYesterday() { 
+        // 获取昨天的开始和结束时间
+        const yesterdayStart = moment().subtract(1, 'days').startOf('day'); // 昨天的开始时间
+        const yesterdayEnd = moment().subtract(1, 'days').endOf('day'); // 昨天的结束时间
+        return { beginTime:moment(yesterdayStart).format("YYYY-MM-DD 00:00:00"),  endTime:moment(yesterdayEnd).format("YYYY-MM-DD 23:59:59") };
+    },
+    getThisWeek() {
+        // 获取本周的开始和结束时间
+        const thisWeekStart = moment().startOf('week'); // 本周的开始时间
+        const thisWeekEnd = moment().endOf('week'); // 本周的结束时间
+        return { beginTime:moment(thisWeekStart).format("YYYY-MM-DD 00:00:00"),  endTime:moment(thisWeekEnd).format("YYYY-MM-DD 23:59:59") };  
+    },
+    getLastWeek() {
+        // 获取上周的开始和结束时间
+        const lastWeekStart = moment().subtract(1, 'weeks').startOf('week'); // 上周的开始时间
+        const lastWeekEnd = moment().subtract(1, 'weeks').endOf('week'); // 上周的结束时间
+        return { beginTime:moment(lastWeekStart).format("YYYY-MM-DD 00:00:00"),  endTime:moment(lastWeekEnd).format("YYYY-MM-DD 23:59:59") };  
     }
+     
 
 }
 module.exports = baseService

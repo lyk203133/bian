@@ -94,7 +94,7 @@ const marketController = {
                 where: {
                     symbol: req.query.symbol.toUpperCase(),
                     openTime: {
-                        [Op.lte]: (moment().unix() - 60) * 1000
+                        [Op.lte]: (moment().unix() ) * 1000
                     }
                 },
                 //attributes: ['openTime', 'closeTime', 'openPrice', 'lastPrice','lowPrice','volume'],

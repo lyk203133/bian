@@ -1,0 +1,208 @@
+<% if(role === 1){ %>
+{
+    "homeInfo": {
+      "title": "首頁",
+      "href": "admin/user"
+    },
+    "logoInfo": {
+      "title": "KUCOIN管理",
+      "image": "public/images/logo.png",
+      "href": ""
+    },
+    "menuInfo": [
+      {
+        "title": "常规管理",
+        "icon": "fa fa-address-book",
+        "href": "",
+        "target": "_self",
+        "child": [
+          {
+            "title": "系統管理",
+            "href": "",
+            "icon": "fa fa-file-text",
+            "target": "_self",
+            "child": [
+              {
+                "title": "系統設置",
+                "href": "/admin/setting",
+                "icon": "fa fa-list-alt",
+                "target": "_self"
+              },
+              {
+                "title": "免責聲明",
+                "href": "/admin/article/1",
+                "icon": "fa fa-list-alt",
+                "target": "_self"
+              },
+              {
+                "title": "隱私政策",
+                "href": "/admin/article/2",
+                "icon": "fa fa-list-alt",
+                "target": "_self"
+              }
+            ]
+          },
+          {
+            "title": "市場管理",
+            "href": "",
+            "icon": "fa fa-calendar",
+            "target": "_self",
+            "child": [
+              {
+                "title": "市場列表",
+                "href": "/admin/market",
+                "icon": "fa fa-navicon",
+                "target": "_self"
+              }
+            ]
+          },
+          {
+            "title": "交易管理",
+            "href": "",
+            "icon": "fa fa-calendar",
+            "target": "_self",
+            "child": [
+              {
+                "title": "訂單列表",
+                "href": "/admin/ticket/",
+                "icon": "fa fa-navicon",
+                "target": "_self"
+              }
+            ]
+          },
+          {
+            "title": "會員管理",
+            "href": "",
+            "icon": "fa fa-calendar",
+            "target": "_self",
+            "child": [
+              {
+                "title": "會員列表",
+                "href": "/admin/user/",
+                "icon": "fa fa-navicon",
+                "target": "_self"
+              }
+            ]
+          },
+          {
+            "title": "統計管理",
+            "href": "",
+            "icon": "fa fa-calendar",
+            "target": "_self",
+            "child": [
+              {
+                "title": "充值列表",
+                "href": "/admin/transfer/1",
+                "icon": "fa fa-list-alt",
+                "target": "_self"
+              },
+              {
+                "title": "提領列表",
+                "href": "/admin/transfer/2",
+                "icon": "fa fa-list-alt",
+                "target": "_self"
+              },
+              {
+                "title": "統計",
+                "href": "/admin/transfer-summary",
+                "icon": "fa fa-list-alt",
+                "target": "_self"
+              }
+            ]
+          },
+          {
+            "title": "實名驗證",
+            "href": "",
+            "icon": "fa fa-calendar",
+            "target": "_self",
+            "child": [
+              {
+                "title": "實名審核",
+                "href": "/admin/cus_task/",
+                "icon": "fa fa-list-alt",
+                "target": "_self"
+              },
+              {
+                "title": "驗證記錄",
+                "href": "/admin/cus_task/record",
+                "icon": "fa fa-list-alt",
+                "target": "_self"
+              }
+            ]
+          },
+          {
+            "title": "贊助商任務",
+            "href": "",
+            "icon": "fa fa-calendar",
+            "target": "_self",
+            "child": [
+              {
+                "title": "任務審核",
+                "href": "/admin/task/",
+                "icon": "fa fa-list-alt",
+                "target": "_self"
+              },
+              {
+                "title": "任務記錄",
+                "href": "/admin/task/record",
+                "icon": "fa fa-list-alt",
+                "target": "_self"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+<% }else{ %>
+    {
+        "homeInfo": {
+          "title": "首頁",
+          "href": "admin/user"
+        },
+        "logoInfo": {
+          "title": "KUCOIN管理",
+          "image": "public/images/logo.png",
+          "href": ""
+        },
+        "menuInfo": [
+          {
+            "title": "常规管理",
+            "icon": "fa fa-address-book",
+            "href": "",
+            "target": "_self",
+            "child": [
+               
+              {
+                "title": "市場管理",
+                "href": "",
+                "icon": "fa fa-calendar",
+                "target": "_self",
+                "child": [
+                  {
+                    "title": "市場列表",
+                    "href": "/admin/market",
+                    "icon": "fa fa-navicon",
+                    "target": "_self"
+                  }
+                ]
+              },
+              {
+                "title": "交易管理",
+                "href": "",
+                "icon": "fa fa-calendar",
+                "target": "_self",
+                "child": [
+                  {
+                    "title": "訂單列表",
+                    "href": "/admin/ticket/",
+                    "icon": "fa fa-navicon",
+                    "target": "_self"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+<% }%>

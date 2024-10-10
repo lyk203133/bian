@@ -145,8 +145,16 @@
                     //{ field: 'id', title: 'ID', sort: true },
                     { field: 'symbol', title: '交易兌', align: "center" },
 
-                    { field: 'openPrice', title: '開盤價', align: "center" },
-                    { field: 'lastPrice', title: '收盤價', align: "center" },
+                    //{ field: 'openPrice', title: '開盤價', align: "center" },
+                    { 
+                    field: 'lastPrice', title: '收盤價', align: "center",templet:function(d){
+                            return parseFloat(d.lastPrice).toFixed(2)
+                        }
+                    },
+                    {field: 'lastPrice', title: '漲跌', align: "center",templet:function(d){
+                            return parseFloat(d.lastPrice) - parseFloat(d.prevLastPrice) > 0 ?'<span style="color:red">漲</span>':'<span style="color:green">跌</span>'
+                        }
+                    },
                     { field: 'openTime', title: '開盤時間', align: "center" },
 
                     {

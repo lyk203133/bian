@@ -48,11 +48,20 @@
                         </div>
                     </div>
                 </div>
-                <div class="layui-inline">
-                    <button id="add" class="layui-btn" type="button" lay-event="changeBalance">後台上分</button>
+                <div class="layui-form-item"></div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">備註</label>
+                        <div class="layui-input-block">
+                            <input type="balance" name="remark" id="remark" placeholder="請輸入備註" autocomplete="off" value="禮金"
+                                class="layui-input">
+                        </div>
+                    </div>
                 </div>
                 <div class="layui-inline">
-                    <button id="sub" class="layui-btn" type="button" lay-event="changeBalance">後台下分</button>
+                    <button id="add" class="layui-btn" type="button" lay-event="changeBalance">上分</button>
+                </div>
+                <div class="layui-inline">
+                    <button id="sub" class="layui-btn" type="button" lay-event="changeBalance">下分</button>
                 </div>
         </div>
 
@@ -83,6 +92,7 @@
                     type: 'post',
                     data: {
                         userId: '<%=id%>',
+                        remark:$('#remark').val(),
                         amount: amount,
                         type: 9
                     },

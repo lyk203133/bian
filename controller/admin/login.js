@@ -58,7 +58,8 @@ const login = {
 
                if (chkpassword == admin.password) {
                     req.session.loginAdminId = admin.id;
-                    req.session.loginAdminUser = userName
+                    req.session.loginAdminUser = userName;
+                    req.session.role = admin.role;
                     res.statusCode = 200;
                     res.send({ code: 200, message: '登入成功' })
                     return;

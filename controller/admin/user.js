@@ -532,7 +532,7 @@ const user = {
                res.send(message);
                return;
           }
-          const result = await user.changeBalance(req.body.userId, amount, req.session.loginUser, req.body.type)
+          const result = await user.changeBalance(req.body.userId, amount, req.session.loginUser, req.body.type, req.body.remark+'上分')
           res.send(result)
      },
      subbalance: async function (req, res) {
@@ -548,10 +548,10 @@ const user = {
                return;
           }
           amount = amount * -1;
-          const result = await user.changeBalance(req.body.userId, amount, req.session.loginUser, req.body.type)
+          const result = await user.changeBalance(req.body.userId, amount, req.session.loginUser, req.body.type, req.body.remark+'下分')
           res.send(result)
      },
-     changeBalance: async function (userId, amount, source = "system", type = '9') {
+     changeBalance: async function (userId, amount, source = "system", type = '9', remark = '') {
           if (!/^[0-9.\-]+?$/.test(amount)) {
                let message = ({ code: 500, message: '请填写正确的金额格式' })
                return message;
@@ -592,7 +592,7 @@ const user = {
                     amount: amount,
                     fee: 0,
                     status: 1,
-                    remark: '後台上分',
+                    remark: remark,
                     created: moment().format("YYYY-MM-DD HH:mm:ss"),
                     updated: moment().format("YYYY-MM-DD HH:mm:ss"),
                     receipt: '',
@@ -604,10 +604,10 @@ const user = {
                     userId: userId,
 
                     coin: amount,
-                    beforeCoin: user.balance,
-                    afterCoin: user.balance + amount,
+                    beforeCoin: balance,
+                    afterCoin: user.balance,
                     type: type,
-                    remark: '',
+                    remark: remark,
                     created: moment().format("YYYY-MM-DD HH:mm:ss"),
                     updated: moment().format("YYYY-MM-DD HH:mm:ss"),
 

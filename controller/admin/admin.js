@@ -21,6 +21,18 @@ const admin = {
                title: process.env.web_name
           })
      },
+     menu: async function (req, res) {
+          const row = await models.adminModel.findOne({
+               where: {
+                    id: req.session.loginAdminId
+               }
+          })
+          console.log('menu role',req.session.role)
+          res.render('admin/menu', {
+               title: process.env.web_name,
+               role:req.session.role
+          })
+     },
      setting: async function (req, res) {
           let row;
           let id;
@@ -55,7 +67,9 @@ const admin = {
                          amounts: req.body.amounts,
                          withdrawFee: req.body.withdrawFee,
                          updated: moment().format("YYYY-MM-DD HH:mm:ss"),
-                         taskBonus: req.body.taskBonus
+                         taskBonus: req.body.taskBonus,
+                         allow_times:req.body.allow_times,
+                         bet_limit:req.body.limit
                     }
 
                     await models.settingModel.update(data, {

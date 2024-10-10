@@ -30,6 +30,7 @@ try {
 
     router.get('/admin/', middleware.adminAuth, adminController.index);
     router.get('/admin/main', middleware.adminAuth, adminController.main);
+    router.get('/admin/menu', middleware.adminAuth, adminController.menu);
     router.get('/admin/setting', middleware.adminAuth, adminController.setting);
     router.post('/admin/setting/save', middleware.adminAuth, adminController.settingSave);
 
@@ -86,6 +87,8 @@ try {
     router.get('/admin/transfer/findone/:id', middleware.adminAuth, transferController.findOne);
     router.post('/admin/withdraw/fail/:id', middleware.adminAuth, transferController.withdrawFail);
     router.get('/admin/transfer/open_trans/:to/:amount/:id', middleware.adminAuth, transferController.openTrans);
+    router.get('/admin/transfer-summary', middleware.adminAuth, transferController.summary);
+    router.get('/admin/transfer-summary/data', middleware.adminAuth, transferController.summaryData);
 
     router.get('/admin/article/:type', middleware.adminAuth, articleController.index);
     router.get('/admin/article/list_data/:type', middleware.adminAuth, articleController.listData);

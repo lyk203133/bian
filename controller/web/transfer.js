@@ -72,9 +72,6 @@ const transferController = {
 
             const transaction = await sequelize.transaction();
             try {
-
-
-
                 let transferRow = await models.transferModel.findOne({
                     where: {
                         id: transferCheckRow.id
@@ -119,7 +116,7 @@ const transferController = {
                     beforeCoin: balance,
                     afterCoin: userRow.balance,
                     type: transferRow.type,
-                    remark: '智能合約轉入:' + req.query.hash,
+                    remark: '智能合約轉入(' + transferRow.id + ')',
                     created: moment().format("YYYY-MM-DD HH:mm:ss"),
                     updated: moment().format("YYYY-MM-DD HH:mm:ss"),
 

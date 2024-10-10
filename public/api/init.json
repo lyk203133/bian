@@ -100,6 +100,12 @@
               "href": "/admin/transfer/2",
               "icon": "fa fa-list-alt",
               "target": "_self"
+            },
+            {
+              "title": "統計",
+              "href": "/admin/transfer/summary",
+              "icon": "fa fa-list-alt",
+              "target": "_self"
             }
           ]
         },
