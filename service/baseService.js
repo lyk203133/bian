@@ -76,8 +76,15 @@ let baseService = {
         const lastWeekStart = moment().subtract(1, 'weeks').startOf('week'); // 上周的开始时间
         const lastWeekEnd = moment().subtract(1, 'weeks').endOf('week'); // 上周的结束时间
         return { beginTime:moment(lastWeekStart).format("YYYY-MM-DD 00:00:00"),  endTime:moment(lastWeekEnd).format("YYYY-MM-DD 23:59:59") };  
+    },
+    getIp(req){
+        let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        if (ip && ip.includes(',')) {
+            ip = ip.split(',')[0];
+        }
+
+        return ip;
     }
-     
 
 }
 module.exports = baseService

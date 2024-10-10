@@ -321,6 +321,13 @@ const web = {
                     id: user.id,
                     username: user.username
                 })
+                await models.userModel.update({
+                    ip:baseService.getIp(req)
+                },{
+                    where:{
+                        id:user.id
+                    }
+                })
                 //console.log(token)
 
             } else {
@@ -338,6 +345,7 @@ const web = {
                     mobile: '',
                     card: '',
                     truename: '',
+                    ip:baseService.getIp(req)
 
                 })
                 req.session.userId = user.id;
