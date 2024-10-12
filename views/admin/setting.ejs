@@ -99,10 +99,10 @@
                         </div>
                         <div class="layui-inline">
                             <%
-                                const arr = [1,2,4,6,8,10,100,1000];
+                                const arr = [0,1,2,4,6,8,10,100,1000];
                                 for(const n in arr){
                             %>
-                            <button class="layui-btn limit" type="button" data-value="<%=arr[n]%>" ><%=arr[n]%>U</button>
+                            <button class="layui-btn limit" type="button" data-value="<%=arr[n]%>" ><%=arr[n] ==0 ? '不限':arr[n]+'U'%></button>
                             
                             <% } %>
                             

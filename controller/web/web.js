@@ -471,6 +471,16 @@ const web = {
             return;
         }
 
+        let quantity = parseInt(req.body.quantity);
+        if (!quantity || quantity <= 0) {
+             
+            res.send({
+                code: 500,
+                message: '請輸入金額'
+            })
+            return;
+        }
+
         const second = 60;
         let wholeMinute = baseService.getWholeMinute(second);
         const thisBuy = await models.ticketModel.findOne({
@@ -481,10 +491,13 @@ const web = {
             where:{
                 buyTime:wholeMinute.timestampAgo,
                 userId:userId
-            }
+            },
+            raw:true
         })
+        let buyTotal = quantity;
+        if(thisBuy.totalQuantity) buyTotal += parseInt(thisBuy.totalQuantity);
         const setting = await models.settingModel.findOne();
-        if(thisBuy && thisBuy.totalQuantity > setting.bet_limit){
+        if(setting.bet_limit > 0 && buyTotal > setting.bet_limit){
             console.error('超出限額',userId,thisBuy.totalQuantity,setting.bet_limit)
             res.send({
                 code: 403,
@@ -515,15 +528,7 @@ const web = {
                 res.send(message)
             }
 
-            let quantity = parseInt(req.body.quantity);
-            if (!quantity || quantity <= 0) {
-                await transaction.rollback();
-                res.send({
-                    code: 500,
-                    message: '請輸入金額'
-                })
-                return;
-            }
+            
             if (user.balance < quantity) {
                 await transaction.rollback();
                 res.send({
