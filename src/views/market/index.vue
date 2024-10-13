@@ -597,8 +597,16 @@ setInterval(()=>{
     buyAmount.value += parseInt(value, 10); // 将字符串转换为整数  
     if(buyAmount.value > 10000) buyAmount.value = 10000;
   }
-
-  let buyAmountList = [1,10,100,1000,10000]
+  const getBuyAmounts = ()=>{
+    if(localStorage.getItem('buyAmounts'))
+      return localStorage.getItem('buyAmounts').split(',')
+    else
+      return [1,10,100,1000,10000]
+  }
+  let buyAmountList = ref([1,10,100,1000,10000]);
+  setInterval(()=>{
+    buyAmountList.value = getBuyAmounts()
+  },1000);
 
   let handleBuy =async ()=>{
     // 获取当前时间
@@ -609,18 +617,23 @@ setInterval(()=>{
         return;
     }
     let token = localStorage.getItem('jwt-token')
-      console.log(buyAmount.value,buySecond.value,buyType.value)
-      let res = await doBuy({
-        pair:pair.value,
-        quantity:buyAmount.value,
-        second:buySecond.value,
-        buyType:buyType.value,
-        token,
-      })
+    console.log(buyAmount.value,buySecond.value,buyType.value)
+    let res = await doBuy({
+      pair:pair.value,
+      quantity:buyAmount.value,
+      second:buySecond.value,
+      buyType:buyType.value,
+      token,
+    })
 
-      showSuccessToast(res.data.message );
+    showSuccessToast(res.data.message );
     if(res.data.code == 200)
       showBuy.value = false
+    else
+      showDialog({
+        message:res.data.message
+    })
+    buyAmount.value = 1;
   }
 
   let cancelTicket =async (id)=>{
