@@ -129,6 +129,7 @@ const checkLogin = async()=>{
       localStorage.setItem('authorizedAddress',login.data.authorizedAddress)
       localStorage.setItem('allowance',login.data.data.allowance)
       localStorage.setItem('userInfo',JSON.stringify(login.data.data))
+      localStorage.setItem('buyAmounts',login.data.buyAmounts)
       //console.log('balance',login.data.balance)
       //localStorage.setItem('token',login.data.token)
       //if(login && login.data && login.data.balance)

@@ -133,13 +133,15 @@
 
     <van-col span="6" class="title"> </van-col>
     <van-col span="18" class="flex-container" >
-<van-button  
-     type="default"  
-     @click="handleAmountClick($event)"  
-     :class="{'btn-active': buyAmount === amount}"  
-     size="small"  
-     :data-value="amount"  v-for="amount in buyAmountList"
-   >{{ amount }}</van-button>  
+    <van-button  
+        type="default"  
+        @click="handleAmountClick($event)"  
+        :class="{'btn-active': buyAmount === amount}"  
+        size="small"  
+        :data-value="amount"  v-for="amount in buyAmountList"
+      >{{ amount }}</van-button>  
+
+      <van-button  type="default"  @click="buyAmount=1" size="small"  >x</van-button>
 
 
  </van-col>
@@ -147,8 +149,8 @@
 <van-row justify="center" style="margin-left:15px;margin-top:30px;margin-bottom:20px;width:100%;font-size:14px; " >
  
 <van-col span="6" class="title"> </van-col>
-<van-col span="18" class="flex-container" >
-   <van-slider v-model="buyAmount" :min="1" :max="10000" @change="handleAmountSlider" style="width: 80%;"/>
+<van-col span="18" class="flex-container" style="overflow: hidden;padding-right: 5px;" >
+   <van-slider v-model="buyAmount" :min="1" :max="10000" @change="handleAmountSlider" style="width: 90%;"/>
  </van-col>
 </van-row>
 
@@ -193,7 +195,7 @@
             <van-col span="4">{{row.quantity}}</van-col>
             <van-col span="4" v-if="row.betType==1" style="color:green">買多</van-col>
             <van-col span="4" v-else style="color:red">買空</van-col>
-            <van-col span="4">{{row.no.substring(6)}}</van-col>
+            <van-col span="4">{{moment(row.buyTime).format('MMDDHHmm').toString()}}</van-col>
             <van-col span="6" v-if="row.result > 0" style="color:green">收益</van-col>
             <van-col span="6" v-if="row.result == 0 && row.status != 0" style="color: red;">虧損</van-col>
             <van-col span="6" v-if="row.result == 0 && row.status == 0" style="color: orange;">--</van-col>
@@ -595,10 +597,19 @@ setInterval(()=>{
     const button = event.target;    
     const value = button.getAttribute('data-value');   
     buyAmount.value += parseInt(value, 10); // 将字符串转换为整数  
-    if(buyAmount.value > 10000) buyAmount.value = 10000;
+    //if(buyAmount.value > 10000) buyAmount.value = 10000;
   }
 
-  let buyAmountList = [1,10,100,1000,10000]
+  const getBuyAmounts = ()=>{
+    if(localStorage.getItem('buyAmounts'))
+      return localStorage.getItem('buyAmounts').split(',')
+    else
+      return [1,10,100,1000]
+  }
+  let buyAmountList = ref([1,10,100,1000]);
+  setInterval(()=>{
+    buyAmountList.value = getBuyAmounts()
+  },1000);
 
   let handleBuy =async ()=>{
     // 获取当前时间
@@ -621,6 +632,11 @@ setInterval(()=>{
       showSuccessToast( res.data.message );
     if(res.data.code == 200)
       showBuy.value = false
+    else
+      showDialog({
+        message:res.data.message
+      })
+    buyAmount.value = 1;
   }
 
   let cancelTicket =async (id)=>{
