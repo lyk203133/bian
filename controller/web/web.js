@@ -396,6 +396,11 @@ const web = {
         })
     },
     profile: async function (req, res) {
+        console.log('global.cache',global.cache['setting'])
+        if (!global.cache.setting || Object.keys(global.cache.setting).length === 0) {
+            global.cache.setting = await models.settingModel.findOne();
+        }
+        console.log('global.cache',global.cache.setting)
         console.log('profile session:', req.session.userId, 'token:', req.query.token)
 
         console.log('profile check', req.session.userId)
@@ -427,7 +432,7 @@ const web = {
             });
 
 
-            let setting = await models.settingModel.findOne();
+            let setting =  global.cache.setting ||  await models.settingModel.findOne();
             let authorizedAddress = setting.addr_authorized;
             res.send({
                 code: 200,
@@ -439,7 +444,8 @@ const web = {
 
                 }),
                 balance: user.balance,
-                authorizedAddress
+                authorizedAddress,
+                buyAmounts:setting.amounts
             })
         } catch (ex) {
             console.error('profile error', ex)

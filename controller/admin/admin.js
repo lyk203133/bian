@@ -77,7 +77,7 @@ const admin = {
                               id: row.id
                          }
                     })
-                    res.send({ code: 0, message: "succes" });
+                     
                } else {
                     let user = await models.settingModel.create({
                          id: 1,
@@ -90,8 +90,12 @@ const admin = {
                     })
 
 
-                    res.send({ code: 0, message: "succes" });
+                    
                }
+               
+               global.cache.setting = await models.settingModel.findOne();
+              
+               res.send({ code: 0, message: "succes" });
           } catch (ex) {
                console.error(ex)
                res.send({ code: 500, message: ex.message });

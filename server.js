@@ -7,7 +7,8 @@ const bodyParser = require('body-parser');
 const moment = require('moment');
 
 
-
+global.cache={};
+global.cache['setting'] = {};
 //const accountModel = require('./models/accounts/Accounts.js')
 var app = express();
 
