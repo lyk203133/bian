@@ -132,7 +132,7 @@ let marketService = {
             const response = await axios.get(url)
 
             klineData = response.data;
-            console.log(klineData);
+            //console.log(klineData);
             return klineData;
         }
         catch (ex) {
