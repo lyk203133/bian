@@ -59,6 +59,10 @@ Setting.init({
         type: DataTypes.INTEGER,
         allowNull: false
     },
+    win: {
+        type: DataTypes.DECIMAL,
+        allowNull: false
+    },
 
 }, {
     // 这是其他模型参数

@@ -71,6 +71,16 @@ Market.init({
         type: DataTypes.DATE,
         allowNull: false
     },
+    status: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: '0'
+    },
+    openType: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: '0'
+    },
 }, {
     // 这是其他模型参数
     sequelize, // 我们需要传递连接实例
@@ -78,7 +88,5 @@ Market.init({
     tableName: 'market',
     timestamps: false
 });
-
-
 
 module.exports = Market;

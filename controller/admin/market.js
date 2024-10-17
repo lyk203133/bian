@@ -221,6 +221,8 @@ const market = {
             row.dataValues.lastPrice = parseFloat(row.dataValues.lastPrice) + randomVal;
 
             let data = JSON.parse(JSON.stringify(row))
+            data['status'] = 1;
+            data['openType'] = 2;
             delete data['id']
             console.log('win1 create', randomVal, data)
             await models.marketModel.create(data)
@@ -257,6 +259,8 @@ const market = {
             row.dataValues.lastPrice = parseFloat(row.dataValues.lastPrice) - randomVal;
 
             let data = JSON.parse(JSON.stringify(row))
+            data['status'] = 1;
+            data['openType'] = 2;
             delete data['id']
             console.log('win2 create', randomVal, data)
             await models.marketModel.create(data)

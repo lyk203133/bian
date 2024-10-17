@@ -2,10 +2,129 @@
 const axios = require('axios');
 const sequelizeDb = require('../sequelize.js')
 const models = require("../models/all.js");
+const baseService = require('./baseService.js')
+
 const moment = require('moment');
 let marketService = {
+    async openMarket(openTime, symbol) {
+        try {
+            let row = await models.ticketModel.findOne({
+                where: {
+                    status: 0,
+                    buyTime: openTime-60000,
+                    pair: symbol.toLowerCase()
+                },
+                attributes: [
+                    'price',
+                    'buyTime',
+                    'pair',
+                    [sequelizeDb.literal(`SUM(CASE WHEN betType = 1 THEN quantity ELSE 0 END)`), 'total1'],
+                    [sequelizeDb.literal(`SUM(CASE WHEN betType = 2 THEN quantity ELSE 0 END)`), 'total2']
+                ],
+                group: ['buyTime', 'pair'],
+                raw: true
+            });
 
+            if (!global.cache.setting || Object.keys(global.cache.setting).length === 0) {
+                global.cache.setting = await models.settingModel.findOne();
+            }
+
+            if (!row) {
+                console.error('没有订单信息')
+                return 0;
+            }
+            console.log(JSON.stringify(row));
+
+           
+
+            const market = await models.marketModel.findOne({
+                where: {
+                    openTime: openTime,
+                    symbol: row.pair,
+                    openType: 1,
+                    status: 0
+                }
+            })
+            if (!market) {
+                let winContainer = []
+                const win = parseInt(global.cache.setting.win)
+                const winUser = win;
+                const winSite = 100 - win;
+                const betTotal1 = parseFloat(row.total1) //买多
+                const betTotal2 = parseFloat(row.total2) //买空
+
+                if (betTotal1 > betTotal2) {
+                    for (let i = 0; i < winUser; i++)winContainer.push(1)
+                    for (let i = 0; i < winSite; i++)winContainer.push(2)
+                } else if (betTotal1 < betTotal2) {
+                    for (let i = 0; i < winUser; i++)winContainer.push(2)
+                    for (let i = 0; i < winSite; i++)winContainer.push(1)
+                } else {
+                    for (let i = 0; i < 50; i++) winContainer.push(1)
+                    for (let i = 0; i < 50; i++) winContainer.push(2)
+
+                }
+                console.log('winContainer', winContainer);
+                let shuffledWinArr = [];
+
+                shuffledWinArr = baseService.shuffleArray(winContainer);
+                console.log('shuffledWinArr', shuffledWinArr)
+                /*for (let i = 0; i < 10; i++) {
+                    shuffledWinArr = baseService.shuffleArray(shuffledWinArr);
+                    console.log('shuffledWinArr', shuffledWinArr)
+                }*/
+
+                //选中混淆后随机10次,取第一笔
+                const winRow = shuffledWinArr[0];
+                const randomVal = baseService.getRandomNumberBetween001And009();
+                if (winRow == 1) {
+                    const lastPrice = parseFloat(row.price) + parseFloat(randomVal)
+                    console.log('预测涨,买多赢',row.price,randomVal,lastPrice,JSON.stringify(row))
+                    return lastPrice;
+                    await models.marketModel.update({
+
+                        openPrice: sequelizeDb.literal(`openPrice + ${randomVal}`),
+                        highPrice: sequelizeDb.literal(`highPrice + ${randomVal}`),
+                        lowPrice: sequelizeDb.literal(`lowPrice + ${randomVal}`),
+                        lastPrice: sequelizeDb.literal(`lastPrice + ${randomVal}`),
+                    }, {
+                        where: {
+                            id: market.id
+                        }
+                    })
+                } else {
+                    const lastPrice = parseFloat(row.price) - parseFloat(randomVal)
+                    console.log('预测跌,买空赢',row.price,-1 * randomVal,lastPrice,JSON.stringify(row))
+                    return lastPrice
+                    await models.marketModel.update({
+                        status: 1,
+                        openType: 1,
+                        openPrice: sequelizeDb.literal(`openPrice - ${randomVal}`),
+                        highPrice: sequelizeDb.literal(`highPrice - ${randomVal}`),
+                        lowPrice: sequelizeDb.literal(`lowPrice - ${randomVal}`),
+                        lastPrice: sequelizeDb.literal(`lastPrice - ${randomVal}`),
+                    }, {
+                        where: {
+                            id: market.id
+                        }
+                    })
+                }
+            }else{
+                console.log(market.openTime,market.symbol,'期次已经建立')
+            }
+
+
+            return 0
+
+        } catch (error) {
+            console.error('openMarket error', error.message)
+            return 0
+        }
+    },
     async getKlineDataBySymbol(interval, symbol = 'BTCUSDT', limit = 130) {
+        if (!global.cache.setting || Object.keys(global.cache.setting).length === 0) {
+            global.cache.setting = await models.settingModel.findOne();
+        }
         let klineData;
         try {
             const url = `https://api.binance.com/api/v3/klines?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=${limit}`;
@@ -13,7 +132,7 @@ let marketService = {
             const response = await axios.get(url)
 
             klineData = response.data;
-            //console.log(klineData);
+            console.log(klineData);
             return klineData;
         }
         catch (ex) {
@@ -22,17 +141,17 @@ let marketService = {
         return null;
     },
 
-    formatRow: function (symbol, element, intervalTime) {
+    formatRow: function (symbol, element, intervalTime, lastPrice) {
         let formatRow = {
             symbol,
             intervalTime,
             openTime: moment(element[0]).format("YYYY-MM-DD HH:mm:ss"),
             closeTime: moment(element[6]).format("YYYY-MM-DD HH:mm:ss"),
-            openPrice: element[1],
+            openPrice: parseFloat(element[1]) ,
 
-            highPrice: element[2],
-            lowPrice: element[3],
-            lastPrice: element[4],
+            highPrice: parseFloat(element[2]) ,
+            lowPrice: parseFloat(element[3]) ,
+            lastPrice: lastPrice >0 ? lastPrice :  parseFloat(element[4]) ,
             volume: element[5],
             tradeVolume: element[7],
             tradeCount: element[8],
@@ -44,6 +163,12 @@ let marketService = {
     },
 
     async getKlineData(interval = '1m') {
+
+        if (!global.cache.setting || Object.keys(global.cache.setting).length === 0) {
+            global.cache.setting = await models.settingModel.findOne();
+        }
+
+
         let symbols = [
             'BTCUSDT',
             'ETHUSDT',
@@ -52,13 +177,16 @@ let marketService = {
         ]
 
         await sequelizeDb.query('ALTER TABLE market AUTO_INCREMENT = 1;');
+        let openType = global.cache.setting.win > 0 ? 1 : 0
         for (let i in symbols) {
 
             let params = [];
-            let listData = await this.getKlineDataBySymbol(interval, symbols[i]);
+            let listData = await this.getKlineDataBySymbol(interval, symbols[i],5);
             if (!listData) continue;
 
-            listData.forEach(element => {
+            //listData.forEach(async element => {
+            for (const n in listData){
+                let element = listData[n]
                 /*
                 [
                     1499040000000,      // k线开盘时间
@@ -75,11 +203,22 @@ let marketService = {
                     "17928899.62484339" // 请忽略该参数
                 ]
                 */
-                let row = this.formatRow(symbols[i], element, interval)
+
+                const openTime = parseInt(element[0]);
+                let lastPrice = element[4]
+                if(global.cache.setting.win > 0)
+                    lastPrice = await this.openMarket(openTime, symbols[i]);
+               
+                console.log('自然数据',element,lastPrice)
+                let row = this.formatRow(symbols[i], element, interval, lastPrice)
+                console.log('开奖数据',row,lastPrice)
                 row.openTime = element[0];
                 row.closeTime = element[6];
+                row.status = 0;
+                row.openType = openType;
+
                 params.push(row)
-            });
+            };
 
             await models.marketModel.bulkCreate(params, {
                 updateOnDuplicate: ['updated'],

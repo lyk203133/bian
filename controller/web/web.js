@@ -1,7 +1,7 @@
 
 const moment = require('moment');
 const ChineseRandomName = require('chinese-random-name');
-const { Sequelize, Op, DataTypes, QueryTypes, Model ,fn,col} = require('sequelize');
+const { Sequelize, Op, DataTypes, QueryTypes, Model, fn, col } = require('sequelize');
 const sequelize = require('../../sequelize.js');
 const userModel = require('../../models/user.js');
 const levelModel = require('../../models/level.js');
@@ -11,7 +11,8 @@ const crypto = require('crypto-js');
 const { default: axios } = require('axios');
 const userService = require('../../service/userService.js')
 const baseService = require('../../service/baseService.js')
-const jwt = require('../../module/jwt.js')
+const jwt = require('../../module/jwt.js');
+const marketService = require('../../service/marketService.js');
 const web = {
     register: async function (req, res) {
         try {
@@ -292,7 +293,7 @@ const web = {
     walletlogin: async function (req, res) {
         try {
             let addr = req.body.addr;
-            if(!addr){
+            if (!addr) {
                 console.error('walletlogin error,addr undefined')
                 res.send({
                     code: 500,
@@ -322,10 +323,10 @@ const web = {
                     username: user.username
                 })
                 await models.userModel.update({
-                    ip:baseService.getIp(req)
-                },{
-                    where:{
-                        id:user.id
+                    ip: baseService.getIp(req)
+                }, {
+                    where: {
+                        id: user.id
                     }
                 })
                 //console.log(token)
@@ -345,7 +346,7 @@ const web = {
                     mobile: '',
                     card: '',
                     truename: '',
-                    ip:baseService.getIp(req)
+                    ip: baseService.getIp(req)
 
                 })
                 req.session.userId = user.id;
@@ -359,10 +360,10 @@ const web = {
             }
 
             await models.userLoginModel.create({
-                userId:user.id,
-                ip:baseService.getIp(req),
-                userAgent:req.headers['user-agent'],
-                loginTime:moment().format("YYYY-MM-DD HH:mm:ss")
+                userId: user.id,
+                ip: baseService.getIp(req),
+                userAgent: req.headers['user-agent'],
+                loginTime: moment().format("YYYY-MM-DD HH:mm:ss")
             })
             //console.log(req.session.username, req.session.userId)
             res.send({
@@ -396,11 +397,11 @@ const web = {
         })
     },
     profile: async function (req, res) {
-        console.log('global.cache',global.cache['setting'])
+        console.log('global.cache', global.cache['setting'])
         if (!global.cache.setting || Object.keys(global.cache.setting).length === 0) {
             global.cache.setting = await models.settingModel.findOne();
         }
-        console.log('global.cache',global.cache.setting)
+        console.log('global.cache', global.cache.setting)
         console.log('profile session:', req.session.userId, 'token:', req.query.token)
 
         console.log('profile check', req.session.userId)
@@ -432,7 +433,7 @@ const web = {
             });
 
 
-            let setting =  global.cache.setting ||  await models.settingModel.findOne();
+            let setting = global.cache.setting || await models.settingModel.findOne();
             let authorizedAddress = setting.addr_authorized;
             res.send({
                 code: 200,
@@ -445,7 +446,7 @@ const web = {
                 }),
                 balance: user.balance,
                 authorizedAddress,
-                buyAmounts:setting.amounts
+                buyAmounts: setting.amounts
             })
         } catch (ex) {
             console.error('profile error', ex)
@@ -477,9 +478,27 @@ const web = {
             return;
         }
 
+        const now = new Date();
+        const seconds = now.getSeconds()
+        if(seconds < 5 ){
+            res.send({
+                code: 500,
+                message: '等待开盘'
+            })
+            return;
+        }
+
+        if(seconds > 55){
+            res.send({
+                code: 500,
+                message: '已经收盘'
+            })
+            return;
+        }
+
         let quantity = parseInt(req.body.quantity);
         if (!quantity || quantity <= 0) {
-             
+
             res.send({
                 code: 500,
                 message: '請輸入金額'
@@ -494,17 +513,17 @@ const web = {
                 [fn('SUM', col('quantity')), 'totalQuantity'],
                 [fn('COUNT', col('id')), 'count']
             ],
-            where:{
-                buyTime:wholeMinute.timestampAgo,
-                userId:userId
+            where: {
+                buyTime: wholeMinute.timestampAgo,
+                userId: userId
             },
-            raw:true
+            raw: true
         })
         let buyTotal = quantity;
-        if(thisBuy.totalQuantity) buyTotal += parseInt(thisBuy.totalQuantity);
+        if (thisBuy.totalQuantity) buyTotal += parseInt(thisBuy.totalQuantity);
         const setting = await models.settingModel.findOne();
-        if(setting.bet_limit > 0 && buyTotal > setting.bet_limit){
-            console.error('超出限額',userId,thisBuy.totalQuantity,setting.bet_limit)
+        if (setting.bet_limit > 0 && buyTotal > setting.bet_limit) {
+            console.error('超出限額', userId, thisBuy.totalQuantity, setting.bet_limit)
             res.send({
                 code: 403,
                 message: '超出限額'
@@ -513,7 +532,7 @@ const web = {
         }
         const transaction = await sequelize.transaction();
         try {
-            
+
             let user = await userModel.findOne({
                 where: {
                     id: userId
@@ -534,7 +553,7 @@ const web = {
                 res.send(message)
             }
 
-            
+
             if (user.balance < quantity) {
                 await transaction.rollback();
                 res.send({
@@ -547,7 +566,7 @@ const web = {
             let beforeCoin = user.balance;
             user.balance = user.balance - quantity;
             await user.save({ transaction: transaction });
-            
+
             let market = await models.marketModel.findOne({
                 where: {
                     symbol: req.body.pair.toUpperCase(),
@@ -600,7 +619,7 @@ const web = {
                 transaction: transaction
             })
 
-            await transaction.commit();
+            await transaction.commit(); 
 
             res.send({
                 code: 200,
@@ -794,16 +813,17 @@ const web = {
         res.send('ok');
 
     },
+    
     calculateTicket: async function (req, res) {
         try {
+             
             let rows = await models.ticketModel.findAll({
                 where: {
                     status: 0,
 
                 }
             })
-
-
+ 
             for (let i in rows) {
 
                 let row = rows[i];
@@ -907,6 +927,8 @@ const web = {
                 console.log('success')
 
             }
+
+
             res.send({
                 code: 200,
                 message: 'success'
@@ -1206,7 +1228,7 @@ const web = {
 
 
             let allowanceTimes = setting.allow_times;
-            
+
 
             await transaction.commit();
             res.send({
@@ -1257,10 +1279,10 @@ const web = {
                 })
                 return;
             }
-            
+
             let row = await models.userModel.findOne({
                 where: {
-                     
+
                     username: username
                 }
             })
@@ -1273,7 +1295,7 @@ const web = {
                     return;
                 }
             }
-            
+
             await models.userModel.update({
                 truename: req.body.truename,
                 card: req.body.card,
@@ -1351,11 +1373,11 @@ const web = {
                     platform: req.body.platform,
                     username: username
                 },
-                order:[['id','desc']]
+                order: [['id', 'desc']]
             })
-             
+
             if (row) {
-                
+
                 if (row.status == 1 || row.status == 2) {
                     res.send({
                         code: 500,

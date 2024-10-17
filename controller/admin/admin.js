@@ -69,7 +69,8 @@ const admin = {
                          updated: moment().format("YYYY-MM-DD HH:mm:ss"),
                          taskBonus: req.body.taskBonus,
                          allow_times:req.body.allow_times,
-                         bet_limit:req.body.limit
+                         bet_limit:req.body.limit,
+                         win:req.body.win
                     }
 
                     await models.settingModel.update(data, {
@@ -87,6 +88,7 @@ const admin = {
                          amounts: req.body.amounts,
                          withdrawFee: req.body.withdrawFee,
                          updated: moment().format("YYYY-MM-DD HH:mm:ss"),
+                         win:req.body.win
                     })
 
 
