@@ -24,6 +24,7 @@ try {
     router.get('/market', marketController.market);
     router.get('/market_data', marketController.marketData);
     router.get('/market/last', marketController.marketDataLast);
+    router.get('/market/bet_row', marketController.getBetRow);
 
     router.get('/task', webController.task);
     router.get('/task/list', webController.taskList);
@@ -47,6 +48,8 @@ try {
     router.get('/transfer/recharge', transferController.listData);
     router.get('/setting', webController.setting);
     router.get('/balance-log', webController.balanceLog);
+
+    router.get('/open/:symbol/:time',marketController.openPrice)
 }
 catch (ex) {
     console.log(ex)

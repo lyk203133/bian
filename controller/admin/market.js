@@ -3,6 +3,7 @@ const models = require("../../models/all.js");
 const { Op, fn, col } = require('sequelize');
 const marketService = require('../../service/marketService.js');
 const baseService = require('../../service/baseService.js');
+const redisService = require('../../service/redisService.js');
 const market = {
     index: async function (req, res) {
         res.render('admin/market/list', {
@@ -161,8 +162,9 @@ const market = {
                     result[n].dataValues.buyQuantity2 = buyItemB.totalQuantity;
                 }
                 //(buyItemA, buyItemB)
+                result[n].dataValues.openTimest =  result[n].dataValues.openTime ;
                 result[n].dataValues.openTime = moment(result[n].dataValues.openTime).format('YYYY-MM-DD HH:mm:ss');
-                result[n].dataValues.openTimest = moment(result[n].dataValues.openTime).unix() * 1000;
+                
                 result[n].dataValues.closeTime = moment(result[n].dataValues.closeTime).format('YYYY-MM-DD HH:mm:ss');
                 result[n].dataValues.created = moment(result[n].dataValues.created).format('YYYY-MM-DD HH:mm:ss');
                 result[n].dataValues.updated = moment(result[n].dataValues.updated).format('YYYY-MM-DD HH:mm:ss');
@@ -220,6 +222,8 @@ const market = {
             row.dataValues.lowPrice = parseFloat(row.dataValues.lowPrice) + randomVal;
             row.dataValues.lastPrice = parseFloat(row.dataValues.lastPrice) + randomVal;
 
+            let redisKey = row.symbol + '-openTime-'+row.openTime;
+            await redisService.setExValue(redisKey,60,row.dataValues.lastPrice.toString())
             let data = JSON.parse(JSON.stringify(row))
             data['status'] = 1;
             data['openType'] = 2;
@@ -257,7 +261,8 @@ const market = {
             row.dataValues.highPrice = parseFloat(row.dataValues.highPrice) - randomVal;
             row.dataValues.lowPrice = parseFloat(row.dataValues.lowPrice) - randomVal;
             row.dataValues.lastPrice = parseFloat(row.dataValues.lastPrice) - randomVal;
-
+            let redisKey = row.symbol + '-openTime-'+row.openTime;
+            await redisService.setExValue(redisKey,60,row.dataValues.lastPrice.toString())
             let data = JSON.parse(JSON.stringify(row))
             data['status'] = 1;
             data['openType'] = 2;
@@ -328,6 +333,9 @@ comment: 後臺操作`買多必贏`}
                 newData.highPrice = parseFloat(newData.highPrice) + randomVal * sign;
                 newData.lowPrice = parseFloat(newData.lowPrice) + randomVal * sign;
                 newData.lastPrice = parseFloat(newData.lastPrice) + randomVal * sign;
+
+                
+
                 // 创建一个新的 Date 对象，基于当前时间加上 i 分钟
                 const futureDate = new Date(currentDate.getTime() + i * 60000);
                 //newData.openTime = moment(futureDate).format("YYYY-MM-DD HH:mm:00")
@@ -347,6 +355,10 @@ comment: 後臺操作`買多必贏`}
                 newData.created = moment().format("YYYY-MM-DD HH:mm:ss")
                 newData.updated = moment().format("YYYY-MM-DD HH:mm:ss")
                 futureMinutes.push(newData);
+
+                let redisKey = row.symbol + '-openTime-'+newData.openTime;
+                await redisService.setExValue(redisKey,60 * i,newData.lastPrice.toString())
+
             }
 
             console.log(futureMinutes);

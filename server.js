@@ -66,13 +66,24 @@ var server = app.listen(port, function () {
 })
 
 
-const querystring = require('querystring');
+const cron = require('node-cron');
+const baseService = require('./service/baseService.js')
+const marketService = require('./service/marketService.js');
+const ticketService = require('./service/ticketService.js');
+// 在每个自然分钟的第45秒执行任务
+cron.schedule('46 * * * * *', async () => {
+  await marketService.getNatureData()
+  console.warn('每个自然分钟的45秒开始执行任务');
+});
 
-const encodedUrl = 'https%3A%2F%2Fexample.com%2F%3Fname%3D%E5%BC%A0%E4%B8%89';
+cron.schedule('50 * * * * *', async () => {
+  await ticketService.calculateTicket()
+  console.warn('每个自然分钟的50秒开始执行结算任务');
+});
 
-const decodedUrl = querystring.unescape(encodedUrl);
-console.log(decodedUrl);
-const str = querystring.stringify({ url: decodedUrl })
-const str2 = querystring.unescape(str);
+cron.schedule('59 * * * * *', async () => {
+  await ticketService.calculateTicket()
+  console.warn('每个自然分钟的59秒开始执行结算任务');
+});
 
-console.log(str, str2);
+ 

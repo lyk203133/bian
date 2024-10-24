@@ -13,6 +13,7 @@ const userService = require('../../service/userService.js')
 const baseService = require('../../service/baseService.js')
 const jwt = require('../../module/jwt.js');
 const marketService = require('../../service/marketService.js');
+const ticketService = require('../../service/ticketService.js');
 const web = {
     register: async function (req, res) {
         try {
@@ -478,23 +479,9 @@ const web = {
             return;
         }
 
-        const now = new Date();
-        const seconds = now.getSeconds()
-        if(seconds < 5 ){
-            res.send({
-                code: 500,
-                message: '等待开盘'
-            })
-            return;
-        }
+        
 
-        if(seconds > 55){
-            res.send({
-                code: 500,
-                message: '已经收盘'
-            })
-            return;
-        }
+        
 
         let quantity = parseInt(req.body.quantity);
         if (!quantity || quantity <= 0) {
@@ -508,6 +495,23 @@ const web = {
 
         const second = 60;
         let wholeMinute = baseService.getWholeMinute(second);
+        console.log('buy time check',wholeMinute)
+/*
+        let row = await models.marketModel.findOne({
+            where: {
+                symbol: req.body.pair.toUpperCase(),
+                openTime:wholeMinute.oneMinuteAgo
+            },
+        })
+        if (!row) {
+            res.send({
+                code: 500,
+                message: '数据准备中'
+            })
+            return;
+        }*/
+
+
         const thisBuy = await models.ticketModel.findOne({
             attributes: [
                 [fn('SUM', col('quantity')), 'totalQuantity'],
@@ -570,7 +574,7 @@ const web = {
             let market = await models.marketModel.findOne({
                 where: {
                     symbol: req.body.pair.toUpperCase(),
-                    openTime: wholeMinute.timestampAgo
+                    openTime:wholeMinute.timestampAgo
                 }
             })
             if (!market) {
@@ -816,118 +820,8 @@ const web = {
     
     calculateTicket: async function (req, res) {
         try {
-             
-            let rows = await models.ticketModel.findAll({
-                where: {
-                    status: 0,
-
-                }
-            })
- 
-            for (let i in rows) {
-
-                let row = rows[i];
-                console.log('开始结算订单', row.id, row.userId);
-
-                //获取价格
-                let openTime = (moment(row.resultTime).unix()) * 1000;
-                let pairBianceData = await models.marketModel.findOne({
-                    where: {
-                        intervalTime: '1m',
-                        symbol: row.pair.toUpperCase(),
-                        openTime: openTime
-
-                    }
-                })
-
-
-                //let pairBianceData = result.find(t => t.symbol == row.pair.toUpperCase() && t.openTime == moment(row.resultTime).unix() * 1000)
-                if (pairBianceData) {
-                    let resultPrice = parseFloat(pairBianceData.lastPrice);
-                    let buyPrice = parseFloat(row.price);
-                    let result = 0;
-                    if (row.betType == 1) {
-                        //涨
-                        if (resultPrice > buyPrice) result = row.quantity;
-                    } else if (row.betType == 2) {
-                        //涨
-                        if (resultPrice < buyPrice) result = row.quantity;
-                    }
-
-                    console.error('订单结算数据', row.id, '会员', row.userId, '结算价', resultPrice, '买入价', buyPrice, '结果', result, '订单类型', row.betType)
-
-                    if (result > 0) {
-                        const transaction = await sequelize.transaction();
-                        try {
-                            let userRow = await models.userModel.findOne({
-                                where: { id: row.userId },
-                                lock: true,
-                                transaction: transaction,
-                            });
-                            if (!userRow) {
-                                await transaction.rollback();
-                                continue;
-                            }
-
-
-                            let amount = parseFloat(result);
-                            let balance = parseFloat(userRow.balance); // 或者使用 Number(user.balance);
-                            userRow.balance = balance + amount + amount;
-                            console.log('user new balance', userRow.balance, amount)
-                            await userRow.save({ transaction: transaction });
-                            await models.balanceLogModel.create({
-                                userId: userRow.id,
-                                coin: amount,
-                                beforeCoin: balance,
-                                afterCoin: userRow.balance,
-                                type: 1,
-                                remark: '訂單結算(' + row.id + ')',
-                                created: moment().format("YYYY-MM-DD HH:mm:ss"),
-                                updated: moment().format("YYYY-MM-DD HH:mm:ss"),
-
-                            }, {
-                                transaction: transaction
-                            })
-
-                            await models.ticketModel.update({
-                                resultPrice,
-                                result,
-                                status: 1,
-                                updated: moment().format("YYYY-MM-DD HH:mm:ss"),
-                            }, {
-                                where: {
-                                    id: row.id
-                                },
-                                transaction: transaction
-                            })
-                            await transaction.commit();
-                        } catch (ex) {
-                            await transaction.rollback();
-                            console.error(ex.message)
-                            continue;
-                        }
-                    } else {
-                        await models.ticketModel.update({
-                            resultPrice,
-                            result,
-                            status: 1,
-                            updated: moment().format("YYYY-MM-DD HH:mm:ss"),
-                        }, {
-                            where: {
-                                id: row.id
-                            }
-                        })
-                    }
-                } else {
-
-                }
-
-
-
-                console.log('success')
-
-            }
-
+            
+            await ticketService.calculateTicket()
 
             res.send({
                 code: 200,

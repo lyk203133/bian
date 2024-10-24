@@ -15,7 +15,7 @@ let baseService = {
 
         return formattedText;
     },
-    getWholeMinute: function (seconds = 60) {
+    getWholeMinuteNature: function (seconds = 60) {
         // 获取当前时间  
         let now = moment();
     
@@ -36,6 +36,53 @@ let baseService = {
             timestampFuture
         }
     },
+    getWholeMinute: function (seconds = 60) {
+        // 获取当前时间
+        let now = moment();
+        
+        // 获取当前秒数
+        let currentSeconds = now.seconds();
+    
+        // 判断当前秒数是否大于等于 45
+        if (currentSeconds >= 45) {
+            // 如果秒数 >= 45，基于下一个整分钟
+            let thisMinute = now.clone().format("YYYY-MM-DD HH:mm:00");
+            let timestampThis = moment(thisMinute).unix() * 1000; // 下一个整分钟的 Unix 时间戳（毫秒）
+
+            let nextMinute = now.clone().add(1, 'minute').format("YYYY-MM-DD HH:mm:00");
+            let timestampAgo = moment(nextMinute).unix() * 1000; // 下一个整分钟的 Unix 时间戳（毫秒）
+
+            let oneMinuteFuture = now.clone().add(2, 'minute').format("YYYY-MM-DD HH:mm:00");
+            let timestampFuture = moment(oneMinuteFuture).unix() * 1000; // 下一个整分钟的 Unix 时间戳（毫秒）
+    
+            return {
+                thisMinute,
+                timestampThis,
+                oneMinuteAgo: nextMinute, // 下一个自然分钟为基准
+                oneMinuteFuture: oneMinuteFuture,
+                timestampAgo: timestampAgo,
+                timestampFuture: timestampFuture
+            };
+        } else {
+            // 如果秒数 < 45，基于当前整分钟
+             // 克隆当前时间并减去一分钟  
+            let oneMinuteAgo = now.clone().format("YYYY-MM-DD HH:mm:00");
+            
+            // 克隆当前时间并加上 seconds 秒  
+            let oneMinuteFuture = now.clone().add(seconds, 'seconds').format("YYYY-MM-DD HH:mm:00");
+        
+            // 转换为Unix时间戳（毫秒）  
+            let timestampAgo = moment(oneMinuteAgo).unix() * 1000;  
+            let timestampFuture = moment(oneMinuteFuture).unix() * 1000; 
+    
+            return {
+                oneMinuteAgo: oneMinuteAgo,
+                oneMinuteFuture: oneMinuteFuture,
+                timestampAgo: timestampAgo,
+                timestampFuture: timestampFuture
+            };
+        }
+    },    
     async setting() {
         let row;
         try {
@@ -91,6 +138,11 @@ let baseService = {
             [array[i], array[j]] = [array[j], array[i]];  // 交换元素
         }
         return array;
+    },
+    getCurrentMinuteTimestamp() {
+        const now = new Date();
+        now.setSeconds(0, 0); // 将秒数和毫秒数设置为 0
+        return now.getTime(); // 返回 Unix 时间戳（毫秒）
     }
 
 }

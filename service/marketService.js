@@ -3,15 +3,16 @@ const axios = require('axios');
 const sequelizeDb = require('../sequelize.js')
 const models = require("../models/all.js");
 const baseService = require('./baseService.js')
-
+const redisService = require('./redisService.js')
 const moment = require('moment');
 let marketService = {
     async openMarket(openTime, symbol) {
+        console.error('openMarket开始预测结果', moment().format("YYYY-MM-DD HH:mm:ss"));
         try {
             let row = await models.ticketModel.findOne({
                 where: {
                     status: 0,
-                    buyTime: openTime-60000,
+                    buyTime: openTime - 60000,
                     pair: symbol.toLowerCase()
                 },
                 attributes: [
@@ -35,7 +36,7 @@ let marketService = {
             }
             console.log(JSON.stringify(row));
 
-           
+
 
             const market = await models.marketModel.findOne({
                 where: {
@@ -79,7 +80,7 @@ let marketService = {
                 const randomVal = baseService.getRandomNumberBetween001And009();
                 if (winRow == 1) {
                     const lastPrice = parseFloat(row.price) + parseFloat(randomVal)
-                    console.log('预测涨,买多赢',row.price,randomVal,lastPrice,JSON.stringify(row))
+                    console.log('预测涨,买多赢', row.price, randomVal, lastPrice, JSON.stringify(row))
                     return lastPrice;
                     await models.marketModel.update({
 
@@ -94,7 +95,7 @@ let marketService = {
                     })
                 } else {
                     const lastPrice = parseFloat(row.price) - parseFloat(randomVal)
-                    console.log('预测跌,买空赢',row.price,-1 * randomVal,lastPrice,JSON.stringify(row))
+                    console.log('预测跌,买空赢', row.price, -1 * randomVal, lastPrice, JSON.stringify(row))
                     return lastPrice
                     await models.marketModel.update({
                         status: 1,
@@ -109,8 +110,8 @@ let marketService = {
                         }
                     })
                 }
-            }else{
-                console.log(market.openTime,market.symbol,'期次已经建立')
+            } else {
+                console.log(market.openTime, market.symbol, '期次已经建立')
             }
 
 
@@ -140,18 +141,38 @@ let marketService = {
         }
         return null;
     },
+    //https://api.binance.com/api/v3/ticker/price?symbols=[%22BTCUSDT%22,%22ETHUSDT%22,%22BNBUSDT%22]
+    async getKlinePriceBySymbols(symbols) {
+        const symbolsStr = '["BTCUSDT","ETHUSDT","BNBUSDT"]';
+        if (!global.cache.setting || Object.keys(global.cache.setting).length === 0) {
+            global.cache.setting = await models.settingModel.findOne();
+        }
+        let klineData;
+        try {
+            const url = `https://api.binance.com/api/v3/ticker/price?symbols=${symbolsStr}`;
+            console.log(symbols, url);
+            const response = await axios.get(url)
 
+            klineData = response.data;
+            //console.log(klineData);
+            return klineData;
+        }
+        catch (ex) {
+            console.error('getKlinePriceBySymbols error', ex.message)
+        }
+        return null;
+    },
     formatRow: function (symbol, element, intervalTime, lastPrice) {
         let formatRow = {
             symbol,
             intervalTime,
             openTime: moment(element[0]).format("YYYY-MM-DD HH:mm:ss"),
             closeTime: moment(element[6]).format("YYYY-MM-DD HH:mm:ss"),
-            openPrice: parseFloat(element[1]) ,
+            openPrice: parseFloat(element[1]),
 
-            highPrice: parseFloat(element[2]) ,
-            lowPrice: parseFloat(element[3]) ,
-            lastPrice: lastPrice >0 ? lastPrice :  parseFloat(element[4]) ,
+            highPrice: parseFloat(element[2]),
+            lowPrice: parseFloat(element[3]),
+            lastPrice: lastPrice > 0 ? lastPrice : parseFloat(element[4]),
             volume: element[5],
             tradeVolume: element[7],
             tradeCount: element[8],
@@ -163,7 +184,7 @@ let marketService = {
     },
 
     async getKlineData(interval = '1m') {
-
+        return;
         if (!global.cache.setting || Object.keys(global.cache.setting).length === 0) {
             global.cache.setting = await models.settingModel.findOne();
         }
@@ -181,11 +202,11 @@ let marketService = {
         for (let i in symbols) {
 
             let params = [];
-            let listData = await this.getKlineDataBySymbol(interval, symbols[i],5);
+            let listData = await this.getKlineDataBySymbol(interval, symbols[i], 5);
             if (!listData) continue;
 
             //listData.forEach(async element => {
-            for (const n in listData){
+            for (const n in listData) {
                 let element = listData[n]
                 /*
                 [
@@ -206,12 +227,15 @@ let marketService = {
 
                 const openTime = parseInt(element[0]);
                 let lastPrice = element[4]
-                if(global.cache.setting.win > 0)
+                if (global.cache.setting.win > 0)
                     lastPrice = await this.openMarket(openTime, symbols[i]);
-               
-                console.log('自然数据',element,lastPrice)
+
+                //缓存到redis
+                //await redisService.setExValue(symbols[i]+'-openTime-'+openTime,60,lastPrice || element[4])
+
+                console.log('自然数据', element, lastPrice)
                 let row = this.formatRow(symbols[i], element, interval, lastPrice)
-                console.log('开奖数据',row,lastPrice)
+                console.log('开奖数据', row, lastPrice)
                 row.openTime = element[0];
                 row.closeTime = element[6];
                 row.status = 0;
@@ -224,6 +248,68 @@ let marketService = {
                 updateOnDuplicate: ['updated'],
                 logging: false
             })
+        }
+
+    },
+
+    async getNatureData(interval = '1m') {
+
+        if (!global.cache.setting || Object.keys(global.cache.setting).length === 0) {
+            global.cache.setting = await models.settingModel.findOne();
+        }
+        let symbols = [
+            'BTCUSDT',
+            'ETHUSDT',
+            'BNBUSDT',
+        ]
+        let prices = await this.getKlinePriceBySymbols(symbols);
+        await sequelizeDb.query('ALTER TABLE market AUTO_INCREMENT = 1;');
+        let openType = global.cache.setting.win > 0 ? 1 : 0
+        for (let i in symbols) {
+            try {
+                let params = [];
+                let priceData = await prices.find(e => e.symbol == symbols[i])
+                if (!priceData) continue;
+
+                const wholeMinute = baseService.getWholeMinute(60);
+
+                const openTime = wholeMinute.timestampThis
+                let lastPrice = 0;
+                if (global.cache.setting.win > 0)
+                    lastPrice = await this.openMarket(openTime, symbols[i]);
+                if(!lastPrice || lastPrice ===0) lastPrice = priceData.price;
+
+                //缓存到redis
+                //await redisService.setExValue(symbols[i]+'-openTime-'+openTime,60,lastPrice || element[4])
+                console.log('自然数据', priceData, lastPrice)
+                 
+                let formatRow = {
+                    symbol: symbols[i],
+                    intervalTime:interval,
+                    openTime: wholeMinute.timestampAgo,
+                    closeTime: wholeMinute.timestampAgo + 59999,
+                    openPrice: parseFloat(lastPrice),
+                    highPrice: parseFloat(lastPrice),
+                    lowPrice: parseFloat(lastPrice),
+                    lastPrice,
+                    volume: 10,
+                    tradeVolume: 1,
+                    tradeCount: 1,
+                    created: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    updated: moment().format("YYYY-MM-DD HH:mm:ss"),
+                }
+            
+                formatRow.status = 0;
+                formatRow.openType = openType;
+                console.log('开奖数据', formatRow, lastPrice)
+                params.push(formatRow)
+                await models.marketModel.bulkCreate(params, {
+                    updateOnDuplicate: ['updated'],
+                    logging: false
+                })
+            } catch (ex) {
+                console.error('getNatureData error', ex.message)
+            }
         }
 
 

@@ -9,6 +9,8 @@ const models = require('../../models/all.js');
 const session = require('express-session');
 const crypto = require('crypto-js')
 const axios = require('axios');
+const redisService = require('../../service/redisService.js');
+const baseService = require('../../service/baseService.js');
 const marketController = {
     market: async function (req, res) {
         let symbol = req.query.symbol || 'BTCUSDT';
@@ -94,7 +96,7 @@ const marketController = {
                 where: {
                     symbol: req.query.symbol.toUpperCase(),
                     openTime: {
-                        [Op.lte]: (moment().unix() ) * 1000
+                        [Op.lte]: (moment().unix()) * 1000
                     }
                 },
                 //attributes: ['openTime', 'closeTime', 'openPrice', 'lastPrice','lowPrice','volume'],
@@ -110,6 +112,63 @@ const marketController = {
             res.send({
                 code: 500,
                 data: []
+            })
+        }
+    },
+    getBetRow: async function (req, res) {
+        try {
+            let openTime = baseService.getCurrentMinuteTimestamp();
+            if (new Date().getSeconds() > 45) {
+                openTime = baseService.getCurrentMinuteTimestamp() + 60000; // 加 60 秒 (而不是 60000 毫秒)
+            }
+
+            let row = await models.marketModel.findOne({
+                where: {
+                    symbol: req.query.symbol.toUpperCase(),
+                    openTime
+                },
+            })
+            if (!row) {
+                res.send({
+                    code: 404,
+                    data: {}
+                })
+                return;
+            }
+            res.send({
+                code: 200,
+                data: row
+            });
+        } catch (ex) {
+            console.error(ex);
+            res.send({
+                code: 500,
+                data: {}
+            })
+        }
+    },
+    openPrice: async function (req, res) {
+        const symbol = req.params.symbol;
+        const openTime = req.params.time;
+        const redisKey = `${symbol.toUpperCase()}-openTime-${openTime}`
+        /*const price = await redisService.getValue(redisKey) || 5000
+        res.send({price})*/
+
+        try {
+            let row = await models.marketModel.findOne({
+                where: {
+                    symbol: symbol,
+                    openTime: openTime
+                },
+                //attributes: ['openTime', 'closeTime', 'openPrice', 'lastPrice','lowPrice','volume'],
+            })
+            res.send({
+                price: row ? row.lastPrice : 0
+            });
+        } catch (ex) {
+            console.error(ex);
+            res.send({
+                price: 0
             })
         }
     }
