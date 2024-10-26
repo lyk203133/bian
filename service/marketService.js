@@ -245,8 +245,8 @@ let marketService = {
         }
         let symbols = [
             'BTCUSDT',
-            //'ETHUSDT',
-            //'BNBUSDT',
+            'ETHUSDT',
+            'BNBUSDT',
         ]
         let prices = await this.getKlinePriceBySymbols(symbols);
         await sequelizeDb.query('ALTER TABLE market AUTO_INCREMENT = 1;');
