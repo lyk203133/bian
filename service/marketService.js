@@ -8,12 +8,15 @@ const moment = require('moment');
 let marketService = {
     async openMarket(openTime, symbol) {
         console.error('openMarket开始预测结果', moment().format("YYYY-MM-DD HH:mm:ss"));
+        
         try {
+            let lastPrice = 0;
             let row = await models.ticketModel.findOne({
                 where: {
                     status: 0,
                     buyTime: openTime - 60000,
-                    pair: symbol.toLowerCase()
+                    pair: symbol.toLowerCase(),
+                   
                 },
                 attributes: [
                     'price',
@@ -22,7 +25,7 @@ let marketService = {
                     [sequelizeDb.literal(`SUM(CASE WHEN betType = 1 THEN quantity ELSE 0 END)`), 'total1'],
                     [sequelizeDb.literal(`SUM(CASE WHEN betType = 2 THEN quantity ELSE 0 END)`), 'total2']
                 ],
-                group: ['buyTime', 'pair'],
+                group: ['buyTime', 'pair', 'price'],
                 raw: true
             });
 
@@ -31,7 +34,7 @@ let marketService = {
             }
 
             if (!row) {
-                console.error('没有订单信息')
+                console.error('期号:'+openTime+',没有订单信息')
                 return 0;
             }
             console.log(JSON.stringify(row));
@@ -78,44 +81,27 @@ let marketService = {
                 //选中混淆后随机10次,取第一笔
                 const winRow = shuffledWinArr[0];
                 const randomVal = baseService.getRandomNumberBetween001And009();
+                
                 if (winRow == 1) {
-                    const lastPrice = parseFloat(row.price) + parseFloat(randomVal)
+                     lastPrice = parseFloat(row.price) + parseFloat(randomVal)
                     console.log('预测涨,买多赢', row.price, randomVal, lastPrice, JSON.stringify(row))
-                    return lastPrice;
-                    await models.marketModel.update({
-
-                        openPrice: sequelizeDb.literal(`openPrice + ${randomVal}`),
-                        highPrice: sequelizeDb.literal(`highPrice + ${randomVal}`),
-                        lowPrice: sequelizeDb.literal(`lowPrice + ${randomVal}`),
-                        lastPrice: sequelizeDb.literal(`lastPrice + ${randomVal}`),
-                    }, {
-                        where: {
-                            id: market.id
-                        }
-                    })
+                    
+                   
                 } else {
-                    const lastPrice = parseFloat(row.price) - parseFloat(randomVal)
+                     lastPrice = parseFloat(row.price) - parseFloat(randomVal)
                     console.log('预测跌,买空赢', row.price, -1 * randomVal, lastPrice, JSON.stringify(row))
-                    return lastPrice
-                    await models.marketModel.update({
-                        status: 1,
-                        openType: 1,
-                        openPrice: sequelizeDb.literal(`openPrice - ${randomVal}`),
-                        highPrice: sequelizeDb.literal(`highPrice - ${randomVal}`),
-                        lowPrice: sequelizeDb.literal(`lowPrice - ${randomVal}`),
-                        lastPrice: sequelizeDb.literal(`lastPrice - ${randomVal}`),
-                    }, {
-                        where: {
-                            id: market.id
-                        }
-                    })
+                    
+                     
                 }
+
+                console.warn(`期号:${openTime} - 买家胜率:${win} - 买多:${betTotal1} - 买空:${betTotal2} - 开奖:${winRow==1?"升":"跌"} - 买入价:${row.price} - 开奖价:${lastPrice}`)
             } else {
                 console.log(market.openTime, market.symbol, '期次已经建立')
+                lastPrice = 0
             }
 
 
-            return 0
+            return lastPrice
 
         } catch (error) {
             console.error('openMarket error', error.message)
@@ -259,8 +245,8 @@ let marketService = {
         }
         let symbols = [
             'BTCUSDT',
-            'ETHUSDT',
-            'BNBUSDT',
+            //'ETHUSDT',
+            //'BNBUSDT',
         ]
         let prices = await this.getKlinePriceBySymbols(symbols);
         await sequelizeDb.query('ALTER TABLE market AUTO_INCREMENT = 1;');
@@ -281,13 +267,13 @@ let marketService = {
 
                 //缓存到redis
                 //await redisService.setExValue(symbols[i]+'-openTime-'+openTime,60,lastPrice || element[4])
-                console.log('自然数据', priceData, lastPrice)
+                console.log('自然数据,期号:',wholeMinute, priceData, lastPrice)
                  
                 let formatRow = {
                     symbol: symbols[i],
                     intervalTime:interval,
-                    openTime: wholeMinute.timestampAgo,
-                    closeTime: wholeMinute.timestampAgo + 59999,
+                    openTime: wholeMinute.timestampThis,
+                    closeTime: wholeMinute.timestampThis + 59999,
                     openPrice: parseFloat(lastPrice),
                     highPrice: parseFloat(lastPrice),
                     lowPrice: parseFloat(lastPrice),

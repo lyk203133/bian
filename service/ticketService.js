@@ -8,7 +8,7 @@ const moment = require('moment');
 let ticketService = {
     async calculateTicket() {
 
-        console.error('开始结算订单', moment().format("YYYY-MM-DD HH:mm:ss"));
+        console.error('开始结算订单,期号:', moment().format("YYYYMMDDHHmm000"), moment().format("YYYY-MM-DD HH:mm:ss"));
         let rows = await models.ticketModel.findAll({
             where: {
                 status: 0,

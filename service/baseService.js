@@ -46,40 +46,44 @@ let baseService = {
         // 判断当前秒数是否大于等于 45
         if (currentSeconds >= 45) {
             // 如果秒数 >= 45，基于下一个整分钟
-            let thisMinute = now.clone().format("YYYY-MM-DD HH:mm:00");
+            let lastMinute = now.clone().format("YYYY-MM-DD HH:mm:00");
+            let timestampLast = moment(lastMinute).unix() * 1000; // 下一个整分钟的 Unix 时间戳（毫秒）
+
+            let thisMinute = now.clone().add(1, 'minute').format("YYYY-MM-DD HH:mm:00");
             let timestampThis = moment(thisMinute).unix() * 1000; // 下一个整分钟的 Unix 时间戳（毫秒）
 
-            let nextMinute = now.clone().add(1, 'minute').format("YYYY-MM-DD HH:mm:00");
-            let timestampAgo = moment(nextMinute).unix() * 1000; // 下一个整分钟的 Unix 时间戳（毫秒）
-
-            let oneMinuteFuture = now.clone().add(2, 'minute').format("YYYY-MM-DD HH:mm:00");
-            let timestampFuture = moment(oneMinuteFuture).unix() * 1000; // 下一个整分钟的 Unix 时间戳（毫秒）
+            let nextMinute = now.clone().add(2, 'minute').format("YYYY-MM-DD HH:mm:00");
+            let timestampNext = moment(nextMinute).unix() * 1000; // 下一个整分钟的 Unix 时间戳（毫秒）
     
             return {
+                lastMinute, // 下一个自然分钟为基准
+                timestampLast,
                 thisMinute,
                 timestampThis,
-                oneMinuteAgo: nextMinute, // 下一个自然分钟为基准
-                oneMinuteFuture: oneMinuteFuture,
-                timestampAgo: timestampAgo,
-                timestampFuture: timestampFuture
+                nextMinute,
+                timestampNext
             };
         } else {
             // 如果秒数 < 45，基于当前整分钟
              // 克隆当前时间并减去一分钟  
-            let oneMinuteAgo = now.clone().format("YYYY-MM-DD HH:mm:00");
+            let thisMinute = now.clone().format("YYYY-MM-DD HH:mm:00");
             
             // 克隆当前时间并加上 seconds 秒  
-            let oneMinuteFuture = now.clone().add(seconds, 'seconds').format("YYYY-MM-DD HH:mm:00");
+            let nextMinute = now.clone().add(1, 'minute').format("YYYY-MM-DD HH:mm:00");
         
+            let futureMinute = now.clone().add(2, 'minute').format("YYYY-MM-DD HH:mm:00");
+            let timestampFuture = moment(futureMinute).unix() * 1000; // 下一个整分钟的 Unix 时间戳（毫秒）
             // 转换为Unix时间戳（毫秒）  
-            let timestampAgo = moment(oneMinuteAgo).unix() * 1000;  
-            let timestampFuture = moment(oneMinuteFuture).unix() * 1000; 
+            let timestampThis = moment(thisMinute).unix() * 1000;  
+            let timestampNext = moment(nextMinute).unix() * 1000; 
     
             return {
-                oneMinuteAgo: oneMinuteAgo,
-                oneMinuteFuture: oneMinuteFuture,
-                timestampAgo: timestampAgo,
-                timestampFuture: timestampFuture
+                thisMinute,
+                timestampThis,
+                nextMinute,
+                timestampNext,
+                futureMinute,
+                timestampFuture
             };
         }
     },    
@@ -98,7 +102,7 @@ let baseService = {
         return row;
     },
     getRandomNumberBetween001And009() {
-        return parseFloat(parseFloat(0.01 + Math.random() * 0.08).toFixed(2));
+        return parseFloat(parseFloat(0.010 + Math.random() * 0.089).toFixed(3));
     },
      getToday() {
         const todayStart = moment().startOf('day'); // 今天的开始时间

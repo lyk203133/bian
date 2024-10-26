@@ -495,7 +495,7 @@ const web = {
 
         const second = 60;
         let wholeMinute = baseService.getWholeMinute(second);
-        console.log('buy time check',wholeMinute)
+        console.warn('buy time check',wholeMinute)
 /*
         let row = await models.marketModel.findOne({
             where: {
@@ -518,7 +518,7 @@ const web = {
                 [fn('COUNT', col('id')), 'count']
             ],
             where: {
-                buyTime: wholeMinute.timestampAgo,
+                buyTime: wholeMinute.timestampThis,
                 userId: userId
             },
             raw: true
@@ -574,14 +574,14 @@ const web = {
             let market = await models.marketModel.findOne({
                 where: {
                     symbol: req.body.pair.toUpperCase(),
-                    openTime:wholeMinute.timestampAgo
+                    openTime:wholeMinute.timestampThis
                 }
             })
             if (!market) {
                 await transaction.rollback();
                 res.send({
                     code: 500,
-                    message: '不支持下單，請聯繫管理員'
+                    message: '不支持下單，請聯繫管理員'+wholeMinute.timestampThis
                 })
                 return;
             }
@@ -593,8 +593,8 @@ const web = {
                 pair: req.body.pair,
                 betType: parseInt(req.body.buyType),
                 price: parseFloat(market.lastPrice),
-                buyTime: wholeMinute.timestampAgo,
-                resultTime: wholeMinute.timestampFuture,
+                buyTime: wholeMinute.timestampThis,
+                resultTime: wholeMinute.timestampNext,
                 status: 0,
                 resultPrice: 0,
                 fee: 0,
