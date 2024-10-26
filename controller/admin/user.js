@@ -420,7 +420,7 @@ const user = {
                     });
                }
           } catch (ex) {
-               console.log(ex)
+               
                res.send({ code: 500, message: ex.message });
           }
 
@@ -440,7 +440,7 @@ const user = {
                )
                res.send({ code: 0, message: "succes" });
           } catch (ex) {
-               console.log(ex)
+                
                res.send({ code: 500, message: ex.message });
           }
      },
@@ -459,7 +459,7 @@ const user = {
                )
                res.send({ code: 0, message: "succes" });
           } catch (ex) {
-               console.log(ex)
+                
                res.send({ code: 500, message: ex.message });
           }
      },
@@ -478,7 +478,7 @@ const user = {
                )
                res.send({ code: 0, message: "succes" });
           } catch (ex) {
-               console.log(ex)
+                
                res.send({ code: 500, message: ex.message });
           }
      },
@@ -572,7 +572,7 @@ const user = {
                     res.send({ code: 0, message: "succes" });
                }
           } catch (ex) {
-               console.log(ex)
+                
                res.send({ code: 500, message: ex.message });
           }
      },

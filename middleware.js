@@ -49,7 +49,7 @@ const middleware = {
         try {
             payload = jwtHelper.verifyToken(token);
         } catch (ex) {
-            console.log(' token parse error')
+            console.log(' token parse error',ex.message)
             //log.writeLog(' token parse error')
             //console.log(ex.message)
         }
@@ -63,7 +63,7 @@ const middleware = {
             return;
         }
         
-        console.log(req.session.loginUser)
+        //console.log(req.session.loginUser)
         next();
     },
     kongAuth: (req, res, next) => {
@@ -71,7 +71,7 @@ const middleware = {
             res.redirect('/admin/login')
             return;
         }
-        console.log(req.session.loginUser)
+        //console.log(req.session.loginUser)
         next();
     },
     agentAuth: (req, res, next) => {
@@ -82,7 +82,7 @@ const middleware = {
             return;
         }
 
-        console.log(req.session.agentUser)
+        //console.log(req.session.agentUser)
         next();
     },
     userAuth: (req, res, next) => {
@@ -93,7 +93,7 @@ const middleware = {
             return;
         }
 
-        console.log(req.session.agentUser)
+        //console.log(req.session.agentUser)
         next();
     }
 }

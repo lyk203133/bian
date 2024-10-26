@@ -56,7 +56,7 @@ const market = {
                     id: req.body.id
                 }
             })
-            console.log(JSON.stringify(row))
+            //console.log(JSON.stringify(row))
             if (row.type == 3) {
                 await models.userModel.update({
                     verifyStatus: req.body.status == 2 ? 2 : 4
@@ -68,7 +68,7 @@ const market = {
             }
             if (row.type == 4) {
                 let info = row.info;
-                console.log(info)
+                 
                 await models.userCardModel.update({
                     verifyStatus: req.body.status == 2 ? 2 : 4
                 }, {
@@ -183,7 +183,7 @@ const market = {
             })
 
         } catch (ex) {
-            console.log(ex)
+            console.log('list market data error',ex.message)
             res.send({ code: 500, message: ex.message });
         }
     },
@@ -194,7 +194,7 @@ const market = {
                 code: 200
             })
         } catch (ex) {
-            console.log(ex)
+            
             res.send({ code: 500, message: ex.message });
         }
     },
@@ -323,7 +323,7 @@ type: 1
 comment: 後臺操作`買多必贏`}
                 */
                 const newData = { ...row.dataValues };  // 复制对象
-                console.log(newData)
+                //console.log(newData)
                 delete newData.id;  // 删除 `id` 属性
                 let randomVal = baseService.getRandomNumberBetween001And009();
                 let sign = Math.random() > 0.5 ? 1 : -1;

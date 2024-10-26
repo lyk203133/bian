@@ -125,7 +125,7 @@ const ticketController = {
                     });
                }
           } catch (ex) {
-               console.log(ex)
+               
                res.send({ code: 500, message: ex.message });
           }
 

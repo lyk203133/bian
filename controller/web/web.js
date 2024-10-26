@@ -398,11 +398,11 @@ const web = {
         })
     },
     profile: async function (req, res) {
-        console.log('global.cache', global.cache['setting'])
+         
         if (!global.cache.setting || Object.keys(global.cache.setting).length === 0) {
             global.cache.setting = await models.settingModel.findOne();
         }
-        console.log('global.cache', global.cache.setting)
+        
         console.log('profile session:', req.session.userId, 'token:', req.query.token)
 
         console.log('profile check', req.session.userId)
