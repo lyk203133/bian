@@ -76,12 +76,7 @@ cron.schedule('46 * * * * *', async () => {
   console.warn('每个自然分钟的45秒开始执行任务');
 });
 
-cron.schedule('50 * * * * *', async () => {
-  await ticketService.calculateTicket()
-  console.warn('每个自然分钟的50秒开始执行结算任务');
-});
-
-cron.schedule('59 * * * * *', async () => {
+cron.schedule('01 * * * * *', async () => {
   await ticketService.calculateTicket()
   console.warn('每个自然分钟的59秒开始执行结算任务');
 });
