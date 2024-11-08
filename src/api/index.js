@@ -12,10 +12,16 @@ export function getSetting() {
 export async function getPricing() {
   let data = await axios.get(mainUrl + '/pricing')
   return data;
-  return await http.request({
-    url: "/pricing",
-    method: "get",
-  })
+}
+
+export async function getOpenPrice(symbol, time) {
+  let data = await axios.get(mainUrl + '/open/' + symbol + '/' + time)
+  return data;
+}
+
+export async function getBetRow(symbol) {
+  let data = await axios.get(mainUrl + '/market/bet_row?symbol=' + symbol)
+  return data;
 }
 
 export async function getMarketLast(symbol) {
