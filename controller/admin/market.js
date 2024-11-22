@@ -125,6 +125,24 @@ const market = {
                     ['id', 'desc']
                 ]
             });
+            
+            let nextPrice = 0;
+            if(result.length > 0){
+            
+                const resultNext = await models.marketModel.findAll({
+                    where: where,
+                    limit: limit+1,
+                    offset: offset,
+                    order: [
+                        ['id', 'desc']
+                    ]
+                });
+                if(resultNext.length > result.length){
+                    const nextRow = resultNext[resultNext.length-1];
+                    if(nextRow)  nextPrice =nextRow.lastPrice
+                }
+             
+            }
 
             let openTimes = result.map(t => {
                 return t.openTime
@@ -179,7 +197,8 @@ const market = {
                 code: 0,
                 count: total,
                 data: result,
-                buyResult
+                buyResult,
+                nextPrice
             })
 
         } catch (ex) {

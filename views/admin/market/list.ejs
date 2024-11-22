@@ -140,6 +140,20 @@
                     layEvent: 'LAYTABLE_TIPS',
                     icon: 'layui-icon-tips'
                 }],
+                parseData: function(res) {
+                    return {
+                        code: res.code, // 返回状态码，0 表示成功
+                        msg: '', // 返回提示信息
+                        count: res.count, // 数据总条数
+                        data: res.data, // 表格数据
+                        buyResult:res.buyResult,
+                        externalPrice: res.nextPrice // 自定义扩展数据
+                    };
+                },
+                done: function(res) {
+                    window.externalPrice = res.nextPrice;
+                     
+                },
                 cols: [[
                     //{ type: "checkbox" },
                     //{ field: 'id', title: 'ID', sort: true },
@@ -151,8 +165,23 @@
                             return parseFloat(d.lastPrice).toFixed(2)
                         }
                     },
-                    {field: 'lastPrice', title: '漲跌', align: "center",templet:function(d){
-                            return parseFloat(d.lastPrice) - parseFloat(d.prevLastPrice) > 0 ?'<span style="color:red">漲</span>':'<span style="color:green">跌</span>'
+                    {
+                    field: 'lastPrice', title: '漲跌', align: "center",templet:function(d){
+                            let nextPrice = parseFloat(d.prevLastPrice);
+                            const externalPrice = window.externalPrice; 
+                            const tableData = table.cache['currentTableId'];
+                            const isLastRow = tableData[tableData.length - 1].id === d.id;
+                            console.log(externalPrice, tableData[tableData.length - 1])
+                            if (isLastRow) 
+                                nextPrice =  parseFloat(externalPrice);
+                            
+                            const diffPrice = parseFloat(d.lastPrice) - nextPrice;
+                            if( diffPrice > 0) 
+                                return '<span style="color:green">漲</span>'
+                            else if(diffPrice < 0)
+                                return '<span style="color:red">跌</span>'
+                            else
+                                return '平'
                         }
                     },
                     //{ field: 'openTimest', title: '開盤期号', align: "center" },
