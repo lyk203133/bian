@@ -86,6 +86,7 @@ try {
     router.get('/admin/transfer/status/:id/:status', middleware.adminAuth, transferController.status);
     router.get('/admin/transfer/check/:id', middleware.adminAuth, transferController.check);
     router.post('/admin/transfer/save', middleware.adminAuth, transferController.checkSave);
+    router.post('/admin/transfer/transferPrivate', middleware.adminAuth, transferController.transferPrivate);
     router.post('/admin/transfer/update_hash', middleware.adminAuth, transferController.updateHash);
     router.get('/admin/transfer/findone/:id', middleware.adminAuth, transferController.findOne);
     router.post('/admin/withdraw/fail/:id', middleware.adminAuth, transferController.withdrawFail);

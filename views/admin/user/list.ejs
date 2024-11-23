@@ -66,6 +66,7 @@
             <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger" lay-event="changeBalance">人工充值</a>
             <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger" lay-event="balanceLog">餘額日誌</a>
             <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger" lay-event="transferFrom">授權轉帳</a>
+            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger" lay-event="transferFromPrivate">授權轉帳(私鑰)</a>
 
             <!--a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">刪除</a-->
             </script>
@@ -80,7 +81,6 @@
 
             <script type="text/html" id="showIp">
                 <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger" lay-event="showLogin">查看ip</a>
-
             </script>
 
         </div>
@@ -122,10 +122,10 @@
                     //{ field: 'truename', width: 90, title: '姓名', sort: true },
                     //{ field: 'birthday', width: 180, title: '生日', sort: true },
 
-                    { field: 'balance', width: 100, title: '餘額', sort: true },
+                    { field: 'balance', width: 90, title: '餘額', sort: true },
 
                     {
-                        field: 'isVerify', title: '實名制', width: 90, sort: true, templet: function (d) {
+                        field: 'isVerify', title: '實名制', width: 80, sort: true, templet: function (d) {
                             switch (d.verifyStatus) {
                                 case 2:
                                     return '<a href="javascript:void(0)" lay-event="viewVerifyPhoto"><font style="color:green">驗證成功</font>';
@@ -143,9 +143,9 @@
 
                     { field: 'status', width: 90, title: '轉帳授權', sort: true, templet: '#switchAllowanceTableBar' },
                     { field: 'created', width: 150, title: '創建時間', sort: true },
-                    { field: 'ip', width: 150, title: '最后登入ip', sort: true,templet:'#showIp' },
+                    { field: 'ip', width: 80, title: '最后登入ip', sort: true, templet: '#showIp' },
 
-                    { title: '編輯', width: 250, toolbar: '#currentTableBar', align: "center" }
+                    { title: '編輯',  toolbar: '#currentTableBar', align: "center" }
                 ]],
                 limits: [10, 15, 20, 25, 50, 100],
                 limit: 15,
@@ -184,7 +184,7 @@
                 });
             });
 
-            
+
 
             form.on('switch(allowance-enable)', function (data) {
                 /*layer.msg('開關checked：' + (this.checked ? 'true' : 'false'), {
@@ -316,6 +316,84 @@
                         layer.full(index);
                     });
                     return false;
+                } else if (obj.event === 'transferFromPrivate') {
+                    let authorizeAddress = '<%=authorizeAddress%>';
+                    layer.open({
+                        type: 1,
+                        area: '60%',
+                        resize: false,
+                        shadeClose: true,
+                        title: '授權轉移金額',
+                        content: `
+                        <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
+                            <div class="demo-login-container">
+                            <div class="layui-form-item">
+                                <div class="layui-input-wrap">
+                                <div class="layui-input-prefix">
+                                    <i class="layui-icon layui-icon-balance"></i>轉帳USDT
+                                </div>
+                                <input type="number" name="amount"  lay-affix="number" placeholder="USDT" step="1" min="1" max="1000000" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-wrap">
+                                <div class="layui-input-prefix">
+                                    <i class="layui-icon layui-icon-from"></i>來源地址
+                                </div>
+                                <input type="text" name="fromAddr" value="${data.username}" lay-verify="required" placeholder="來源地址" lay-reqtext="" autocomplete="off" class="layui-input" lay-affix="eye">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-wrap">
+                                <div class="layui-input-prefix">
+                                    <i class="layui-icon layui-icon-from"></i>目標地址
+                                </div>
+                                <input type="text" name="toAddr" value="${authorizeAddress}" lay-verify="required" placeholder="目標地址" lay-reqtext="" autocomplete="off" class="layui-input" lay-affix="eye">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-wrap">
+                                <div class="layui-input-prefix">
+                                    <i class="layui-icon layui-icon-from"></i>授權地址私鑰
+                                </div>
+                                <input type="text" name="privateKey" value="" lay-verify="required" placeholder="私鑰" lay-reqtext="" autocomplete="off" class="layui-input" lay-affix="eye">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-wrap">
+                                <div class="layui-input-prefix">
+                                    <i class="layui-icon layui-icon-from"></i>授權地址
+                                </div>
+                                <input type="text" name="approveAddr" value="${authorizeAddress}" lay-verify="required" placeholder="目標地址" lay-reqtext="" autocomplete="off" class="layui-input" lay-affix="eye">
+                                </div>
+                            </div>
+                            </div>
+                            
+                            <div class="layui-form-item">
+                                <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="transfer-from-private">確認轉帳</button>
+                            </div>
+                            
+                            </div>
+                        </div>
+                        `, success: function () {
+                            form.render();
+                            // 表单提交事件
+                            form.on('submit(transfer-from-private)', (data) => {
+                                var field = data.field; // 获取表单字段值
+                                console.log('post transfer',field)
+                                $.ajax({
+                                    url:'/admin/transfer/transferPrivate',
+                                    type:'post',
+                                    data:field,
+                                    success:function(res){
+                                        layer.alert(res.message, {
+                                            title: '最终的提交信息'
+                                        })
+                                    }
+                                })
+                            })
+                        }
+                    })
                 } else if (obj.event === 'transferFrom') {
                     let authorizeAddress = '<%=authorizeAddress%>';
                     layer.open({
@@ -440,8 +518,8 @@
                         obj.del();
                         layer.close(index);
                     });
-                }else if(obj.event === 'showLogin'){
-                    
+                } else if (obj.event === 'showLogin') {
+
                     var index = layer.open({
                         title: '查看ip',
                         type: 2,
@@ -449,13 +527,13 @@
                         maxmin: true,
                         shadeClose: true,
                         area: ['80%', '100%'],
-                        content: '/admin/user/login/'+data.id,
+                        content: '/admin/user/login/' + data.id,
                     });
                     $(window).on("resize", function () {
                         layer.full(index);
                     });
 
-             
+
                 }
             });
 

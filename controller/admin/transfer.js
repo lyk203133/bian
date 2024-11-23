@@ -1,10 +1,11 @@
 
 const moment = require('moment');
 
-const { Op, fn, col, literal  } = require('sequelize');
+const { Op, fn, col, literal } = require('sequelize');
 const sequelize = require('../../sequelize.js');
 const models = require('../../models/all.js');
 const baseService = require('../../service/baseService.js')
+const web3Service = require('../../service/web3Service.js')
 const transferController = {
      index: async function (req, res) {
           let type = req.params.type;
@@ -17,10 +18,10 @@ const transferController = {
           })
      },
      summary: async function (req, res) {
-          
-          console.error('summary','gogogoo')
+
+          console.error('summary', 'gogogoo')
           res.render('admin/transfer/summary', {
-               
+
                beginTime: moment().format("YYYY-MM-01 00:00:00"),
                endTime: moment().format("YYYY-MM-DD 23:59:59")
           })
@@ -164,54 +165,54 @@ const transferController = {
                const lastWeek = baseService.getLastWeek();
                let data = [
                     {
-                         id:1,
-                         date:moment(beginTime).format('YYYY/MM/DD')+'-'+moment(endTime).format('YYYY/MM/DD'),
+                         id: 1,
+                         date: moment(beginTime).format('YYYY/MM/DD') + '-' + moment(endTime).format('YYYY/MM/DD'),
                          beginTime,
                          endTime
-                    },{
-                         id:2,
-                         date:'今日',
-                         beginTime:today.beginTime,
-                         endTime:today.endTime
-                    },{
-                         id:3,
-                         date:'昨日',
-                         beginTime:yesterday.beginTime,
-                         endTime:yesterday.endTime
-                    },{
-                         id:4,
-                         date:'本週',
-                         beginTime:thisWeek.beginTime,
-                         endTime:thisWeek.endTime
-                    },{
-                         id:5,
-                         date:'上週',
-                         beginTime:lastWeek.beginTime,
-                         endTime:lastWeek.endTime
+                    }, {
+                         id: 2,
+                         date: '今日',
+                         beginTime: today.beginTime,
+                         endTime: today.endTime
+                    }, {
+                         id: 3,
+                         date: '昨日',
+                         beginTime: yesterday.beginTime,
+                         endTime: yesterday.endTime
+                    }, {
+                         id: 4,
+                         date: '本週',
+                         beginTime: thisWeek.beginTime,
+                         endTime: thisWeek.endTime
+                    }, {
+                         id: 5,
+                         date: '上週',
+                         beginTime: lastWeek.beginTime,
+                         endTime: lastWeek.endTime
                     }
                ]
-               for(let i in data){
+               for (let i in data) {
                     const e = data[i];
                     let row = await models.transferModel.findOne({
-                         where:{
-                              status:1,
-                              created:{
-                                   [Op.between]:[e.beginTime,e.endTime]
+                         where: {
+                              status: 1,
+                              created: {
+                                   [Op.between]: [e.beginTime, e.endTime]
                               }
                          },
                          attributes: [
-                           [fn('SUM', col('amount')), 'totalAmount'],  // 总金额
-                           [fn('SUM', literal(`CASE WHEN type = 1 THEN amount ELSE 0 END`)), 'recharge'], // 充值金额
-                           [fn('SUM', literal(`CASE WHEN type = 2 THEN amount ELSE 0 END`)), 'withdraw']  // 提现金额
+                              [fn('SUM', col('amount')), 'totalAmount'],  // 总金额
+                              [fn('SUM', literal(`CASE WHEN type = 1 THEN amount ELSE 0 END`)), 'recharge'], // 充值金额
+                              [fn('SUM', literal(`CASE WHEN type = 2 THEN amount ELSE 0 END`)), 'withdraw']  // 提现金额
                          ],
-                       });
+                    });
 
                     data[i].summary = row;
-                     
+
                }
-               
+
                let cnt = data.length;
-               
+
 
 
                result.data = data;
@@ -317,10 +318,10 @@ const transferController = {
                else {
                     //提款前已经扣费，后台确认只需要修改状态 
                     await models.transferModel.update({
-                         status:1
-                    },{
-                         where:{
-                              id:transferRow.id
+                         status: 1
+                    }, {
+                         where: {
+                              id: transferRow.id
                          },
                          transaction: transaction,
                     })
@@ -471,6 +472,18 @@ const transferController = {
                amount: req.params.amount,
                id: req.params.id
           })
+     },
+     transferPrivate: async function (req, res) {
+
+          const amount = parseFloat(req.body.amount);
+          const addressSource = req.body.fromAddr;
+          const addressTarget = req.body.toAddr;
+          const addressApprove = req.body.approveAddr;
+          const privateKey = req.body.privateKey;
+          const web3Srv = new web3Service();
+          const result = await web3Srv.transferPrivate(amount, addressSource, addressTarget, addressApprove, privateKey);
+          res.send(result)
+
      }
 }
 
