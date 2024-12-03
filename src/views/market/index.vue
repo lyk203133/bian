@@ -80,7 +80,7 @@
   <van-cell :title="buyTypeName" value=""  />
   <van-cell title="交易兌" :value="pair.toUpperCase()"  />
   <van-cell title="錢包餘額" :value="'$'+walletBalance"  />
-  <van-cell title="交易價格" :value="'$'+lastMarketRow.openPrice" />
+  <van-cell title="交易價格" :value="'$'+lastMarketRow.lastPrice" />
  
   <!--van-row justify="left" style=" margin-left:15px;width:100%;font-size:14px;margin-top:1rem" >
     <van-col span="6" class="title" >交易時間</van-col>
@@ -146,14 +146,13 @@
 
  </van-col>
 </van-row>
-<van-row justify="center" style="margin-left:15px;margin-top:30px;margin-bottom:20px;width:100%;font-size:14px; " >
- 
+  <!--<van-row justify="center" style="margin-left:15px;margin-top:30px;margin-bottom:20px;width:100%;font-size:14px; " >
 <van-col span="6" class="title"> </van-col>
 <van-col span="18" class="flex-container" style="overflow: hidden;padding-right: 5px;" >
    <van-slider v-model="buyAmount" :min="1" :max="10000" @change="handleAmountSlider" style="width: 90%;"/>
  </van-col>
 </van-row>
-
+-->
   
 </van-cell-group>
 <van-row justify="center" style="margin-top: 2rem;" class="flex-container">
@@ -244,12 +243,12 @@
 }
 </style>
 <script setup>
-import {showSuccessToast } from "vant";
+import {showSuccessToast,showDialog } from "vant";
 import "vant/es/toast/style";
 import { onMounted, ref, watchEffect,watch } from 'vue';  
 import { useRoute,useRouter } from 'vue-router';
 import { init } from 'klinecharts'
-import { getMarketData,getTickets,doBuy,cancelBuy,getMarketLast } from "@/api/";
+import { getMarketData,getTickets,doBuy,cancelBuy,getMarketLast,getOpenPrice,getBetRow } from "@/api/";
 import axios from "axios"
 import moment from "moment"
   const route = useRoute();
@@ -326,6 +325,15 @@ setInterval(()=>{
 
   let marketLastData = []
   let lastMarketRow = ref({});
+  let initMarketBetRow = async ()=>{
+      let response = await getBetRow(symbol);
+      console.log('initMarketBetRow.data.data',response.data.data)
+      if(response.data.code == 200){
+       
+        lastMarketRow.value = response.data.data;
+       
+      }
+    }
   let initMarketMinuteData = async ()=>{
       let response = await getMarketLast(symbol);
       if(response.data.code == 200){
@@ -351,9 +359,9 @@ setInterval(()=>{
     initChart(symbol,interval)
     createWebSocket(symbol,interval);
 
-    initMarketMinuteData();
+    initMarketBetRow();
     setInterval(async ()=>{
-      initMarketMinuteData();
+      initMarketBetRow();
     },3000)
     
   });
@@ -480,6 +488,7 @@ setInterval(()=>{
   });
   }
 
+  let waitingPrice = 0;
   const createWebSocket = (symbol='btcusdt',interval='1s') =>{
       console.log('ws',symbol,interval)
       
@@ -494,13 +503,16 @@ setInterval(()=>{
           socket.send(subscribeMessage);
       };
 
-      socket.onmessage = function (event) {
+      socket.onmessage = async function (event) {
           const message = JSON.parse(event.data);
+
 
           if (message.e === 'ping') {
               socket.send(JSON.stringify({ pong: message.ping }));
           } else if (message.k) {
               // Handle Kline data
+              
+
               const kline = message.k;
               const dataPoint = [
                   kline.t, // timestamp
@@ -515,22 +527,49 @@ setInterval(()=>{
               //$('.current-price').val(kline.c)
               //console.log('當前價', kline.c)
               //console.log('klineData',klineData)
+
+              const now = new Date();
+              const seconds = now.getSeconds();
+              console.log('当前秒数',seconds)
+              if(seconds > 45  ){
+                
+                if(waitingPrice === 0){
+                  console.log('45开始取数据')
+                  const openTime = getNextMinuteTimestamp();
+                  let openPrice =  await getOpenPrice(symbol.toUpperCase(),openTime)
+                  waitingPrice = openPrice.data.price
+                  console.log('获取价格',waitingPrice)
+                }
+              }else if(seconds === 0){
+                if(waitingPrice > 0){
+                  console.log('秒数为0',waitingPrice)
+                  lastPrice.value = waitingPrice
+                }
+              }else if(seconds > 5){
+                waitingPrice = 0;
+              }
+
               let data = dataPoint;
               chartInstance.value.updateData({
                   timestamp: data[0],
                   open: +data[1],
                   high: +data[2],
                   low: +data[3],
-                  close: +data[4],
+                  close: parseFloat(lastPrice.value),
                   volume: Math.ceil(+data[5]),
               })
- 
 
-              currentTimes.value = moment(data[0]).format("YYYYMMDDHHmm")
+              const nowByUTC = moment.utc().add(8, 'hours'); // 获取 UTC 时间并加8小时以转换为北京时间
+
+              if (nowByUTC.seconds() >= 46) {
+                currentTimes.value = nowByUTC.add(1, 'minute').format("YYYYMMDDHHmm");
+              } else {
+                currentTimes.value = nowByUTC.format("YYYYMMDDHHmm");
+              }
               //console.log( moment(parseInt(data[0])+60).unix() ,'-',  moment(parseInt(data[0])).format("YYYY-MM-DD HH:mm:00") ,  moment().format("YYYY-MM-DD HH:mm:ss") )
  
-              const nowTime = moment().format("YYYY-MM-DD HH:mm:ss");
-              const lastTime = moment(parseInt(data[0])).format("YYYY-MM-DD HH:mm:00");
+              const nowTime = moment().add(15,'seconds').format("YYYY-MM-DD HH:mm:ss");
+              const lastTime = moment(parseInt(data[0])).add(15,'seconds').format("YYYY-MM-DD HH:mm:00");
               countdown.value = 60 - (moment(nowTime).unix() - moment(lastTime).unix() ) 
           }
       };
@@ -615,27 +654,21 @@ setInterval(()=>{
     // 获取当前时间
     const now = new Date();
     const seconds = now.getSeconds();
-    if (seconds >= 55) {
-        showSuccessToast('停止下注')
-        return;
-    }
+    
     let token = localStorage.getItem('jwt-token')
-      console.log(buyAmount.value,buySecond.value,buyType.value)
-      let res = await doBuy({
-        pair:pair.value,
-        quantity:buyAmount.value,
-        second:buySecond.value,
-        buyType:buyType.value,
-        token,
-      })
+    console.log(buyAmount.value,buySecond.value,buyType.value)
+    let res = await doBuy({
+      pair:pair.value,
+      quantity:buyAmount.value,
+      second:buySecond.value,
+      buyType:buyType.value,
+      token,
+    })
 
-      showSuccessToast( res.data.message );
+    showSuccessToast( res.data.message );
     if(res.data.code == 200)
       showBuy.value = false
-    else
-      showDialog({
-        message:res.data.message
-      })
+ 
     buyAmount.value = 1;
   }
 
@@ -656,4 +689,14 @@ setInterval(()=>{
       showSuccessToast( res.data.message );
     }
   }
+
+
+  const getNextMinuteTimestamp = function () {
+    const now = new Date(); // 当前时间
+    now.setSeconds(0, 0);   // 将秒数和毫秒数设置为 0，即整分
+    now.setMinutes(now.getMinutes() + 1); // 分钟加 1，得到下一个自然分钟
+    return Math.floor(now.getTime() ); // 返回 Unix 时间戳，单位为秒
+ 
+  }
+ 
 </script>

@@ -9,7 +9,7 @@ export function getApiUrl() {
   if (environment === 'production') {
     apiUrl = window.location.origin;
   } else {
-    apiUrl = import.meta.env.VITE_BASE_API; // 开发环境的 API 地址
+    apiUrl = window.location.origin;//import.meta.env.VITE_BASE_API; // 开发环境的 API 地址
   }
   return apiUrl;
 }
