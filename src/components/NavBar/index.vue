@@ -76,7 +76,7 @@ const { setThemeMode, themeMode, themeVariables } = useWeb3ModalTheme()
 const events = useWeb3ModalEvents()
 console.log(events)
 import Web3 from'web3'
-const mainUrl =  getApiUrl();//import.meta.env.VITE_BASE_API;
+const mainUrl =  getApiUrl();
 import {myWalletConnect} from "@/utils/walletconnect"
 const connectWallet = async () =>{
   await myWalletConnect(false);

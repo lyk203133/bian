@@ -1,7 +1,7 @@
 import { http } from "@/utils/http";
 import { getApiUrl } from "@/utils/base";
 import axios from "axios";
-let mainUrl = getApiUrl();//import.meta.env.VITE_BASE_API;//'https://api.jz1378.com';
+let mainUrl = getApiUrl();
 export function getSetting() {
   return http.request({
     url: "/setting",

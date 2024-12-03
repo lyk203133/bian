@@ -1,6 +1,7 @@
 import Axios from "axios";
 import NProgress from "../progress";
 import { showFailToast } from "vant";
+import { getApiUrl } from "../base";
 import "vant/es/toast/style";
 
 // 默认 axios 实例请求配置
@@ -9,7 +10,7 @@ const configDefault = {
     "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
   },
   timeout: 0,
-  baseURL: import.meta.env.VITE_BASE_API,
+  baseURL: getApiUrl(),//import.meta.env.VITE_BASE_API,
   data: {}
 };
 
