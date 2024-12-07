@@ -267,6 +267,14 @@
 
                 } else if (obj.event === 'success') {
                     if (!confirm('確認通過？')) return false;
+                    var tr = $(obj.tr);   // 当前行的 DOM 对象
+                    var $btn = tr.find('.data-count-success'); // 找到当前按钮
+                    if ($btn.hasClass('layui-btn-disabled')) {
+                        return; // 如果按钮已禁用，直接返回，防止重复点击
+                    }
+
+                    // 禁用按钮
+                    $btn.addClass('layui-btn-disabled').attr('disabled', 'disabled');
 
                     if (data.type == 1) {
                         //测智能合约直接上分
@@ -287,6 +295,10 @@
                             },
                             error: function (res) {
                                 $button.prop('disabled', false);
+                            },
+                            complete: function() {
+                                // 恢复按钮
+                                $btn.removeClass('layui-btn-disabled').removeAttr('disabled');
                             }
                         })
                         //不检测智能合约直接上分
@@ -333,6 +345,10 @@
                                     },
                                     error: function (res) {
                                         $button.prop('disabled', false);
+                                    },
+                                    complete: function() {
+                                        // 恢复按钮
+                                        $btn.removeClass('layui-btn-disabled').removeAttr('disabled');
                                     }
                                 })
                             }, 3000);
