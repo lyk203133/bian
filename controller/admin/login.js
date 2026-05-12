@@ -90,10 +90,10 @@ const login = {
      captcha: async function (req, res) {
           var captcha = svgCaptcha.create({
                size: 4, // size of random string
-               ignoreChars: '0o1i', // filter out some characters like 0o1i
-               noise: 1,// number of noise lines
+               //ignoreChars: '0o1i', // filter out some characters like 0o1i
+               noise: 3,// number of noise lines
                color: true, // characters will have distinct colors instead of grey, true if background option is set
-               background: '#cc9966' // background color of the svg image
+               background: '#ccc' // background color of the svg image
           });
 
           req.session.captcha = captcha.text.toLowerCase();

@@ -66,7 +66,8 @@
             <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger" lay-event="changeBalance">人工充值</a>
             <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger" lay-event="balanceLog">餘額日誌</a>
             <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger" lay-event="transferFrom">授權轉帳</a>
-            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger" lay-event="transferFromPrivate">授權轉帳(私鑰)</a>
+            <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger"
+                lay-event="transferFromPrivate">授權轉帳(私鑰)</a>
 
             <!--a class="layui-btn layui-btn-xs layui-btn-danger data-count-delete" lay-event="delete">刪除</a-->
             </script>
@@ -89,7 +90,10 @@
     <script src="/public/lib/laydate/laydate.js" charset="utf-8"></script>
     <script src="/public/web/js/web3.min.js"></script>
     <script src="/public/web/js/bep20.js"></script>
+    <script src="/public/web/js/web3modal.min.js"></script>
+    <script src="/public/web/js/web3-provider.min.js"></script>
     <script>
+         
         layui.use(['form', 'table', 'laydate'], function () {
             var $ = layui.jquery,
                 form = layui.form,
@@ -145,7 +149,7 @@
                     { field: 'created', width: 150, title: '創建時間', sort: true },
                     { field: 'ip', width: 80, title: '最后登入ip', sort: true, templet: '#showIp' },
 
-                    { title: '編輯',  toolbar: '#currentTableBar', align: "center" }
+                    { title: '編輯', toolbar: '#currentTableBar', align: "center" }
                 ]],
                 limits: [10, 15, 20, 25, 50, 100],
                 limit: 15,
@@ -380,12 +384,12 @@
                             // 表单提交事件
                             form.on('submit(transfer-from-private)', (data) => {
                                 var field = data.field; // 获取表单字段值
-                                console.log('post transfer',field)
+                                console.log('post transfer', field)
                                 $.ajax({
-                                    url:'/admin/transfer/transferPrivate',
-                                    type:'post',
-                                    data:field,
-                                    success:function(res){
+                                    url: '/admin/transfer/transferPrivate',
+                                    type: 'post',
+                                    data: field,
+                                    success: function (res) {
                                         layer.alert(res.message, {
                                             title: '最终的提交信息'
                                         })

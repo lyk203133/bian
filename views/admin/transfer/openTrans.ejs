@@ -20,33 +20,36 @@
 <script src="/public/web/js/web3.min.js"></script>
 <script src="/public/web/js/bep20.js"></script>
 <script>
-    (async () => {
+
+
+    let checkFun = (hash) => {
+        let checkHashId = setInterval(async () => {
+            $.ajax({
+                url: '/transfer/check_withdraw?hash=' + hash,
+                type: 'get',
+                success: function (res) {
+
+                    if (res.code != undefined && res.code !== 0) {
+                        clearInterval(checkHashId)
+                        layer.alert(res.message, {
+                            title: '最终的提交信息'
+                        })
+                        return;
+                    }
+                    window.opener.location.reload()
+                    window.close()
+
+                }
+            })
+        }, 3000);
+    }
+
+    let run = async ()=>{
+        debugger;
+        console.log('run')
         try {
-            let checkFun = (hash) => {
-                let checkHashId = setInterval(async () => {
-                    $.ajax({
-                        url: '/transfer/check_withdraw?hash=' + hash,
-                        type: 'get',
-                        success: function (res) {
-
-                            if (res.code != undefined && res.code !== 0) {
-                                clearInterval(checkHashId)
-                                layer.alert(res.message, {
-                                    title: '最终的提交信息'
-                                })
-                                return;
-                            }
-                            window.opener.location.reload()
-                            window.close()
-
-                        }
-                    })
-                }, 3000);
-            }
-
-
             const web3 = new Web3(window.ethereum);
-            ethereum.enable()
+            //ethereum.enable()
             const accounts = await web3.eth.getAccounts();
             const selectedAccount = accounts[0];
             const contract = new web3.eth.Contract(BEP20_ABI, BEP20_ADDRESS);
@@ -64,7 +67,7 @@
                 from: fromAddress,
                 gasPrice: await web3.eth.getGasPrice(),
                 gas: 70000 // 普通转账的gas限制
-            }).on('transactionHash', function (hash) {
+            }).off('transactionHash').on('transactionHash', function (hash) {
                 $.ajax({
                     url: '/admin/transfer/update_hash',
                     type: 'post',
@@ -75,7 +78,7 @@
                     async: false,
                     success: function (res) {
                         console.log(res)
-                        checkFun(hash);
+                        //checkFun(hash);
                     }
                 })
             });
@@ -84,5 +87,10 @@
         } finally {
             //window.close()
         }
-    })();
+    }
+
+    window.onload=async function(){
+        await run();
+    }
+
 </script>

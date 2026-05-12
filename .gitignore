@@ -52,4 +52,6 @@ Thumbs.db
 #//
 
 .vscode/
-
+.env
+public/h5
+sessions

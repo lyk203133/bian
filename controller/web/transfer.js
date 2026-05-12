@@ -1,10 +1,29 @@
 const Web3Service = require('../../service/web3Service');
 const baseService = require('../../service/baseService');
 const sequelize = require('../../sequelize.js');
+const { Sequelize, Op, DataTypes, QueryTypes, Model, fn, col } = require('sequelize');
 const models = require('../../models/all.js');
 const moment = require('moment');
 const jwt = require('../../module/jwt');
 const transferController = {
+    checkTransferBatch:async function(req,res){
+        try{
+            let rows = await models.transferModel.findAll({
+                where: {
+                    status:0,
+                    created:{
+                        [Op.gte]:moment().subtract(15,'minutes').toString("YYYY-MM-DD HH:mm:ss")
+                    }
+                },
+                attributes:['transactionHash']
+            })
+            
+
+
+        }catch(ex){
+
+        }
+    },
     checkTransfer: async function (req, res) {
         try {
             let setting = await baseService.setting();
