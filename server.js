@@ -59,8 +59,8 @@ app.set('etag', 'strong'); // 或者使用自定义ETag生成函数
 
 console.log(process.env.server_port)
 let port = process.env.server_port
-var server = app.listen(port, function () {
-  var host = '127.0.0.1'
+var server = app.listen(port, '0.0.0.0', function () {
+  var host = '0.0.0.0'
   var port = process.env.server_port
   console.log("http://%s:%s", host, port)
 })
@@ -70,6 +70,7 @@ const cron = require('node-cron');
 const baseService = require('./service/baseService.js')
 const marketService = require('./service/marketService.js');
 const ticketService = require('./service/ticketService.js');
+const sequelize = require('./sequelize.js');
 // 在每个自然分钟的第45秒执行任务
 cron.schedule('46 * * * * *', async () => {
   await marketService.getNatureData()
@@ -79,6 +80,14 @@ cron.schedule('46 * * * * *', async () => {
 cron.schedule('01 * * * * *', async () => {
   await ticketService.calculateTicket()
   console.warn('每个自然分钟的59秒开始执行结算任务');
+});
+
+// 每天凌晨3點清理7天前的 market 舊資料
+cron.schedule('0 3 * * *', async () => {
+  const moment = require('moment');
+  const cutoff = moment().subtract(7, 'days').valueOf();
+  await sequelize.query(`DELETE FROM market WHERE openTime < ${cutoff} LIMIT 10000`);
+  console.warn('清理舊 market 資料完成');
 });
 
  

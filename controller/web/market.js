@@ -37,57 +37,54 @@ const marketController = {
     },
     marketData: async function (req, res) {
         try {
-
             let symbol = req.query.symbol || 'BTCUSDT';
-
             let interval = req.query.interval || '15m';
             let limit = req.query.limit || 100;
-            const url = `https://api.binance.com/api/v3/klines?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=${limit}`;
-
-            const response = await axios.get(url)
-
-            const klineData = response.data;
-            //console.log(klineData);
-
-            res.send({
-                code: 200,
-                data: klineData
-            });
+            const apiHosts = [
+                'https://api1.binance.com',
+                'https://api2.binance.com',
+                'https://api3.binance.com',
+                'https://api.binance.com',
+            ];
+            for (const host of apiHosts) {
+                try {
+                    const url = `${host}/api/v3/klines?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=${limit}`;
+                    const response = await axios.get(url, { timeout: 5000 });
+                    return res.send({ code: 200, data: response.data });
+                } catch (ex) {
+                    console.warn(`marketData failed on ${host}:`, ex.message);
+                }
+            }
+            res.send({ code: 500, data: [] });
         } catch (ex) {
             console.error(ex);
-            res.send({
-                code: 500,
-                data: []
-            })
+            res.send({ code: 500, data: [] });
         }
     },
     pricing: async function (req, res) {
         try {
-
             let bi = 'BTC,BNB,ETH,USDC,TRX,SOL,ADA,DOGE,MATIC,DOT';
-            let symbolArr = bi.split(',').map(e => {
-                return `%22${e}USDT%22`
-            })
-
+            let symbolArr = bi.split(',').map(e => `%22${e}USDT%22`);
             let symbols = req.query.symbol || '[' + symbolArr.join(',') + ']';
-
-            const url = `https://api.binance.com/api/v3/ticker/24hr?symbols=${symbols}`;
-
-            const response = await axios.get(url)
-
-            const rows = response.data;
-            //console.log(rows);
-
-            res.send({
-                code: 200,
-                data: rows
-            });
+            const apiHosts = [
+                'https://api1.binance.com',
+                'https://api2.binance.com',
+                'https://api3.binance.com',
+                'https://api.binance.com',
+            ];
+            for (const host of apiHosts) {
+                try {
+                    const url = `${host}/api/v3/ticker/24hr?symbols=${symbols}`;
+                    const response = await axios.get(url, { timeout: 5000 });
+                    return res.send({ code: 200, data: response.data });
+                } catch (ex) {
+                    console.warn(`pricing failed on ${host}:`, ex.message);
+                }
+            }
+            res.send({ code: 500, data: [] });
         } catch (ex) {
             console.error(ex);
-            res.send({
-                code: 500,
-                data: []
-            })
+            res.send({ code: 500, data: [] });
         }
     },
     marketDataLast: async function (req, res) {

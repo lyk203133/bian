@@ -112,39 +112,58 @@ let marketService = {
         if (!global.cache.setting || Object.keys(global.cache.setting).length === 0) {
             global.cache.setting = await models.settingModel.findOne();
         }
-        let klineData;
-        try {
-            const url = `https://api.binance.com/api/v3/klines?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=${limit}`;
-            console.log(symbol, url);
-            const response = await axios.get(url)
-
-            klineData = response.data;
-            //console.log(klineData);
-            return klineData;
-        }
-        catch (ex) {
-            console.error('getKlineData error', ex.message)
+        const apiHosts = [
+            'https://api1.binance.com',
+            'https://api2.binance.com',
+            'https://api3.binance.com',
+            'https://api.binance.com',
+        ];
+        for (const host of apiHosts) {
+            try {
+                const url = `${host}/api/v3/klines?symbol=${symbol.toUpperCase()}&interval=${interval}&limit=${limit}`;
+                console.log('trying kline:', url);
+                const response = await axios.get(url, { timeout: 5000 });
+                return response.data;
+            } catch (ex) {
+                console.warn(`getKlineDataBySymbol failed on ${host}:`, ex.message);
+            }
         }
         return null;
     },
     //https://api.binance.com/api/v3/ticker/price?symbols=[%22BTCUSDT%22,%22ETHUSDT%22,%22BNBUSDT%22]
     async getKlinePriceBySymbols(symbols) {
-        const symbolsStr = '["BTCUSDT","ETHUSDT","BNBUSDT"]';
         if (!global.cache.setting || Object.keys(global.cache.setting).length === 0) {
             global.cache.setting = await models.settingModel.findOne();
         }
-        let klineData;
-        try {
-            const url = `https://api.binance.com/api/v3/ticker/price?symbols=${symbolsStr}`;
-            console.log(symbols, url);
-            const response = await axios.get(url)
-
-            klineData = response.data;
-            //console.log(klineData);
-            return klineData;
+        // Binance 備用 + OKX 作為最終 fallback
+        const binanceHosts = [
+            'https://api1.binance.com',
+            'https://api2.binance.com',
+            'https://api3.binance.com',
+            'https://api.binance.com',
+        ];
+        const symbolsStr = '["BTCUSDT","ETHUSDT","BNBUSDT"]';
+        for (const host of binanceHosts) {
+            try {
+                const url = `${host}/api/v3/ticker/price?symbols=${symbolsStr}`;
+                const response = await axios.get(url, { timeout: 5000 });
+                return response.data;
+            } catch (ex) {
+                console.warn(`getKlinePriceBySymbols failed on ${host}:`, ex.message);
+            }
         }
-        catch (ex) {
-            console.error('getKlinePriceBySymbols error', ex.message)
+        // Fallback: OKX API
+        try {
+            console.log('trying OKX API...');
+            const pairs = ['BTC-USDT', 'ETH-USDT', 'BNB-USDT'];
+            const results = await Promise.all(pairs.map(async (pair) => {
+                const r = await axios.get(`https://www.okx.com/api/v5/market/ticker?instId=${pair}`, { timeout: 5000 });
+                const d = r.data.data[0];
+                return { symbol: pair.replace('-', ''), price: d.last };
+            }));
+            return results;
+        } catch (ex) {
+            console.error('OKX fallback error:', ex.message);
         }
         return null;
     },

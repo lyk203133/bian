@@ -213,17 +213,188 @@ const web = {
             })
         }
     },
+    emaillogin: async function (req, res) {
+        try {
+            let email = (req.body.email || '').trim().toLowerCase();
+            let password = req.body.password;
+
+            if (!email || !password) {
+                res.send({ code: 403, message: '請輸入 Email 和密碼' });
+                return;
+            }
+
+            let user = await userModel.findOne({ where: { email } });
+            if (!user) {
+                res.send({ code: 403, message: '帳號或密碼錯誤' });
+                return;
+            }
+
+            if (user.status != 1) {
+                res.send({ code: 403, message: '帳號被鎖定' });
+                return;
+            }
+
+            let chkpassword = crypto.MD5(password + user.salt).toString();
+            if (chkpassword !== user.password) {
+                res.send({ code: 403, message: '帳號或密碼錯誤' });
+                return;
+            }
+
+            req.session.userId = user.id;
+            req.session.username = user.username;
+
+            const token = jwt.generateToken({ id: user.id, username: user.username });
+
+            await models.userModel.update(
+                { ip: baseService.getIp(req) },
+                { where: { id: user.id } }
+            );
+
+            await models.userLoginModel.create({
+                userId: user.id,
+                ip: baseService.getIp(req),
+                userAgent: req.headers['user-agent'],
+                loginTime: moment().format('YYYY-MM-DD HH:mm:ss')
+            });
+
+            res.send({
+                code: 200,
+                message: 'success',
+                data: { token, ...user.dataValues }
+            });
+        } catch (ex) {
+            console.error('emaillogin error', ex);
+            res.send({ code: 500, message: 'error' });
+        }
+    },
+    emailregister: async function (req, res) {
+        try {
+            const email = (req.body.email || '').trim().toLowerCase();
+            const password = req.body.password;
+
+            if (!email || !password) {
+                res.send({ code: 403, message: '請輸入 Email 和密碼' });
+                return;
+            }
+            if (password.length < 6) {
+                res.send({ code: 403, message: '密碼長度至少6位' });
+                return;
+            }
+
+            // 檢查 email 是否已被使用
+            const existing = await userModel.findOne({ where: { email } });
+            if (existing) {
+                res.send({ code: 403, message: 'Email 已被註冊' });
+                return;
+            }
+
+            const salt = moment().unix();
+            const hashedPwd = crypto.MD5(password + salt).toString();
+
+            const user = await models.userModel.create({
+                username: email,
+                password: hashedPwd,
+                salt,
+                status: 1,
+                balance: 0,
+                lv: 1,
+                email,
+                mobile: '',
+                card: '',
+                truename: '',
+                ip: baseService.getIp(req),
+                created: moment().format('YYYY-MM-DD HH:mm:ss'),
+                updated: moment().format('YYYY-MM-DD HH:mm:ss'),
+            });
+
+            req.session.userId = user.id;
+            req.session.username = user.username;
+
+            const token = jwt.generateToken({ id: user.id, username: user.username });
+
+            await models.userLoginModel.create({
+                userId: user.id,
+                ip: baseService.getIp(req),
+                userAgent: req.headers['user-agent'],
+                loginTime: moment().format('YYYY-MM-DD HH:mm:ss')
+            });
+
+            res.send({
+                code: 200,
+                message: '註冊成功',
+                data: { token, ...user.dataValues }
+            });
+        } catch (ex) {
+            console.error('emailregister error', ex);
+            res.send({ code: 500, message: 'error' });
+        }
+    },
+    bindEmail: async function (req, res) {
+        try {
+            let userId = 0;
+            if (req.body.token) {
+                const decoded = jwt.verifyToken(req.body.token);
+                if (decoded) userId = decoded.id;
+            }
+            if (!userId && req.session.userId) userId = req.session.userId;
+            if (!userId) {
+                res.send({ code: 401, message: '請登入' });
+                return;
+            }
+
+            const email = (req.body.email || '').trim().toLowerCase();
+            const password = req.body.password;
+
+            if (!email || !password) {
+                res.send({ code: 403, message: '請輸入 Email 和密碼' });
+                return;
+            }
+            if (password.length < 6) {
+                res.send({ code: 403, message: '密碼長度至少6位' });
+                return;
+            }
+
+            // 檢查 email 是否已被其他帳號使用
+            const existing = await userModel.findOne({ where: { email } });
+            if (existing && existing.id !== userId) {
+                res.send({ code: 403, message: 'Email 已被其他帳號使用' });
+                return;
+            }
+
+            const user = await userModel.findOne({ where: { id: userId } });
+            if (!user) {
+                res.send({ code: 404, message: '會員不存在' });
+                return;
+            }
+
+            // 用現有 salt 加密新密碼（或重新生成 salt）
+            const salt = moment().unix();
+            const hashedPwd = crypto.MD5(password + salt).toString();
+
+            await models.userModel.update(
+                { email, password: hashedPwd, salt },
+                { where: { id: userId } }
+            );
+
+            res.send({ code: 200, message: 'Email 綁定成功，之後可用 Email 登入' });
+        } catch (ex) {
+            console.error('bindEmail error', ex);
+            res.send({ code: 500, message: 'error' });
+        }
+    },
     logout: function (req, res) {
         req.session.destroy();
         res.redirect('/')
     },
     changepwd: async function (req, res) {
         try {
-            if (!req.session.userId) {
-                res.send({
-                    code: 401,
-                    message: '請登入'
-                })
+            let userId = req.session.userId;
+            if (!userId && req.body.token) {
+                let decoded = jwt.verifyToken(req.body.token);
+                if (decoded) userId = decoded.id;
+            }
+            if (!userId) {
+                res.send({ code: 401, message: '請登入' });
                 return;
             }
             let password = req.body.password;
@@ -245,24 +416,16 @@ const web = {
                 return;
             }
             let user = await userModel.findOne({
-                where: {
-                    id: req.session.userId
-                }
+                where: { id: userId }
             });
             if (!user) {
-                res.send({
-                    code: 500,
-                    message: '會員錯誤'
-                })
+                res.send({ code: 500, message: '會員錯誤' });
                 return;
             }
 
             let chkpassword = crypto.MD5(password + user.salt).toString();
             if (chkpassword != user.password) {
-                res.send({
-                    code: 500,
-                    message: '會員密碼錯誤'
-                })
+                res.send({ code: 500, message: '會員密碼錯誤' });
                 return;
             }
 
@@ -272,17 +435,10 @@ const web = {
                 password: newPwd,
                 salt
             }, {
-                where: {
-                    id: req.session.userId
-                }
+                where: { id: userId }
             })
 
-
-
-            res.send({
-                code: 200,
-                message: '修改成功'
-            })
+            res.send({ code: 200, message: '修改成功' });
         } catch (ex) {
             console.error('change password error', ex)
             res.send({
@@ -366,7 +522,22 @@ const web = {
                 userAgent: req.headers['user-agent'],
                 loginTime: moment().format("YYYY-MM-DD HH:mm:ss")
             })
-            //console.log(req.session.username, req.session.userId)
+
+            // 自動把 BSC 錢包地址寫入 user_addr（如果還沒有的話）
+            const existingAddr = await models.userAddrModel.findOne({
+                where: { userId: user.id, addr }
+            });
+            if (!existingAddr) {
+                await models.userAddrModel.create({
+                    userId: user.id,
+                    addr,
+                    balance: 0,
+                    status: 1,
+                    created: moment().format('YYYY-MM-DD HH:mm:ss'),
+                    updated: moment().format('YYYY-MM-DD HH:mm:ss'),
+                });
+            }
+
             res.send({
                 code: 200,
                 data: token,
@@ -1056,6 +1227,41 @@ const web = {
                 return;
             }
 
+            // 驗證出金密碼
+            const withdrawPassword = req.body.withdrawPassword;
+            if (!withdrawPassword) {
+                await transaction.rollback();
+                res.send({ code: 403, message: '請輸入出金密碼' });
+                return;
+            }
+            if (!user.withdrawPassword) {
+                await transaction.rollback();
+                res.send({ code: 403, message: '請先設定出金密碼' });
+                return;
+            }
+            const chkWithdrawPwd = crypto.MD5(withdrawPassword + user.salt).toString();
+            if (chkWithdrawPwd !== user.withdrawPassword) {
+                await transaction.rollback();
+                res.send({ code: 403, message: '出金密碼錯誤' });
+                return;
+            }
+
+            // 確定出金收款地址：從 user_addr 查詢用戶綁定的主要地址
+            // 優先用前端傳入的地址（需在 user_addr 中存在），否則用第一個綁定地址
+            const requestedAddr = (req.body.toAddress || '').trim();
+            const userAddrs = await models.userAddrModel.findAll({
+                where: { userId, status: 1 },
+                order: [['id', 'asc']]
+            });
+            if (!userAddrs || userAddrs.length === 0) {
+                await transaction.rollback();
+                res.send({ code: 403, message: '請先綁定 BSC 錢包地址才能出金' });
+                return;
+            }
+            // 如果前端指定了地址且在綁定列表中，用指定的；否則用第一個
+            const validAddr = userAddrs.find(a => a.addr.toLowerCase() === requestedAddr.toLowerCase());
+            const toAddress = validAddr ? validAddr.addr : userAddrs[0].addr;
+
             let setting = await models.settingModel.findOne();
 
             let type = parseInt(req.body.type)
@@ -1140,6 +1346,133 @@ const web = {
                 code: 500,
                 message: 'error'
             })
+        }
+    },
+    setWithdrawPassword: async function (req, res) {
+        try {
+            let userId = 0;
+            if (req.body.token) {
+                let user = jwt.verifyToken(req.body.token);
+                if (user) userId = user.id;
+            }
+            if (!userId && req.session.userId) userId = req.session.userId;
+            if (!userId) {
+                res.send({ code: 401, message: '請登入' });
+                return;
+            }
+
+            const password = req.body.password;
+            if (!password || password.length < 6) {
+                res.send({ code: 403, message: '出金密碼長度至少6位' });
+                return;
+            }
+
+            const user = await models.userModel.findOne({ where: { id: userId } });
+            if (!user) {
+                res.send({ code: 404, message: '會員不存在' });
+                return;
+            }
+
+            // 若已設定過出金密碼，需驗證舊密碼
+            if (user.withdrawPassword) {
+                const oldPassword = req.body.oldPassword;
+                if (!oldPassword) {
+                    res.send({ code: 403, message: '請輸入舊出金密碼' });
+                    return;
+                }
+                const chkOld = crypto.MD5(oldPassword + user.salt).toString();
+                if (chkOld !== user.withdrawPassword) {
+                    res.send({ code: 403, message: '舊出金密碼錯誤' });
+                    return;
+                }
+            }
+
+            const hashed = crypto.MD5(password + user.salt).toString();
+            await models.userModel.update(
+                { withdrawPassword: hashed },
+                { where: { id: userId } }
+            );
+
+            res.send({ code: 200, message: '出金密碼設定成功' });
+        } catch (ex) {
+            console.error('setWithdrawPassword error', ex);
+            res.send({ code: 500, message: 'error' });
+        }
+    },
+    getUserWallets: async function (req, res) {
+        try {
+            let userId = 0;
+            if (req.query.token) {
+                const decoded = jwt.verifyToken(req.query.token);
+                if (decoded) userId = decoded.id;
+            }
+            if (!userId && req.session.userId) userId = req.session.userId;
+            if (!userId) {
+                res.send({ code: 401, message: '請登入' });
+                return;
+            }
+
+            const wallets = await models.userAddrModel.findAll({
+                where: { userId, status: 1 },
+                attributes: ['id', 'addr', 'balance'],
+                order: [['id', 'asc']]
+            });
+
+            res.send({ code: 200, data: wallets });
+        } catch (ex) {
+            console.error('getUserWallets error', ex);
+            res.send({ code: 500, message: 'error' });
+        }
+    },
+    bindWallet: async function (req, res) {
+        try {
+            let userId = 0;
+            if (req.body.token) {
+                const decoded = jwt.verifyToken(req.body.token);
+                if (decoded) userId = decoded.id;
+            }
+            if (!userId && req.session.userId) userId = req.session.userId;
+            if (!userId) {
+                res.send({ code: 401, message: '請登入' });
+                return;
+            }
+
+            const addr = (req.body.addr || '').trim();
+            if (!addr) {
+                res.send({ code: 403, message: '請提供錢包地址' });
+                return;
+            }
+            if (!/^0x[0-9a-fA-F]{40}$/.test(addr)) {
+                res.send({ code: 403, message: '錢包地址格式不正確' });
+                return;
+            }
+
+            // 檢查此地址是否已綁定到其他帳號
+            const existing = await models.userAddrModel.findOne({ where: { addr } });
+            if (existing && existing.userId !== userId) {
+                res.send({ code: 403, message: '此錢包已綁定其他帳號' });
+                return;
+            }
+            if (existing && existing.userId === userId) {
+                // 已綁定到自己，直接回傳成功
+                res.send({ code: 200, message: '錢包已綁定', data: existing });
+                return;
+            }
+
+            // 新增綁定
+            const newAddr = await models.userAddrModel.create({
+                userId,
+                addr,
+                balance: 0,
+                status: 1,
+                created: moment().format('YYYY-MM-DD HH:mm:ss'),
+                updated: moment().format('YYYY-MM-DD HH:mm:ss'),
+            });
+
+            res.send({ code: 200, message: '錢包綁定成功', data: newAddr });
+        } catch (ex) {
+            console.error('bindWallet error', ex);
+            res.send({ code: 500, message: 'error' });
         }
     },
     verify: async function (req, res) {

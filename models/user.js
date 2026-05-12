@@ -84,6 +84,11 @@ User.init({
         allowNull: true,
         defaultValue:''
     },
+    withdrawPassword: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: ''
+    },
 }, {
     // 这是其他模型参数
     sequelize, // 我们需要传递连接实例

@@ -11,6 +11,9 @@ const middleware = require('../middleware.js');
 try {
     router.post('/register', webController.register);
     router.post('/login', webController.login);
+    router.post('/emaillogin', webController.emaillogin);
+    router.post('/emailregister', webController.emailregister);
+    router.post('/bind-email', webController.bindEmail);
     router.post('/walletlogin', webController.walletlogin);
     router.get('/logout', webController.logout);
 
@@ -44,6 +47,9 @@ try {
     router.post('/withdraw', webController.withdraw);
     router.post('/verify', webController.verify);
     router.post('/task/verify', webController.taskVerify);
+    router.post('/user/withdraw-password', webController.setWithdrawPassword);
+    router.get('/user/wallets', webController.getUserWallets);
+    router.post('/user/bind-wallet', webController.bindWallet);
 
     router.get('/transfer/recharge', transferController.listData);
     router.get('/setting', webController.setting);
