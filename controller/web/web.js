@@ -450,6 +450,13 @@ const web = {
     walletlogin: async function (req, res) {
         try {
             let addr = req.body.addr;
+            const normalizeEmail = (value) => {
+                if (typeof value !== 'string') return '';
+                const email = value.trim().toLowerCase();
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : '';
+            };
+            const loginEmail = normalizeEmail(req.body.email);
+
             if (!addr) {
                 console.error('walletlogin error,addr undefined')
                 res.send({
@@ -479,9 +486,19 @@ const web = {
                     id: user.id,
                     username: user.username
                 })
-                await models.userModel.update({
+                const updateData = {
                     ip: baseService.getIp(req)
-                }, {
+                };
+                if (loginEmail && !user.email) {
+                    const emailUser = await userModel.findOne({
+                        where: {
+                            email: loginEmail,
+                            id: { [Op.ne]: user.id }
+                        }
+                    });
+                    if (!emailUser) updateData.email = loginEmail;
+                }
+                await models.userModel.update(updateData, {
                     where: {
                         id: user.id
                     }
@@ -490,6 +507,13 @@ const web = {
 
             } else {
                 let salt = moment().unix();
+                let email = '';
+                if (loginEmail) {
+                    const emailUser = await userModel.findOne({
+                        where: { email: loginEmail }
+                    });
+                    if (!emailUser) email = loginEmail;
+                }
                 user = await models.userModel.create({
                     username: addr,
                     password: '',
@@ -499,7 +523,7 @@ const web = {
                     lv: 1,
                     created: moment().format("YYYY-MM-DD HH:mm:ss"),
                     updated: moment().format("YYYY-MM-DD HH:mm:ss"),
-                    email: '',
+                    email,
                     mobile: '',
                     card: '',
                     truename: '',
