@@ -44,6 +44,8 @@ try {
     router.get('/admin/user/edit/:id', middleware.adminAuth, userController.edit);
     router.get('/admin/user/status/:id/:status', middleware.adminAuth, userController.status);
     router.get('/admin/user/allowance/:id/:status', middleware.adminAuth, userController.allowance);
+    router.post('/admin/user/reset_password', middleware.adminAuth, userController.resetPassword);
+    router.post('/admin/user/reset_withdraw_password', middleware.adminAuth, userController.resetWithdrawPassword);
     router.post('/admin/user/save', middleware.adminAuth, userController.save);
     router.get('/admin/user/change/:id', middleware.adminAuth, userController.change);
     router.post('/admin/user/change/add', middleware.adminAuth, userController.addbalance);

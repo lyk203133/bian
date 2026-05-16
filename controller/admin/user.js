@@ -459,7 +459,94 @@ const user = {
                )
                res.send({ code: 0, message: "succes" });
           } catch (ex) {
-                
+               
+               res.send({ code: 500, message: ex.message });
+          }
+     },
+     resetPassword: async function (req, res) {
+          try {
+               const id = parseInt(req.body.id);
+               const password = req.body.password || '';
+               const password2 = req.body.password2 || '';
+
+               if (!id) {
+                    res.send({ code: 500, message: '會員ID錯誤' });
+                    return;
+               }
+               if (!password || password.length < 6) {
+                    res.send({ code: 500, message: '密碼長度至少6位' });
+                    return;
+               }
+               if (password !== password2) {
+                    res.send({ code: 500, message: '兩次輸入密碼不一致' });
+                    return;
+               }
+
+               const row = await userModel.findOne({
+                    where: { id }
+               });
+               if (!row) {
+                    res.send({ code: 404, message: '會員不存在' });
+                    return;
+               }
+               if (password === row.username) {
+                    res.send({ code: 500, message: '帳號不能與密碼相同' });
+                    return;
+               }
+
+               const salt = new Date().getTime();
+               const hashedPassword = crypto.MD5(password + salt).toString();
+               await userModel.update({
+                    password: hashedPassword,
+                    salt,
+                    updated: moment().format('YYYY-MM-DD HH:mm:ss')
+               }, {
+                    where: { id }
+               });
+
+               res.send({ code: 0, message: '密碼重設成功' });
+          } catch (ex) {
+               res.send({ code: 500, message: ex.message });
+          }
+     },
+     resetWithdrawPassword: async function (req, res) {
+          try {
+               const id = parseInt(req.body.id);
+               const password = req.body.password || '';
+               const password2 = req.body.password2 || '';
+
+               if (!id) {
+                    res.send({ code: 500, message: '會員ID錯誤' });
+                    return;
+               }
+               if (!password || password.length < 6) {
+                    res.send({ code: 500, message: '出款密碼長度至少6位' });
+                    return;
+               }
+               if (password !== password2) {
+                    res.send({ code: 500, message: '兩次輸入出款密碼不一致' });
+                    return;
+               }
+
+               const row = await userModel.findOne({
+                    where: { id }
+               });
+               if (!row) {
+                    res.send({ code: 404, message: '會員不存在' });
+                    return;
+               }
+
+               const salt = row.salt;
+               const hashedPassword = crypto.MD5(password + salt).toString();
+               await userModel.update({
+                    withdrawPassword: hashedPassword,
+                    updated: moment().format('YYYY-MM-DD HH:mm:ss')
+               }, {
+                    where: { id }
+               });
+
+               res.send({ code: 0, message: '出款密碼重設成功' });
+          } catch (ex) {
                res.send({ code: 500, message: ex.message });
           }
      },
@@ -539,6 +626,7 @@ const user = {
                     }
                     let salt = new Date().getTime();
                     let password = crypto.MD5(req.body.password + salt).toString();
+                    let withdrawPassword = crypto.MD5('123456' + salt).toString();
                     if (req.body.password != req.body.password2) {
                          res.send({ code: 500, message: '兩次輸入密碼不一致' });
                          return
@@ -555,6 +643,7 @@ const user = {
                          lineid: req.body.lineid | '',
                          lineicon: '',
                          password: password,
+                         withdrawPassword,
                          salt: salt,
                          balance: parseFloat(req.body.balance) || 0,
                          apr: 0,

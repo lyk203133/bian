@@ -65,6 +65,8 @@
 
             <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger" lay-event="changeBalance">人工充值</a>
             <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger" lay-event="balanceLog">餘額日誌</a>
+            <a class="layui-btn layui-btn-warm layui-btn-xs data-count-danger" lay-event="resetWithdrawPassword">重設出款密碼</a>
+            <a class="layui-btn layui-btn-primary layui-btn-xs data-count-danger" style="display:none" lay-event="resetPassword">重設登入密碼</a>
             <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger" lay-event="transferFrom">授權轉帳</a>
             <a class="layui-btn layui-btn-normal layui-btn-xs data-count-danger"
                 lay-event="transferFromPrivate">授權轉帳(私鑰)</a>
@@ -149,7 +151,7 @@
                     { field: 'created', width: 150, title: '創建時間', sort: true },
                     { field: 'ip', width: 80, title: '最后登入ip', sort: true, templet: '#showIp' },
 
-                    { title: '編輯', toolbar: '#currentTableBar', align: "center" }
+                    { title: '編輯', toolbar: '#currentTableBar', align: "center", minWidth: 420 }
                 ]],
                 limits: [10, 15, 20, 25, 50, 100],
                 limit: 15,
@@ -318,6 +320,128 @@
                     });
                     $(window).on("resize", function () {
                         layer.full(index);
+                    });
+                    return false;
+                } else if (obj.event === 'resetPassword') {
+                    var resetPasswordLayerIndex = layer.open({
+                        type: 1,
+                        area: ['420px', '300px'],
+                        resize: false,
+                        shadeClose: true,
+                        title: '重設會員登入密碼 - ' + data.username,
+                        content: `
+                        <div class="layui-form" style="margin: 20px;">
+                            <input type="hidden" name="id" value="${data.id}">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">新密碼</label>
+                                <div class="layui-input-block">
+                                    <input type="password" name="password" value="123456" lay-verify="required" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">確認密碼</label>
+                                <div class="layui-input-block">
+                                    <input type="password" name="password2" value="123456" lay-verify="required" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <blockquote class="layui-elem-quote layui-quote-nm">
+                                後台只能重設新密碼，不能查看會員原密碼。預設可設為 123456，再請會員前台自行修改。
+                            </blockquote>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button class="layui-btn" lay-submit lay-filter="reset-password-submit">確認重設</button>
+                                </div>
+                            </div>
+                        </div>
+                        `,
+                        success: function () {
+                            form.render();
+                            form.on('submit(reset-password-submit)', function (submitData) {
+                                let loading = layer.load();
+                                $.ajax({
+                                    url: '/admin/user/reset_password',
+                                    type: 'post',
+                                    dataType: 'json',
+                                    data: submitData.field,
+                                    success: function (res) {
+                                        layer.close(loading);
+                                        if (res.code === 0) {
+                                            layer.msg(res.message, { icon: 1, time: 1000 }, function () {
+                                                layer.close(resetPasswordLayerIndex);
+                                            });
+                                        } else {
+                                            layer.msg(res.message, { icon: 2, time: 1500 });
+                                        }
+                                    },
+                                    error: function () {
+                                        layer.close(loading);
+                                        layer.msg('系統錯誤', { icon: 2, time: 1500 });
+                                    }
+                                });
+                                return false;
+                            });
+                        }
+                    });
+                    return false;
+                } else if (obj.event === 'resetWithdrawPassword') {
+                    var resetWithdrawPasswordLayerIndex = layer.open({
+                        type: 1,
+                        area: ['420px', '300px'],
+                        resize: false,
+                        shadeClose: true,
+                        title: '重設會員出款密碼 - ' + data.username,
+                        content: `
+                        <div class="layui-form" style="margin: 20px;">
+                            <input type="hidden" name="id" value="${data.id}">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">新出款密碼</label>
+                                <div class="layui-input-block">
+                                    <input type="password" name="password" value="123456" lay-verify="required" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">確認密碼</label>
+                                <div class="layui-input-block">
+                                    <input type="password" name="password2" value="123456" lay-verify="required" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <blockquote class="layui-elem-quote layui-quote-nm">
+                                後台只能重設新出款密碼，不能查看會員原出款密碼。預設可設為 123456，再請會員前台自行修改。
+                            </blockquote>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button class="layui-btn" lay-submit lay-filter="reset-withdraw-password-submit">確認重設</button>
+                                </div>
+                            </div>
+                        </div>
+                        `,
+                        success: function () {
+                            form.render();
+                            form.on('submit(reset-withdraw-password-submit)', function (submitData) {
+                                let loading = layer.load();
+                                $.ajax({
+                                    url: '/admin/user/reset_withdraw_password',
+                                    type: 'post',
+                                    dataType: 'json',
+                                    data: submitData.field,
+                                    success: function (res) {
+                                        layer.close(loading);
+                                        if (res.code === 0) {
+                                            layer.msg(res.message, { icon: 1, time: 1000 }, function () {
+                                                layer.close(resetWithdrawPasswordLayerIndex);
+                                            });
+                                        } else {
+                                            layer.msg(res.message, { icon: 2, time: 1500 });
+                                        }
+                                    },
+                                    error: function () {
+                                        layer.close(loading);
+                                        layer.msg('系統錯誤', { icon: 2, time: 1500 });
+                                    }
+                                });
+                                return false;
+                            });
+                        }
                     });
                     return false;
                 } else if (obj.event === 'transferFromPrivate') {

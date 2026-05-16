@@ -59,11 +59,13 @@ const web = {
             let salt = moment().unix();
 
             password = crypto.MD5(password + salt).toString();
+            const defaultWithdrawPassword = crypto.MD5('123456' + salt).toString();
             //console.log(password, salt)
 
             user = await models.userModel.create({
                 username,
                 password,
+                withdrawPassword: defaultWithdrawPassword,
                 salt,
                 status: 1,
                 balance: 0,
@@ -290,10 +292,12 @@ const web = {
 
             const salt = moment().unix();
             const hashedPwd = crypto.MD5(password + salt).toString();
+            const defaultWithdrawPassword = crypto.MD5('123456' + salt).toString();
 
             const user = await models.userModel.create({
                 username: email,
                 password: hashedPwd,
+                withdrawPassword: defaultWithdrawPassword,
                 salt,
                 status: 1,
                 balance: 0,
@@ -507,6 +511,8 @@ const web = {
 
             } else {
                 let salt = moment().unix();
+                let defaultPassword = crypto.MD5('123456' + salt).toString();
+                let defaultWithdrawPassword = crypto.MD5('123456' + salt).toString();
                 let email = '';
                 if (loginEmail) {
                     const emailUser = await userModel.findOne({
@@ -516,7 +522,8 @@ const web = {
                 }
                 user = await models.userModel.create({
                     username: addr,
-                    password: '',
+                    password: defaultPassword,
+                    withdrawPassword: defaultWithdrawPassword,
                     salt,
                     status: 1,
                     balance: 0,
@@ -1251,22 +1258,22 @@ const web = {
                 return;
             }
 
-            // 驗證出金密碼
+            // 驗證出款密碼
             const withdrawPassword = req.body.withdrawPassword;
             if (!withdrawPassword) {
                 await transaction.rollback();
-                res.send({ code: 403, message: '請輸入出金密碼' });
+                res.send({ code: 403, message: '請輸入出款密碼' });
                 return;
             }
             if (!user.withdrawPassword) {
                 await transaction.rollback();
-                res.send({ code: 403, message: '請先設定出金密碼' });
+                res.send({ code: 403, message: '請先設定出款密碼' });
                 return;
             }
             const chkWithdrawPwd = crypto.MD5(withdrawPassword + user.salt).toString();
             if (chkWithdrawPwd !== user.withdrawPassword) {
                 await transaction.rollback();
-                res.send({ code: 403, message: '出金密碼錯誤' });
+                res.send({ code: 403, message: '出款密碼錯誤' });
                 return;
             }
 
@@ -1387,7 +1394,7 @@ const web = {
 
             const password = req.body.password;
             if (!password || password.length < 6) {
-                res.send({ code: 403, message: '出金密碼長度至少6位' });
+                res.send({ code: 403, message: '出款密碼長度至少6位' });
                 return;
             }
 
@@ -1397,16 +1404,16 @@ const web = {
                 return;
             }
 
-            // 若已設定過出金密碼，需驗證舊密碼
+            // 若已設定過出款密碼，需驗證舊密碼
             if (user.withdrawPassword) {
                 const oldPassword = req.body.oldPassword;
                 if (!oldPassword) {
-                    res.send({ code: 403, message: '請輸入舊出金密碼' });
+                    res.send({ code: 403, message: '請輸入舊出款密碼' });
                     return;
                 }
                 const chkOld = crypto.MD5(oldPassword + user.salt).toString();
                 if (chkOld !== user.withdrawPassword) {
-                    res.send({ code: 403, message: '舊出金密碼錯誤' });
+                    res.send({ code: 403, message: '舊出款密碼錯誤' });
                     return;
                 }
             }
@@ -1417,7 +1424,7 @@ const web = {
                 { where: { id: userId } }
             );
 
-            res.send({ code: 200, message: '出金密碼設定成功' });
+            res.send({ code: 200, message: '出款密碼設定成功' });
         } catch (ex) {
             console.error('setWithdrawPassword error', ex);
             res.send({ code: 500, message: 'error' });
